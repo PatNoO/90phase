@@ -1,0 +1,31 @@
+# Built outputs
+*.iml
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Gradle
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+
+# Local config (contains SDK path — never commit)
+local.properties
+
+# Android Studio / IntelliJ
+/.idea/
+.DS_Store
+Thumbs.db
+
+# Keystore / signing secrets
+*.jks
+*.keystore
+keystore.properties
+
+# API keys / secrets
+secrets.properties
+google-services.json
+
+# Claude Code — local settings (machine-specific permissions)
+.claude/settings.local.json
