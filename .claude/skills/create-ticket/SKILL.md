@@ -45,18 +45,18 @@ Call the result `NEXT`. Use it as `PH-<NEXT>` in the title.
 
 **Infer the epic/module from the description:**
 
-| Clue in description | Prefix | Epic milestone | Labels |
-|---|---|---|---|
-| module, gradle, hilt, setup, config, project structure | SETUP | EPIC-0: Project Setup | `p0,epic:setup,setup` |
-| entity, usecase, domain, repository interface, result type | DOMAIN | EPIC-1: Domain Layer | `p0,epic:domain,feature` |
-| screen, compose, UI, design, component, theme, color, typography | UI | EPIC-2: UI Design | `p0,epic:ui,feature` |
-| room, dao, datastore, database, mapper, migration | DATA | EPIC-3: Data Layer | `p0,epic:data,feature` |
-| notification, alarm, broadcast, receiver, boot | NOTIF | EPIC-4: Notifications | `p0,epic:notifications,feature` |
-| firebase, firestore, auth, sync, worker | FIREBASE | EPIC-5: Firebase Sync | `p1,epic:firebase,feature` |
-| discovery, phase, analysis, adaptive, weekly shift | DISCOVERY | EPIC-6: Discovery Phase | `p2,epic:discovery,feature` |
-| viewmodel, stateflow, integration, navigation | VM | EPIC-7: ViewModels | `p0,epic:viewmodels,feature` |
-| test, coverage, unit test, integration test, e2e | TEST | EPIC-8: Testing | `p0,epic:testing,feature` |
-| polish, bug fix, performance, animation, icon, readme | POLISH | EPIC-9: Polish & MVP | `p0,epic:polish,enhancement` |
+| Clue in description | Epic milestone | Labels |
+|---|---|---|
+| module, gradle, hilt, setup, config, project structure | EPIC-0: Project Setup | `p0,epic:setup,setup` |
+| entity, usecase, domain, repository interface, result type | EPIC-1: Domain Layer | `p0,epic:domain,feature` |
+| screen, compose, UI, design, component, theme, color, typography | EPIC-2: UI Design | `p0,epic:ui,feature` |
+| room, dao, datastore, database, mapper, migration | EPIC-3: Data Layer | `p0,epic:data,feature` |
+| notification, alarm, broadcast, receiver, boot | EPIC-4: Notifications | `p0,epic:notifications,feature` |
+| firebase, firestore, auth, sync, worker | EPIC-5: Firebase Sync | `p1,epic:firebase,feature` |
+| discovery, phase, analysis, adaptive, weekly shift | EPIC-6: Discovery Phase | `p2,epic:discovery,feature` |
+| viewmodel, stateflow, integration, navigation | EPIC-7: ViewModels | `p0,epic:viewmodels,feature` |
+| test, coverage, unit test, integration test, e2e | EPIC-8: Testing | `p0,epic:testing,feature` |
+| polish, bug fix, performance, animation, icon, readme | EPIC-9: Polish & MVP | `p0,epic:polish,enhancement` |
 
 **Add type label** from Step 1: `feature` / `bug` / `chore` / `spike`
 
