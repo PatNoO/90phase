@@ -27,3 +27,11 @@ The Night Sky design system uses **Urbanist** as its font family. Currently `Sle
    )
    ```
 4. Remove the `// TODO` comment block above the `private val Urbanist` line.
+
+---
+
+## Notable Architecture Decisions (PH-15)
+
+- **StarRating uses unicode ★/☆** — `material-icons-core` is not a transitive dep of `material3`, so star icons would need a new Gradle dependency. Unicode characters render identically and require nothing extra.
+- **BedtimeQuality reuses the domain enum** — `BedtimeQuality` already existed in `domain/entities/BedtimeRecommendation.kt`. No duplicate enum was created in the presentation layer.
+- **`@Preview` functions are `internal`** — detekt's `UnusedPrivateMember` rule flags private `@Preview` composables. Making them `internal` satisfies the rule without suppression annotations.
