@@ -176,14 +176,14 @@ Compose guidelines:
 ## Branch Naming
 
 ```
-90p/SP-<N>-short-description
+90p/PH-<N>-short-description
 ```
 
 Examples:
 ```
-90p/SP-01-project-setup
-90p/SP-05-sleep-calculator-screen
-90p/SP-10-daily-notification
+90p/PH-01-project-setup
+90p/PH-05-sleep-calculator-screen
+90p/PH-10-daily-notification
 ```
 
 ---
@@ -196,7 +196,7 @@ Valid examples: `claude-sonnet-4-6`, `claude-opus-4-7`, `claude-haiku-4-5`
 
 **First commit on branch:**
 ```
-[claude] (claude-sonnet-4-6) SP-<N> Title Case Description
+[claude] (claude-sonnet-4-6) PH-<N> Title Case Description
 ```
 
 **Subsequent commits:**
@@ -221,12 +221,12 @@ Target branch is always `main`.
 
 **PR Title:**
 ```
-[claude] SP-<N> Title Case Summary
+[claude] PH-<N> Title Case Summary
 ```
 
 **PR Body Template (REQUIRED):**
 ```
-## SP-<N> Implementation Complete
+## PH-<N> Implementation Complete
 
 Task: <ticket reference>
 

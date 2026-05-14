@@ -31,6 +31,24 @@ A **quiet assistant** that:
 - Primary: Partner (real-world validation)
 - Secondary: Portfolio piece demonstrating senior Android engineering capabilities
 
+### Market Positioning
+
+The app sits deliberately between two existing categories:
+
+| | Dumb Calculators | Sleep Cycle / Sleep as Android | **This App** |
+|---|---|---|---|
+| 90-min cycle math | ✅ | ✅ | ✅ |
+| Daily proactive check-in | ❌ | ❌ | ✅ |
+| Sensor tracking | ❌ | ✅ required | ✅ optional, off by default |
+| Privacy-first, on-device | ✅ | ❌ | ✅ |
+| Learns your personal cycle | ❌ | ✅ | ✅ Discovery Phase |
+| Pattern insights | ❌ | Premium | ✅ silent, opt-in visibility |
+| Complexity | low | very high | **medium — by design** |
+
+**Core identity:** A quiet assistant. Not a motivation app. Not a habit tracker. Not a surveillance tool. Just smart, proactive and privacy-respecting.
+
+**Trust differentiator:** All data stays on-device by default. Firebase sync is opt-in. Accelerometer is opt-in and off by default. No microphone. Ever.
+
 ---
 
 ## Technical Overview
@@ -299,12 +317,41 @@ sealed class ShiftType {
 **Display:**
 - Calendar view with color-coded ratings
 - Average sleep quality per week/month
-- Insights: "Your best nights are when you sleep 6 cycles"
 
-**Analytics (Local Only):**
-- Correlation between bedtime consistency and ratings
-- Optimal cycle count per user
+**Analytics (Local Only, Silent by Default):**
+- Pattern insights surface only in the History tab — never pushed as notifications
+- Example: "You tend to sleep better mid-week" — dismissable forever with one tap
+- Consistency score visible in History if user navigates there — never on home screen
 - No data leaves device unless user opts into Firebase sync
+
+> **Design rule:** Smart features are invisible by default. They opt *in* to being visible, not opt *out*. The home screen stays a clock and bedtime options — nothing else.
+
+---
+
+### 5. Manual Sleep Log (Optional)
+
+User can log two things each morning via the morning notification:
+- Sleep quality rating (1–5 stars)
+- What time they went to bed (clock roller)
+
+Both are **independent switches** — user can enable rating-only, clock-only, or both. Neither is on by default; user chooses during onboarding.
+
+The bedtime clock roller appears as a quick bottom sheet only after rating — two interactions max from notification to done. Partial data (rating without bedtime, or skipped entirely) is always fine.
+
+---
+
+### 6. Smart Wake Window (Optional, Off by Default)
+
+Uses the phone accelerometer — **no microphone, no camera, no network** — to detect light movement within a user-defined wake window (e.g. 06:40–07:00) and fire the alarm at the optimal moment within that window.
+
+**Requirements:**
+- Phone must be on or near the mattress
+- Shown clearly in onboarding with a plain-language explanation
+- If phone is charged away from bed → feature is useless, onboarding says so explicitly
+- All processing is on-device, nothing leaves the phone
+
+**Privacy framing in UI:**
+> *"Your phone detects movement to find a lighter sleep moment. No audio. No uploads. Completely local."*
 
 ---
 
@@ -318,9 +365,11 @@ sealed class ShiftType {
 - [ ] Unit tests for domain layer (80%+ coverage)
 
 ### Phase 2: Core Features (Weeks 3-4)
+- [ ] Onboarding flow with feature opt-in cards (5 cards, see ONBOARDING_FLOW.md)
 - [ ] Daily notification system (AlarmManager)
-- [ ] Sleep log history screen
-- [ ] Settings screen with preferences
+- [ ] Independent notification toggles per type
+- [ ] Sleep log history screen with silent pattern insights
+- [ ] Settings screen with per-feature toggles
 - [ ] Repository implementations (offline-first)
 - [ ] Integration tests for data layer
 
@@ -331,12 +380,12 @@ sealed class ShiftType {
 - [ ] Conflict resolution strategy
 - [ ] Network error handling
 
-### Phase 4: Discovery Phase (Week 6)
-- [ ] Discovery phase settings UI
-- [ ] Morning rating prompt notification
-- [ ] Analytics calculation use cases
-- [ ] Recommendation engine
-- [ ] A/B test validation logic
+### Phase 4: Smart Features (Week 6)
+- [ ] Manual sleep log — morning notification with star rating + clock roller bottom sheet
+- [ ] Optional accelerometer wake window (on-device only, no mic)
+- [ ] Discovery Phase settings UI and activation flow
+- [ ] Morning rating prompt notification with Skip button (equal prominence)
+- [ ] Pattern insights in History tab (dismissable, never pushed)
 
 ### Phase 5: Polish & Portfolio Prep (Week 7)
 - [ ] Material3 theming refinement

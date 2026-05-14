@@ -1,13 +1,13 @@
 ---
 name: git-ship
 description: "Ship a completed 90phase feature branch end-to-end: run validation, sync with main, commit, push, and open a PR. Use when: shipping a finished feature, sending code for review, committing and pushing a completed change, open a PR."
-argument-hint: "Optional: PR description notes or Linear ticket ID (e.g. SP-05)"
+argument-hint: "Optional: PR description notes or ticket ID (e.g. PH-05)"
 allowed-tools: Bash(git status), Bash(git diff --stat), Bash(git diff), Bash(git log --oneline *), Bash(git add *), Bash(git commit -m *), Bash(git rev-parse --abbrev-ref HEAD), Bash(git rev-parse --abbrev-ref --symbolic-full-name @{u}), Bash(git fetch origin), Bash(git rebase origin/main), Bash(git push -u origin *), Bash(git push), Bash(gh pr create *), Bash(gh pr view *), Bash(./gradlew detekt), Bash(./gradlew ktlintCheck), Bash(./gradlew ktlintFormat), Bash(./gradlew test), Bash(./gradlew build)
 ---
 
 # Git Ship — 90phase
 
-Ships the current `90p/SP-<N>-...` feature branch to remote and opens a PR targeting `main`.
+Ships the current `90p/PH-<N>-...` feature branch to remote and opens a PR targeting `main`.
 Run each step sequentially — do not skip steps.
 
 The optional argument is: `$ARGUMENTS`
@@ -21,8 +21,8 @@ git rev-parse --abbrev-ref HEAD
 ```
 
 - If branch is `main`, **stop** — direct pushes not allowed
-- Confirm branch follows `90p/SP-<N>-...` convention
-- Extract ticket ID (e.g. `SP-05`) — needed for PR
+- Confirm branch follows `90p/PH-<N>-...` convention
+- Extract ticket ID (e.g. `PH-05`) — needed for PR
 
 ---
 
@@ -66,7 +66,7 @@ If rebase has conflicts, **stop and report to developer**. Never auto-resolve co
 
 **First commit on branch:**
 ```
-[claude] (MODEL_NAME) SP-<N> Title Case Description
+[claude] (MODEL_NAME) PH-<N> Title Case Description
 ```
 
 **Subsequent commits:**
@@ -100,17 +100,17 @@ Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
 ## Step 6 — Open a PR to main
 
 ```bash
-gh pr create --base main --title "[claude] SP-<N> Title" --body "<body>"
+gh pr create --base main --title "[claude] PH-<N> Title" --body "<body>"
 ```
 
 ### PR Title
 ```
-[claude] SP-<N> Title Case Summary
+[claude] PH-<N> Title Case Summary
 ```
 
 ### PR Body
 ```markdown
-## SP-<N> Implementation Complete
+## PH-<N> Implementation Complete
 
 Task: <Linear ticket URL>
 
@@ -143,7 +143,7 @@ After PR is created, display the PR URL to the user.
 ## Completion checks
 
 - [ ] Branch is not `main`
-- [ ] Branch follows `90p/SP-<N>-...` convention
+- [ ] Branch follows `90p/PH-<N>-...` convention
 - [ ] `./gradlew detekt` passes
 - [ ] `./gradlew ktlintCheck` passes
 - [ ] `./gradlew test` passes

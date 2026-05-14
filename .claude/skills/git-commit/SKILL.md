@@ -13,16 +13,16 @@ All commits made with Claude Code assistance must start with the `[claude]` pref
 Mirror the branch ticket ID and use Title Case with model name:
 
 ```
-[claude] (MODEL_NAME) SP-<N> <Title Case Description>
+[claude] (MODEL_NAME) PH-<N> <Title Case Description>
 ```
 
 ⚠️ Replace `MODEL_NAME` with the **actual Claude model running this session** — never hardcode a model name.
 Check which model is active and use that exact name.
 Common values: `claude-sonnet-4-6`, `claude-opus-4-7`, `claude-haiku-4-5`
 
-Example (branch `90p/SP-05-sleep-calculator-screen`, running claude-sonnet-4-6):
+Example (branch `90p/PH-05-sleep-calculator-screen`, running claude-sonnet-4-6):
 ```
-[claude] (claude-sonnet-4-6) SP-05 Sleep Calculator Screen
+[claude] (claude-sonnet-4-6) PH-05 Sleep Calculator Screen
 ```
 
 ## Subsequent Commits
