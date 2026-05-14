@@ -27,6 +27,8 @@ Thumbs.db
 keystore.properties
 
 # API keys / secrets
+.env
+.env.*
 secrets.properties
 google-services.json
 
