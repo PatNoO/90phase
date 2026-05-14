@@ -6,37 +6,23 @@ argument-hint: 'Optional: commit type (feat|fix|docs|style|refactor|test|chore|p
 
 # Git Commit Format — 90phase
 
-All commits made with Claude Code assistance must start with the `[claude]` prefix. This is a strict project rule from CLAUDE.md.
+Commit format for all Claude-assisted commits in 90phase.
 
-## First Commit on a Branch
-
-Mirror the branch ticket ID and use Title Case with model name:
+## All Commits
 
 ```
-[claude] (MODEL_NAME) PH-<N> <Title Case Description>
+(MODEL_NAME) <type> [PH-<N>] <imperative description>
 ```
 
 ⚠️ Replace `MODEL_NAME` with the **actual Claude model running this session** — never hardcode a model name.
-Check which model is active and use that exact name.
 Common values: `claude-sonnet-4-6`, `claude-opus-4-7`, `claude-haiku-4-5`
 
-Example (branch `90p/PH-05-sleep-calculator-screen`, running claude-sonnet-4-6):
+Examples (running claude-sonnet-4-6):
 ```
-[claude] (claude-sonnet-4-6) PH-05 Sleep Calculator Screen
-```
-
-## Subsequent Commits
-
-```
-[claude] (MODEL_NAME) [<type>] <imperative description>
-```
-
-Examples (using claude-sonnet-4-6):
-```
-[claude] (claude-sonnet-4-6) [feat] Add bedtime recommendation list to calculator screen
-[claude] (claude-sonnet-4-6) [fix] Fix sleep latency offset in cycle calculation
-[claude] (claude-sonnet-4-6) [chore] Add SleepLog entity to Room database
-[claude] (claude-sonnet-4-6) [style] Adjust spacing on calculator screen cards
+(claude-sonnet-4-6) chore [PH-02] Configure Gradle build system
+(claude-sonnet-4-6) feat [PH-05] Add sleep calculator screen
+(claude-sonnet-4-6) fix [PH-12] Fix notification not firing at 18:00
+(claude-sonnet-4-6) refactor [PH-07] Extract domain entities to separate files
 ```
 
 ## Commit Types
@@ -63,10 +49,10 @@ When changes span multiple concerns, split into focused commits:
 
 ## Rules
 
-- Prefix is always `[claude] (MODEL_NAME)` — use the actual active model, never hardcode a specific model name
+- Format is always `(MODEL_NAME) <type> [PH-<N>] description` — no `[claude]` prefix
+- Use the actual active model name, never hardcode a specific model
 - Never include `Co-Authored-By` footer
 - Imperative mood: "Add feature" not "Added feature"
 - Subject line under 72 characters — no body, no bullet points
-- First commit on branch = ticket mirror (no type prefix); all subsequent = type prefix required
 - Never skip hooks (`--no-verify`) unless explicitly instructed by the developer
 - Stage specific files by name — avoid `git add -A` or `git add .`

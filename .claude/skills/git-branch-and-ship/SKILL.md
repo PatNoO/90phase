@@ -119,7 +119,7 @@ git diff --name-only --cached
 ```
 
 Then invoke the `git-ship` skill to run validation (detekt, ktlint, tests, build),
-commit with the correct `[claude] (MODEL_NAME)` prefix, push, and open a PR to `main`.
+commit with the correct `(MODEL_NAME) <type> [PH-<N>]` format, push, and open a PR to `main`.
 
 **Important:** `git-ship` must only commit the staged files.
 Never run `git add .` or `git add -A` — the index is already correct.
@@ -134,4 +134,4 @@ Never run `git add .` or `git add -A` — the index is already correct.
 - [ ] Stash used `--staged` — unstaged/untracked files untouched
 - [ ] Stash popped cleanly — no conflicts
 - [ ] Staged area after pop matches exactly the files from Step 1
-- [ ] git-ship completed: validated, committed with `[claude]` prefix, pushed, PR opened to `main`
+- [ ] git-ship completed: validated, committed with `(MODEL_NAME) type [PH-<N>]` format, pushed, PR opened to `main`
