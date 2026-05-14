@@ -158,19 +158,20 @@ Must succeed with no Kotlin compilation errors.
 
 Stage specific files only — never `git add .` or `git add -A`.
 
-First commit on the branch:
+All commits:
 ```
-[claude] (claude-sonnet-4-6) PH-<N> Title Case Description
+(MODEL_NAME) <type> [PH-<N>] imperative description
 ```
 
-Subsequent commits:
+Example:
 ```
-[claude] (claude-sonnet-4-6) [<type>] imperative description
+(claude-sonnet-4-6) feat [PH-05] Add sleep calculator screen
 ```
 
 Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
 
 Rules:
+- No `[claude]` prefix — format starts with `(MODEL_NAME)`
 - Imperative tense — under 72 characters
 - Never include `Co-Authored-By` footer
 - Never `--no-verify`
@@ -247,6 +248,6 @@ gh issue close <number> --repo PatNoO/90phase
 - [ ] `./gradlew detekt` passes
 - [ ] `./gradlew test` passes
 - [ ] `./gradlew build` succeeds
-- [ ] Commits follow `[claude] (MODEL_NAME)` format, staged per-file
+- [ ] Commits follow `(MODEL_NAME) <type> [PH-<N>]` format, staged per-file
 - [ ] Implementation comment posted to GitHub issue
 - [ ] Issue closed or `closes #N` in commit for auto-close on merge

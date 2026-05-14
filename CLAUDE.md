@@ -190,23 +190,19 @@ Examples:
 
 ## Commit Rules
 
-All commits must start with `[claude] (MODEL_NAME)`.  
+All commits follow: `(MODEL_NAME) <type> [PH-<N>] description`  
 MODEL_NAME must reflect the actual Claude model running the session — never hardcode a model name.  
 Valid examples: `claude-sonnet-4-6`, `claude-opus-4-7`, `claude-haiku-4-5`
 
-**First commit on branch:**
 ```
-[claude] (claude-sonnet-4-6) PH-<N> Title Case Description
-```
-
-**Subsequent commits:**
-```
-[claude] (claude-sonnet-4-6) [<type>] imperative description
+(claude-sonnet-4-6) chore [PH-02] Configure Gradle build system
+(claude-sonnet-4-6) feat [PH-05] Add sleep calculator screen
 ```
 
 Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
 
 Rules:
+- No `[claude]` prefix — format starts with `(MODEL_NAME)`
 - Imperative tense always
 - Under 72 characters
 - Never include `Co-Authored-By` footer
@@ -221,7 +217,7 @@ Target branch is always `main`.
 
 **PR Title:**
 ```
-[claude] PH-<N> Title Case Summary
+<type> [PH-<N>] Title Case Summary
 ```
 
 **PR Body Template (REQUIRED):**
@@ -299,7 +295,7 @@ google-services.json      # Firebase config — never committed, add to .gitigno
 - All new repository methods return `Result<T>`
 - StateFlow exposed from ViewModel, not MutableStateFlow
 - New Gradle dependencies approved
-- Commits follow `[claude]` format
+- Commits follow `(MODEL_NAME) <type> [PH-<N>]` format
 - PR template filled out
 - Room migration provided if schema changed
 

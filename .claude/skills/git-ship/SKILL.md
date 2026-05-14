@@ -64,18 +64,13 @@ If rebase has conflicts, **stop and report to developer**. Never auto-resolve co
 3. Stage specific files — never `git add .` or `git add -A`
 4. Commit with correct format:
 
-**First commit on branch:**
 ```
-[claude] (MODEL_NAME) PH-<N> Title Case Description
-```
-
-**Subsequent commits:**
-```
-[claude] (MODEL_NAME) [<type>] imperative description
+(MODEL_NAME) <type> [PH-<N>] imperative description
 ```
 
 Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
 
+- No `[claude]` prefix — format starts with `(MODEL_NAME)`
 - Imperative tense, under 72 characters
 - Never include `Co-Authored-By` footer
 - Never `--no-verify`
@@ -87,7 +82,7 @@ Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
 ## Step 5 — Push the branch
 
 1. Show last 5 commits so user can confirm
-2. Verify `[claude]` prefix on all commits — note any that don't match
+2. Verify commits follow `(MODEL_NAME) <type> [PH-<N>]` format — note any that don't match
 3. Push:
    - No upstream set → `git push -u origin <branch>`
    - Upstream already set → `git push`
@@ -100,19 +95,23 @@ Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
 ## Step 6 — Open a PR to main
 
 ```bash
-gh pr create --base main --title "[claude] PH-<N> Title" --body "<body>"
+gh pr create --base main --title "<type> [PH-<N>] Title" --body "<body>"
 ```
 
 ### PR Title
 ```
-[claude] PH-<N> Title Case Summary
+<type> [PH-<N>] Title Case Summary
 ```
+
+Where `<type>` is the commit type: `feat` / `fix` / `chore` / `refactor` / `docs` / `style` / `perf` / `test`
+
+**No `[claude]` prefix in PR titles — that tag lives in commits only.**
 
 ### PR Body
 ```markdown
-## PH-<N> Implementation Complete
+## [PH-<N>] Implementation Complete
 
-Task: <Linear ticket URL>
+Task: <GitHub issue URL>
 
 ### Summary
 <One or two sentences describing what was built and why.>
@@ -150,7 +149,7 @@ After PR is created, display the PR URL to the user.
 - [ ] `./gradlew build` passes
 - [ ] Synced with `origin/main` via rebase — no conflicts
 - [ ] Specific files staged only — no `git add .`
-- [ ] Commit follows `[claude] (MODEL_NAME)` format
+- [ ] Commit follows `(MODEL_NAME) <type> [PH-<N>]` format
 - [ ] No hooks skipped (`--no-verify` not used)
 - [ ] Push succeeded
 - [ ] PR created targeting `main` with template filled
