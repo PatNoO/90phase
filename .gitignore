@@ -29,3 +29,6 @@ google-services.json
 
 # Claude Code — local settings (machine-specific permissions)
 .claude/settings.local.json
+
+# Tickets — managed locally, pushed to GitHub Issues via skill
+TICKETS.md

@@ -5,13 +5,26 @@
 ---
 
 ## Table of Contents
-1. [Overview](#overview)
-2. [Notification Channels](#notification-channels)
-3. [Daily Check-in (18:00)](#daily-check-in-1800)
-4. [Bedtime Reminder (Dynamic)](#bedtime-reminder-dynamic)
-5. [Morning Feedback (Wake-up)](#morning-feedback-wake-up)
-6. [Implementation Details](#implementation-details)
-7. [Testing Strategy](#testing-strategy)
+1. [Notification Design Principles](#notification-design-principles)
+2. [Overview](#overview)
+3. [Notification Channels](#notification-channels)
+4. [Daily Check-in (18:00)](#daily-check-in-1800)
+5. [Bedtime Reminder (Dynamic)](#bedtime-reminder-dynamic)
+6. [Morning Feedback (Wake-up)](#morning-feedback-wake-up)
+7. [Implementation Details](#implementation-details)
+8. [Testing Strategy](#testing-strategy)
+
+---
+
+## Notification Design Principles
+
+These rules apply to every notification in the app:
+
+1. **Every notification has a Skip/Dismiss path with equal visual prominence** — never hidden, never guilt-trippy ("Skip anyway?"), just Skip.
+2. **Each notification type has an independent toggle in Settings** — no hunting through system settings.
+3. **"Turn off these reminders" is a direct link in every notification** — one tap to silence that notification type forever without opening the app.
+4. **Partial data is always acceptable** — if a user rates their sleep but skips the bedtime log, that's fine. If they skip everything, that's fine too.
+5. **No re-prompting** — if a user skips a feature in onboarding or dismisses a notification, the app does not ask again.
 
 ---
 
