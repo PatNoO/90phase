@@ -24,3 +24,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "90phase"
 include(":app")
+include(":domain")
+include(":data")
+include(":presentation")
