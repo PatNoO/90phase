@@ -21,6 +21,10 @@ local.properties
 .DS_Store
 Thumbs.db
 
+# VS Code
+.vscode/
+**/bin/
+
 # Keystore / signing secrets
 *.jks
 *.keystore
