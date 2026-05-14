@@ -26,6 +26,8 @@ naming:
 
 style:
   active: true
+  MaxLineLength:
+    maxLineLength: 140
   MagicNumber:
     active: false
   WildcardImport:
