@@ -167,6 +167,7 @@ Compose guidelines:
 - Ask for clarification when a task is ambiguous
 - Keep scope tight — only implement what is discussed
 - UI-only work: use typed fake/preview data + `// TODO: wire to ViewModel`
+- **Never commit without explicit developer instruction** — finish the work, then wait to be told to commit or for /git-ship to be invoked
 - Never add Gradle dependencies without explaining why and getting approval
 - Never touch `local.properties`, `google-services.json`, or any secrets file
 - Never push or open PRs without explicit developer instruction
