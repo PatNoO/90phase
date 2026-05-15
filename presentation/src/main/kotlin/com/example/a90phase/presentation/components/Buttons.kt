@@ -77,7 +77,7 @@ fun SecondaryButton(
 @Composable
 internal fun PrimaryButtonPreview() {
     NightSkyTheme {
-        PrimaryButton(text = "Sätt alarm", onClick = {})
+        PrimaryButton(text = "Set Alarm", onClick = {})
     }
 }
 
@@ -85,6 +85,6 @@ internal fun PrimaryButtonPreview() {
 @Composable
 internal fun SecondaryButtonPreview() {
     NightSkyTheme {
-        SecondaryButton(text = "Hoppa över", onClick = {})
+        SecondaryButton(text = "Skip", onClick = {})
     }
 }

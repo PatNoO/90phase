@@ -48,7 +48,7 @@ fun SleepToggle(
 @Composable
 internal fun SleepToggleOnPreview() {
     NightSkyTheme {
-        SleepToggle(label = "Daglig check-in (18:00)", checked = true, onCheckedChange = {})
+        SleepToggle(label = "Daily Check-in (18:00)", checked = true, onCheckedChange = {})
     }
 }
 

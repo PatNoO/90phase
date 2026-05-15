@@ -30,6 +30,6 @@ fun SectionHeader(
 @Composable
 internal fun SectionHeaderPreview() {
     NightSkyTheme {
-        SectionHeader(title = "Rekommenderade sänggångstider")
+        SectionHeader(title = "Recommended Bedtimes")
     }
 }

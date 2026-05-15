@@ -120,7 +120,7 @@ private fun WakeTimeCardInner(time: LocalTime, isActive: Boolean, onClick: () ->
                 )
             }
             Text(
-                text = "VAKNA-TID  ·  TRYCK FÖR ATT ÄNDRA",
+                text = "WAKE TIME  ·  TAP TO CHANGE",
                 style = SleepTypography.LabelMedium,
                 color = SleepColors.Silver.copy(alpha = 0.5f),
             )

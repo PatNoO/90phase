@@ -109,7 +109,7 @@ private fun BedtimeCardTopRow(time: LocalTime, cycleCount: Int, isPassed: Boolea
             if (checkmarkProgress > 0f) {
                 CheckmarkCanvas(progress = checkmarkProgress)
             }
-            Text(text = "$cycleCount cykler", style = SleepTypography.BodyMedium, color = SleepColors.Silver)
+            Text(text = "$cycleCount cycles", style = SleepTypography.BodyMedium, color = SleepColors.Silver)
         }
     }
 }
@@ -160,9 +160,9 @@ fun QualityBadge(
 ) {
     val (color, label) = when (quality) {
         BedtimeQuality.OPTIMAL -> SleepColors.OptimalGreen to "OPTIMAL"
-        BedtimeQuality.GOOD -> SleepColors.GoodAmber to "BRA"
-        BedtimeQuality.MINIMAL -> SleepColors.MinimalSlate to "MINIMUM"
-        BedtimeQuality.PASSED -> SleepColors.PassedGray to "PASSERAD"
+        BedtimeQuality.GOOD -> SleepColors.GoodAmber to "GOOD"
+        BedtimeQuality.MINIMAL -> SleepColors.MinimalSlate to "MINIMAL"
+        BedtimeQuality.PASSED -> SleepColors.PassedGray to "PASSED"
     }
     Box(
         modifier = modifier
@@ -181,7 +181,7 @@ internal fun BedtimeOptimalPreview() {
         BedtimeResultCard(
             time = LocalTime.of(23, 15),
             cycleCount = 6,
-            durationLabel = "7h 30min sömn",
+            durationLabel = "7h 30min sleep",
             quality = BedtimeQuality.OPTIMAL,
             onClick = {},
         )
@@ -195,7 +195,7 @@ internal fun BedtimeOptimalSelectedPreview() {
         BedtimeResultCard(
             time = LocalTime.of(23, 15),
             cycleCount = 6,
-            durationLabel = "7h 30min sömn",
+            durationLabel = "7h 30min sleep",
             quality = BedtimeQuality.OPTIMAL,
             isSelected = true,
             onClick = {},
@@ -210,7 +210,7 @@ internal fun BedtimeGoodPreview() {
         BedtimeResultCard(
             time = LocalTime.of(0, 45),
             cycleCount = 5,
-            durationLabel = "6h 00min sömn",
+            durationLabel = "6h 00min sleep",
             quality = BedtimeQuality.GOOD,
             onClick = {},
         )
@@ -224,7 +224,7 @@ internal fun BedtimePassedPreview() {
         BedtimeResultCard(
             time = LocalTime.of(21, 45),
             cycleCount = 7,
-            durationLabel = "Passerad",
+            durationLabel = "Passed",
             quality = BedtimeQuality.PASSED,
             onClick = {},
         )
