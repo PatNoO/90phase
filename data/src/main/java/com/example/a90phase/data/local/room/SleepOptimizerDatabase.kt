@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.a90phase.data.local.room.dao.SleepLogDao
+import com.example.a90phase.data.local.room.dao.UserProfileDao
 import com.example.a90phase.data.local.room.entity.SleepLogEntity
 import com.example.a90phase.data.local.room.entity.UserProfileEntity
 
@@ -16,6 +17,8 @@ import com.example.a90phase.data.local.room.entity.UserProfileEntity
 abstract class SleepOptimizerDatabase : RoomDatabase() {
 
     abstract fun sleepLogDao(): SleepLogDao
+
+    abstract fun userProfileDao(): UserProfileDao
 
     companion object {
         const val DATABASE_NAME = "sleep_optimizer.db"
