@@ -1,0 +1,198 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "dc01cbeba92d5006b6b1ae6bd766fd98",
+    "entities": [
+      {
+        "tableName": "sleep_logs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `date` INTEGER NOT NULL, `bedtime` INTEGER, `wake_time` INTEGER NOT NULL, `quality_rating` INTEGER, `cycle_count` INTEGER NOT NULL, `cycle_duration_used` INTEGER NOT NULL, `sleep_latency_used` INTEGER NOT NULL, `notes` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bedtime",
+            "columnName": "bedtime",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "wakeTime",
+            "columnName": "wake_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "qualityRating",
+            "columnName": "quality_rating",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "cycleCount",
+            "columnName": "cycle_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cycleDurationUsed",
+            "columnName": "cycle_duration_used",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sleepLatencyUsed",
+            "columnName": "sleep_latency_used",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncStatus",
+            "columnName": "sync_status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sleep_logs_wake_time",
+            "unique": false,
+            "columnNames": [
+              "wake_time"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sleep_logs_wake_time` ON `${TABLE_NAME}` (`wake_time`)"
+          },
+          {
+            "name": "index_sleep_logs_quality_rating",
+            "unique": false,
+            "columnNames": [
+              "quality_rating"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sleep_logs_quality_rating` ON `${TABLE_NAME}` (`quality_rating`)"
+          },
+          {
+            "name": "index_sleep_logs_sync_status",
+            "unique": false,
+            "columnNames": [
+              "sync_status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sleep_logs_sync_status` ON `${TABLE_NAME}` (`sync_status`)"
+          }
+        ]
+      },
+      {
+        "tableName": "user_profile",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rowId` INTEGER NOT NULL, `user_id` TEXT NOT NULL, `email` TEXT, `display_name` TEXT, `optimal_cycle_minutes` INTEGER NOT NULL, `sleep_latency_minutes` INTEGER NOT NULL, `preferred_cycle_count` INTEGER NOT NULL, `reminder_time` TEXT NOT NULL, `notifications_enabled` INTEGER NOT NULL, `smart_wake_window_enabled` INTEGER NOT NULL, `discovery_phase_json` TEXT, PRIMARY KEY(`rowId`))",
+        "fields": [
+          {
+            "fieldPath": "rowId",
+            "columnName": "rowId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "email",
+            "columnName": "email",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "display_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "optimalCycleMinutes",
+            "columnName": "optimal_cycle_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sleepLatencyMinutes",
+            "columnName": "sleep_latency_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "preferredCycleCount",
+            "columnName": "preferred_cycle_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reminderTime",
+            "columnName": "reminder_time",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notificationsEnabled",
+            "columnName": "notifications_enabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "smartWakeWindowEnabled",
+            "columnName": "smart_wake_window_enabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "discoveryPhaseJson",
+            "columnName": "discovery_phase_json",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rowId"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dc01cbeba92d5006b6b1ae6bd766fd98')"
+    ]
+  }
+}
