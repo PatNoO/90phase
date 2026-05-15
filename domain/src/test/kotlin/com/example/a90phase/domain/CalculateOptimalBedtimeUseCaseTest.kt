@@ -203,6 +203,10 @@ private class FakeUserPreferencesRepository(
 
     override suspend fun setNotificationsEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
 
+    override suspend fun setSmartWakeWindowEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeSmartWakeWindowEnabled(): Flow<Boolean> = emptyFlow()
+
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
 
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
@@ -224,6 +228,10 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun setReminderTime(time: String): Result<Unit> = Result.Success(Unit)
 
     override suspend fun setNotificationsEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override suspend fun setSmartWakeWindowEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeSmartWakeWindowEnabled(): Flow<Boolean> = emptyFlow()
 
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
 

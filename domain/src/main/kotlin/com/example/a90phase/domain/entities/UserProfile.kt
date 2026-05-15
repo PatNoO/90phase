@@ -11,6 +11,7 @@ data class UserProfile(
     val preferredCycleCount: Int = 6,
     val reminderTime: String = "18:00",
     val notificationsEnabled: Boolean = true,
+    val smartWakeWindowEnabled: Boolean = false,
     val discoveryPhase: DiscoveryPhase? = null,
 ) {
     fun isDiscoveryPhaseActive(): Boolean = discoveryPhase?.isActive == true
