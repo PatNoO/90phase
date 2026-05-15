@@ -51,6 +51,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.a90phase.domain.entities.SleepLog
@@ -151,6 +154,7 @@ private fun HistoryFab(visible: Boolean) {
             onClick = { /* TODO: wire to ViewModel */ },
             containerColor = SleepColors.CyanGlow,
             contentColor = SleepColors.DeepSpace,
+            modifier = Modifier.semantics { contentDescription = "Add sleep log" },
         ) {
             Text(text = "+", style = SleepTypography.HeadlineMedium)
         }
@@ -226,7 +230,11 @@ private fun HistoryContent(
             SectionHeader(title = "Sleep Log")
         }
         items(logs) { log ->
-            Box(modifier = Modifier.clickable { onNavigateToLogDetail(log.id) }) {
+            Box(
+                modifier = Modifier
+                    .semantics(mergeDescendants = true) { }
+                    .clickable { onNavigateToLogDetail(log.id) },
+            ) {
                 SleepLogCard(log = log)
             }
         }
@@ -273,7 +281,12 @@ private fun WeeklySummaryCard(logs: List<SleepLog>) {
 @Composable
 private fun CircularQualityIndicator(rating: Float) {
     val sweepAngle = (rating / 5f).coerceIn(0f, 1f) * 360f
-    Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier.size(80.dp).clearAndSetSemantics {
+            contentDescription = "${"%.1f".format(rating)} out of 5 average quality rating"
+        },
+        contentAlignment = Alignment.Center,
+    ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val strokeWidth = 8.dp.toPx()
             val inset = strokeWidth / 2f
@@ -310,11 +323,19 @@ private fun CircularQualityIndicator(rating: Float) {
 @Composable
 private fun SleepQualityChart(logs: List<SleepLog>, period: HistoryPeriod) {
     val displayLogs = logs.take(if (period == HistoryPeriod.WEEK) 7 else 30).reversed()
+    val periodLabel = if (period == HistoryPeriod.WEEK) "past week" else "past month"
+    val avgRating = displayLogs.mapNotNull { it.qualityRating }.average().takeIf { !it.isNaN() }
+    val chartDesc = if (avgRating != null) {
+        "Sleep quality chart for $periodLabel, average rating ${"%.1f".format(avgRating)} out of 5"
+    } else {
+        "Sleep quality chart for $periodLabel, no data"
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Spacing.Medium)
             .glassCard()
+            .semantics { contentDescription = chartDesc }
             .padding(Spacing.Medium),
     ) {
         Column {
@@ -372,7 +393,12 @@ private fun PatternInsightCard(message: String, onDismiss: () -> Unit) {
             modifier = Modifier.weight(1f),
         )
         TextButton(onClick = onDismiss) {
-            Text(text = "✕", style = SleepTypography.BodyMedium, color = SleepColors.SlateBlue)
+            Text(
+                text = "✕",
+                style = SleepTypography.BodyMedium,
+                color = SleepColors.SlateBlue,
+                modifier = Modifier.clearAndSetSemantics { contentDescription = "Dismiss insight" },
+            )
         }
     }
 }
