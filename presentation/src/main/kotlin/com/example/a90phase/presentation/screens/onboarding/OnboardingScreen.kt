@@ -59,9 +59,9 @@ import com.example.a90phase.presentation.theme.rememberIsCompactHeight
 import kotlinx.coroutines.launch
 
 private const val ONBOARDING_PAGE_COUNT = 8
-private const val FEATURE_PAGE_START = 3
 private const val GLOW_RADIUS = 200f
-private const val ICON_SIZE_SP = 72
+internal const val FEATURE_GLOW_RADIUS = 160f
+internal const val ICON_SIZE_SP = 72
 private const val WELCOME_TAGLINE =
     "Wake up at the right moment in your sleep cycle — feeling rested, not groggy."
 private const val WELCOME_NOTE =
@@ -69,50 +69,15 @@ private const val WELCOME_NOTE =
 private const val PERMISSIONS_SUBTITLE =
     "Grant access to enable check-ins, alarms, and reminders."
 
-private data class OnboardingUiState(
+internal data class OnboardingUiState(
     val wakeHour: Int = 7,
     val wakeMinute: Int = 0,
     val showWakeTimePicker: Boolean = false,
-)
-
-private data class FeaturePageSpec(
-    val icon: String,
-    val title: String,
-    val body: String,
-    val ctaLabel: String,
-)
-
-private val featurePageSpecs = listOf(
-    FeaturePageSpec(
-        icon = "🔔",
-        title = "Daily Check-in",
-        body = "At 18:00 each day, we'll ask when you want to wake up tomorrow and calculate your ideal bedtime.",
-        ctaLabel = "Continue",
-    ),
-    FeaturePageSpec(
-        icon = "🌙",
-        title = "Bedtime Reminder",
-        body = "Get a push notification when it's time to head to bed — timed precisely around your wake target.",
-        ctaLabel = "Continue",
-    ),
-    FeaturePageSpec(
-        icon = "⭐",
-        title = "Morning Check-in",
-        body = "Rate last night's sleep with 1–5 stars. Your ratings gradually personalise your cycle settings.",
-        ctaLabel = "Continue",
-    ),
-    FeaturePageSpec(
-        icon = "⏰",
-        title = "Smart Wake Window",
-        body = "Your alarm rings at the lightest sleep moment in a 10-minute window before your target wake time.",
-        ctaLabel = "Continue",
-    ),
-    FeaturePageSpec(
-        icon = "🔭",
-        title = "Discovery Phase",
-        body = "After 7 nights of ratings, 90phase fine-tunes your cycle length and sleep latency automatically.",
-        ctaLabel = "Got it",
-    ),
+    val dailyCheckInEnabled: Boolean = false,
+    val bedtimeReminderEnabled: Boolean = false,
+    val morningRatingEnabled: Boolean = false,
+    val morningBedtimeLogEnabled: Boolean = false,
+    val smartWakeEnabled: Boolean = false,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -203,10 +168,29 @@ private fun OnboardingPageContent(
             onTapTime = { onUiStateChange(uiState.copy(showWakeTimePicker = true)) },
             onContinue = onNext,
         )
-        else -> OnboardingFeaturePage(
-            spec = featurePageSpecs[page - FEATURE_PAGE_START],
-            onAction = if (page == ONBOARDING_PAGE_COUNT - 1) onComplete else onNext,
+        3 -> OnboardingDailyCheckInCard(
+            enabled = uiState.dailyCheckInEnabled,
+            onToggle = { onUiStateChange(uiState.copy(dailyCheckInEnabled = it)) }, // TODO: wire to ViewModel
+            onContinue = onNext,
         )
+        4 -> OnboardingBedtimeReminderCard(
+            enabled = uiState.bedtimeReminderEnabled,
+            onToggle = { onUiStateChange(uiState.copy(bedtimeReminderEnabled = it)) }, // TODO: wire to ViewModel
+            onContinue = onNext,
+        )
+        5 -> OnboardingMorningCheckInCard(
+            morningRatingEnabled = uiState.morningRatingEnabled,
+            morningBedtimeLogEnabled = uiState.morningBedtimeLogEnabled,
+            onMorningRatingToggle = { onUiStateChange(uiState.copy(morningRatingEnabled = it)) }, // TODO: wire to ViewModel
+            onMorningBedtimeLogToggle = { onUiStateChange(uiState.copy(morningBedtimeLogEnabled = it)) }, // TODO: wire to ViewModel
+            onContinue = onNext,
+        )
+        6 -> OnboardingSmartWakeCard(
+            enabled = uiState.smartWakeEnabled,
+            onToggle = { onUiStateChange(uiState.copy(smartWakeEnabled = it)) }, // TODO: wire to ViewModel
+            onContinue = onNext,
+        )
+        else -> OnboardingDiscoveryCard(onGotIt = onComplete)
     }
 }
 
@@ -329,57 +313,29 @@ private fun OnboardingWakeTimePage(
 }
 
 @Composable
-private fun OnboardingFeaturePage(spec: FeaturePageSpec, onAction: () -> Unit) {
-    val isCompact = rememberIsCompactHeight()
-    val sectionSpacing = if (isCompact) Spacing.Medium else Spacing.Large
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = Spacing.Large)
-            .padding(vertical = sectionSpacing),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        OnboardingIconGlow(icon = spec.icon, iconSize = ICON_SIZE_SP.sp, glowRadius = 180f)
-        Spacer(modifier = Modifier.height(sectionSpacing))
-        Text(
-            text = spec.title,
-            style = SleepTypography.HeadlineLarge,
-            color = SleepColors.White,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(Spacing.Medium))
-        Text(
-            text = spec.body,
-            style = SleepTypography.BodyLarge,
-            color = SleepColors.Silver,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
-        PrimaryButton(text = spec.ctaLabel, onClick = onAction)
-    }
-}
-
-@Composable
-private fun OnboardingIconGlow(icon: String, iconSize: TextUnit, glowRadius: Float) {
+internal fun OnboardingIconGlow(
+    icon: String,
+    iconSize: TextUnit,
+    glowRadius: Float,
+    glowColor: Color = SleepColors.CyanGlow,
+) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .clearAndSetSemantics { }
             .drawBehind {
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        SleepColors.CyanGlow.copy(alpha = 0.25f),
-                        Color.Transparent,
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            glowColor.copy(alpha = 0.20f),
+                            Color.Transparent,
+                        ),
+                        radius = glowRadius,
                     ),
-                    radius = glowRadius,
-                ),
-            )
-        },
+                )
+            },
     ) {
-        Text(text = icon, fontSize = iconSize, color = SleepColors.CyanGlow)
+        Text(text = icon, fontSize = iconSize, color = glowColor)
     }
 }
 
