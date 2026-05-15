@@ -17,6 +17,12 @@ android {
     }
 }
 
+// KSP args for Room schema export — required to support migrations
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.incremental", "true")
+}
+
 dependencies {
     implementation(project(":domain"))
     implementation(libs.kotlinx.coroutines.core)
@@ -24,4 +30,7 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 }
