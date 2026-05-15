@@ -1,5 +1,10 @@
 package com.example.a90phase.presentation.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.NavigationBar
@@ -8,9 +13,14 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -61,7 +71,14 @@ private fun AppNavHost(navController: NavHostController, modifier: Modifier = Mo
         startDestination = Routes.SPLASH,
         modifier = modifier,
     ) {
-        composable(Routes.SPLASH) {
+        authRoutes(navController)
+        mainRoutes(navController)
+    }
+}
+
+private fun NavGraphBuilder.authRoutes(navController: NavHostController) {
+    composable(Routes.SPLASH) {
+        ScreenFadeIn {
             SplashScreen(
                 onOnboardingNeeded = {
                     navController.navigate(Routes.ONBOARDING) {
@@ -75,7 +92,9 @@ private fun AppNavHost(navController: NavHostController, modifier: Modifier = Mo
                 },
             )
         }
-        composable(Routes.ONBOARDING) {
+    }
+    composable(Routes.ONBOARDING) {
+        ScreenFadeIn {
             OnboardingScreen(
                 onComplete = {
                     navController.navigate(Routes.CALCULATOR) {
@@ -84,22 +103,50 @@ private fun AppNavHost(navController: NavHostController, modifier: Modifier = Mo
                 },
             )
         }
-        composable(Routes.CALCULATOR) {
+    }
+}
+
+private fun NavGraphBuilder.mainRoutes(navController: NavHostController) {
+    composable(Routes.CALCULATOR) {
+        ScreenFadeIn {
             CalculatorScreen(onNavigateToSettings = { navController.navigate(Routes.SETTINGS) })
         }
-        composable(Routes.HISTORY) {
-            HistoryScreen(onNavigateToLogDetail = { logId -> navController.navigate(Routes.logDetail(logId)) })
+    }
+    composable(Routes.HISTORY) {
+        ScreenFadeIn {
+            HistoryScreen(
+                onNavigateToLogDetail = { logId ->
+                    navController.navigate(Routes.logDetail(logId))
+                },
+            )
         }
-        composable(Routes.SETTINGS) {
+    }
+    composable(Routes.SETTINGS) {
+        ScreenFadeIn {
             SettingsScreen(onNavigateBack = { navController.popBackStack() })
         }
-        composable(
-            route = Routes.LOG_DETAIL,
-            arguments = listOf(navArgument("logId") { type = NavType.StringType }),
-        ) { backStackEntry ->
-            val logId = backStackEntry.arguments?.getString("logId").orEmpty()
+    }
+    composable(
+        route = Routes.LOG_DETAIL,
+        arguments = listOf(navArgument("logId") { type = NavType.StringType }),
+    ) { backStackEntry ->
+        val logId = backStackEntry.arguments?.getString("logId").orEmpty()
+        ScreenFadeIn {
             LogDetailScreen(logId = logId, onNavigateBack = { navController.popBackStack() })
         }
+    }
+}
+
+@Composable
+private fun ScreenFadeIn(content: @Composable () -> Unit) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible = true }
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(300)) + slideInHorizontally { it / 4 },
+        exit = ExitTransition.None,
+    ) {
+        content()
     }
 }
 

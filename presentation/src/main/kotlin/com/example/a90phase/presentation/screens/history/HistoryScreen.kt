@@ -2,11 +2,16 @@
 
 package com.example.a90phase.presentation.screens.history
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +30,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -117,6 +123,7 @@ fun HistoryScreen(onNavigateToLogDetail: (logId: String) -> Unit) {
         Scaffold(
             containerColor = Color.Transparent,
             topBar = { HistoryTopBar(period = period, onPeriodChange = { period = it }) },
+            floatingActionButton = { HistoryFab(visible = uiState == HistoryUiState.CONTENT) },
         ) { innerPadding ->
             when (uiState) {
                 HistoryUiState.LOADING -> HistoryLoadingState(Modifier.padding(innerPadding))
@@ -129,6 +136,23 @@ fun HistoryScreen(onNavigateToLogDetail: (logId: String) -> Unit) {
                     modifier = Modifier.padding(innerPadding),
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun HistoryFab(visible: Boolean) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = scaleIn(tween(200)) + fadeIn(tween(200)),
+        exit = scaleOut(tween(150)) + fadeOut(tween(150)),
+    ) {
+        FloatingActionButton(
+            onClick = { /* TODO: wire to ViewModel */ },
+            containerColor = SleepColors.CyanGlow,
+            contentColor = SleepColors.DeepSpace,
+        ) {
+            Text(text = "+", style = SleepTypography.HeadlineMedium)
         }
     }
 }
