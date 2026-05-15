@@ -22,7 +22,7 @@ fun LogDetailScreen(logId: String, onNavigateBack: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Sömnlogg $logId",
+            text = "Sleep Log $logId",
             style = SleepTypography.HeadlineLarge,
             color = SleepColors.White,
         )

@@ -22,7 +22,7 @@ fun SettingsScreen(onNavigateBack: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Inställningar",
+            text = "Settings",
             style = SleepTypography.HeadlineLarge,
             color = SleepColors.White,
         )

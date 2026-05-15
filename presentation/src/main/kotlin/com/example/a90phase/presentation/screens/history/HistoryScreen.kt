@@ -22,7 +22,7 @@ fun HistoryScreen(onNavigateToLogDetail: (logId: String) -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Sömnhistorik",
+            text = "Sleep History",
             style = SleepTypography.HeadlineLarge,
             color = SleepColors.White,
         )

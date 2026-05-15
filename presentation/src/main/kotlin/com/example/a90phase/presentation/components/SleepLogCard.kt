@@ -25,8 +25,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val SwedishLocale = Locale("sv")
-private val DateFormatter = DateTimeFormatter.ofPattern("EEEE  d MMM", SwedishLocale)
+private val DateFormatter = DateTimeFormatter.ofPattern("EEEE  d MMM", Locale.ENGLISH)
 private val TimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 private val SystemZone = ZoneId.systemDefault()
 
@@ -61,7 +60,7 @@ fun SleepLogCard(
         val bedtimeText = log.bedtime?.toLocalTime()?.format(TimeFormatter) ?: "--:--"
         val wakeTimeText = log.wakeTime.toLocalTime().format(TimeFormatter)
         Text(
-            text = "Sov $bedtimeText  →  Vaknade $wakeTimeText",
+            text = "Slept $bedtimeText  →  Woke up $wakeTimeText",
             style = SleepTypography.BodyMedium,
             color = SleepColors.Silver,
         )
@@ -70,7 +69,7 @@ fun SleepLogCard(
         val minutes = totalMinutes % 60
         val durationText = if (minutes == 0) "${hours}h" else "${hours}h ${minutes}min"
         Text(
-            text = "${log.cycleCount} cykler  ·  $durationText",
+            text = "${log.cycleCount} cycles  ·  $durationText",
             style = SleepTypography.BodyMedium,
             color = SleepColors.SlateBlue,
         )

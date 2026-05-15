@@ -33,12 +33,12 @@ import com.example.a90phase.presentation.theme.Spacing
 private const val ONBOARDING_PAGE_COUNT = 8
 
 private val onboardingPageTitles = listOf(
-    "Välkommen",
-    "Behörigheter",
-    "Vaknatid",
-    "Daglig check-in",
-    "Sänggångspåminnelse",
-    "Morgon check-in",
+    "Welcome",
+    "Permissions",
+    "Wake Time",
+    "Daily Check-in",
+    "Bedtime Reminder",
+    "Morning Check-in",
     "Smart Wake Window",
     "Discovery Phase",
 )
@@ -109,7 +109,7 @@ private fun OnboardingBottomBar(pagerState: PagerState, onComplete: () -> Unit) 
         if (pagerState.currentPage == ONBOARDING_PAGE_COUNT - 1) {
             TextButton(onClick = onComplete) {
                 Text(
-                    text = "Kom igång",
+                    text = "Get Started",
                     style = SleepTypography.BodyLarge,
                     color = SleepColors.CyanGlow,
                 )

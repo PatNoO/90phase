@@ -31,11 +31,11 @@ data class DiscoveryPhase(
 sealed class ShiftType(
     val displayName: String,
 ) {
-    data object LongerLatency : ShiftType("Längre insomning (30 min)")
+    data object LongerLatency : ShiftType("Longer sleep onset (30 min)")
 
-    data object LongerCycles : ShiftType("Längre cykler (105 min)")
+    data object LongerCycles : ShiftType("Longer cycles (105 min)")
 
-    data object FewerCycles : ShiftType("Färre cykler (5 st)")
+    data object FewerCycles : ShiftType("Fewer cycles (5)")
 
     fun getCycleDuration(): Int =
         when (this) {

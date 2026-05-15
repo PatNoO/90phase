@@ -113,7 +113,7 @@ private fun SleepBottomNav(currentRoute: String?, onNavigate: (String) -> Unit) 
             selected = currentRoute == Routes.CALCULATOR,
             onClick = { onNavigate(Routes.CALCULATOR) },
             icon = { Text(text = "◎", style = SleepTypography.HeadlineMedium) },
-            label = { Text(text = "Kalkylator", style = SleepTypography.LabelMedium) },
+            label = { Text(text = "Calculator", style = SleepTypography.LabelMedium) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = SleepColors.CyanGlow,
                 selectedTextColor = SleepColors.CyanGlow,
@@ -126,7 +126,7 @@ private fun SleepBottomNav(currentRoute: String?, onNavigate: (String) -> Unit) 
             selected = currentRoute == Routes.HISTORY,
             onClick = { onNavigate(Routes.HISTORY) },
             icon = { Text(text = "◈", style = SleepTypography.HeadlineMedium) },
-            label = { Text(text = "Historik", style = SleepTypography.LabelMedium) },
+            label = { Text(text = "History", style = SleepTypography.LabelMedium) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = SleepColors.CyanGlow,
                 selectedTextColor = SleepColors.CyanGlow,

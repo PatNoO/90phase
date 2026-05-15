@@ -69,7 +69,7 @@ private val fakeBedtimes = listOf(
 )
 
 private fun BedtimeRecommendation.toDurationLabel(): String =
-    if (quality == BedtimeQuality.PASSED) "Passerad" else "${durationMinutes / 60}h ${durationMinutes % 60}min sömn"
+    if (quality == BedtimeQuality.PASSED) "Passed" else "${durationMinutes / 60}h ${durationMinutes % 60}min sleep"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,7 +149,7 @@ private fun CalculatorScaffold(
                 }
                 item {
                     Spacer(modifier = Modifier.height(Spacing.Large))
-                    SectionHeader(title = "Rekommenderade sänggångstider")
+                    SectionHeader(title = "Recommended Bedtimes")
                     Spacer(modifier = Modifier.height(Spacing.XS))
                 }
                 itemsIndexed(state.bedtimes) { index, bedtime ->
@@ -196,8 +196,8 @@ private fun CalculatorToggles(
     onReminderToggle: (Boolean) -> Unit,
 ) {
     Column(modifier = Modifier.padding(horizontal = Spacing.Medium)) {
-        SleepToggle(label = "Väckarklocka aktiv", checked = isAlarmActive, onCheckedChange = onAlarmToggle)
-        SleepToggle(label = "Daglig check-in (18:00)", checked = isDailyReminderActive, onCheckedChange = onReminderToggle)
+        SleepToggle(label = "Alarm Active", checked = isAlarmActive, onCheckedChange = onAlarmToggle)
+        SleepToggle(label = "Daily Check-in (18:00)", checked = isDailyReminderActive, onCheckedChange = onReminderToggle)
     }
 }
 
@@ -239,7 +239,7 @@ private fun WakeTimePickerDialog(
     val state = rememberTimePickerState(initialHour = initialTime.hour, initialMinute = initialTime.minute, is24Hour = true)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Välj vaknatid", style = SleepTypography.HeadlineMedium, color = SleepColors.White) },
+        title = { Text(text = "Select Wake Time", style = SleepTypography.HeadlineMedium, color = SleepColors.White) },
         text = { TimePicker(state = state) },
         confirmButton = {
             TextButton(onClick = { onTimeSelected(LocalTime.of(state.hour, state.minute)) }) {
@@ -247,7 +247,7 @@ private fun WakeTimePickerDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(text = "Avbryt", color = SleepColors.Silver) }
+            TextButton(onClick = onDismiss) { Text(text = "Cancel", color = SleepColors.Silver) }
         },
         containerColor = SleepColors.MidnightBlue,
     )
