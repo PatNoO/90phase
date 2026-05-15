@@ -6,6 +6,11 @@ import com.example.a90phase.domain.entities.UserProfile
 import kotlinx.coroutines.flow.Flow
 
 interface UserPreferencesRepository {
+    // Smart Wake Window
+    suspend fun setSmartWakeWindowEnabled(enabled: Boolean): Result<Unit>
+
+    fun observeSmartWakeWindowEnabled(): Flow<Boolean>
+
     // Profile
     suspend fun getUserProfile(): Result<UserProfile>
 

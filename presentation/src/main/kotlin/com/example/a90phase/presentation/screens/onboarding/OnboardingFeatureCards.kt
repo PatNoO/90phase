@@ -26,9 +26,11 @@ import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.rememberIsCompactHeight
 
 private const val SMART_WAKE_BODY =
-    "Vibrates gently during your lightest sleep phase in a 20-minute window before your alarm."
+    "Your phone detects movement to wake you at a lighter moment within a window you set. " +
+        "No microphone. No uploads. Completely local."
 private const val SMART_WAKE_WARNING =
-    "Uses motion sensors. Battery usage is minimal but non-zero."
+    "⚠ Phone must be on your bed to work. If you charge it away from bed — skip this, " +
+        "it won't help you."
 private const val DISCOVERY_BODY =
     "After 21 nights, 90phase learns your real sleep latency and cycle length — so bedtime " +
         "recommendations get sharper over time."

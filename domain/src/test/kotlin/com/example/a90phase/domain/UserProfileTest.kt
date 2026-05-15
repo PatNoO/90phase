@@ -19,6 +19,7 @@ class UserProfileTest {
         assertEquals(6, profile.preferredCycleCount)
         assertEquals("18:00", profile.reminderTime)
         assertTrue(profile.notificationsEnabled)
+        assertFalse(profile.smartWakeWindowEnabled)
         assertFalse(profile.isDiscoveryPhaseActive())
     }
 
