@@ -39,6 +39,7 @@ import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.glassCard
+import com.example.a90phase.presentation.theme.rememberIsCompactHeight
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -89,6 +90,8 @@ fun WakeTimeCard(
 @Composable
 private fun WakeTimeCardInner(time: LocalTime, isActive: Boolean, onClick: () -> Unit) {
     val timeLabel = time.format(DateTimeFormatter.ofPattern("HH:mm"))
+    val isCompact = rememberIsCompactHeight()
+    val verticalPadding = if (isCompact) Spacing.Large else Spacing.XXL
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -107,7 +110,7 @@ private fun WakeTimeCardInner(time: LocalTime, isActive: Boolean, onClick: () ->
                 role = Role.Button
             }
             .clickable(onClick = onClick)
-            .padding(vertical = Spacing.XXL, horizontal = Spacing.Large),
+            .padding(vertical = verticalPadding, horizontal = Spacing.Large),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -156,6 +159,18 @@ internal fun WakeTimeCardInactivePreview() {
         WakeTimeCard(
             time = LocalTime.of(7, 0),
             isActive = false,
+            onClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0B1120, widthDp = 640, heightDp = 360)
+@Composable
+internal fun WakeTimeCardLandscapePreview() {
+    NightSkyTheme {
+        WakeTimeCard(
+            time = LocalTime.of(7, 0),
+            isActive = true,
             onClick = {},
         )
     }
