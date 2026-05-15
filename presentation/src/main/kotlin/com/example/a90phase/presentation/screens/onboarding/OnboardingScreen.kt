@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -53,6 +55,7 @@ import com.example.a90phase.presentation.theme.OnboardingNebulaWash
 import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
+import com.example.a90phase.presentation.theme.rememberIsCompactHeight
 import kotlinx.coroutines.launch
 
 private const val ONBOARDING_PAGE_COUNT = 8
@@ -209,15 +212,19 @@ private fun OnboardingPageContent(
 
 @Composable
 private fun OnboardingWelcomePage(onGetStarted: () -> Unit) {
+    val isCompact = rememberIsCompactHeight()
+    val sectionSpacing = if (isCompact) Spacing.Medium else Spacing.Large
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = Spacing.Large),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = Spacing.Large)
+            .padding(vertical = sectionSpacing),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         OnboardingIconGlow(icon = "🌙", iconSize = ICON_SIZE_SP.sp, glowRadius = GLOW_RADIUS)
-        Spacer(modifier = Modifier.height(Spacing.Large))
+        Spacer(modifier = Modifier.height(sectionSpacing))
         Text(
             text = "Sleep Cycle Optimizer",
             style = SleepTypography.HeadlineLarge,
@@ -238,7 +245,7 @@ private fun OnboardingWelcomePage(onGetStarted: () -> Unit) {
             color = SleepColors.SlateBlue,
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(Spacing.XL))
+        Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
         PrimaryButton(text = "Get started", onClick = onGetStarted)
     }
 }
@@ -246,15 +253,19 @@ private fun OnboardingWelcomePage(onGetStarted: () -> Unit) {
 @Composable
 private fun OnboardingPermissionsPage(onContinue: () -> Unit) {
     // TODO: wire to ViewModel — permission request launcher
+    val isCompact = rememberIsCompactHeight()
+    val sectionSpacing = if (isCompact) Spacing.Medium else Spacing.Large
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = Spacing.Large),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = Spacing.Large)
+            .padding(vertical = sectionSpacing),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         OnboardingIconGlow(icon = "🛡", iconSize = ICON_SIZE_SP.sp, glowRadius = GLOW_RADIUS)
-        Spacer(modifier = Modifier.height(Spacing.Large))
+        Spacer(modifier = Modifier.height(sectionSpacing))
         Text(
             text = "Permissions",
             style = SleepTypography.HeadlineLarge,
@@ -267,13 +278,13 @@ private fun OnboardingPermissionsPage(onContinue: () -> Unit) {
             color = SleepColors.Silver,
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(Spacing.Large))
+        Spacer(modifier = Modifier.height(sectionSpacing))
         PermissionRow("🔔", "Notifications", "Required for check-ins and reminders", false)
         Spacer(modifier = Modifier.height(Spacing.Small))
         PermissionRow("⏰", "Exact Alarms", "Required for precise alarm timing", false)
         Spacer(modifier = Modifier.height(Spacing.Small))
         PermissionRow("📅", "Read Alarm", "Detects your existing alarm", true)
-        Spacer(modifier = Modifier.height(Spacing.XL))
+        Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
         PrimaryButton(text = "Continue", onClick = onContinue)
     }
 }
@@ -286,15 +297,19 @@ private fun OnboardingWakeTimePage(
     onContinue: () -> Unit,
 ) {
     // TODO: wire to ViewModel — pre-fill from system alarm
+    val isCompact = rememberIsCompactHeight()
+    val sectionSpacing = if (isCompact) Spacing.Medium else Spacing.Large
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = Spacing.Large),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = Spacing.Large)
+            .padding(vertical = sectionSpacing),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         OnboardingIconGlow(icon = "⏰", iconSize = ICON_SIZE_SP.sp, glowRadius = GLOW_RADIUS)
-        Spacer(modifier = Modifier.height(Spacing.Large))
+        Spacer(modifier = Modifier.height(sectionSpacing))
         Text(
             text = "Wake Time",
             style = SleepTypography.HeadlineLarge,
@@ -306,24 +321,28 @@ private fun OnboardingWakeTimePage(
             style = SleepTypography.BodyLarge,
             color = SleepColors.Silver,
         )
-        Spacer(modifier = Modifier.height(Spacing.Large))
+        Spacer(modifier = Modifier.height(sectionSpacing))
         WakeTimeDisplay(hour = wakeHour, minute = wakeMinute, onClick = onTapTime)
-        Spacer(modifier = Modifier.height(Spacing.XL))
+        Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
         PrimaryButton(text = "Continue", onClick = onContinue)
     }
 }
 
 @Composable
 private fun OnboardingFeaturePage(spec: FeaturePageSpec, onAction: () -> Unit) {
+    val isCompact = rememberIsCompactHeight()
+    val sectionSpacing = if (isCompact) Spacing.Medium else Spacing.Large
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = Spacing.Large),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = Spacing.Large)
+            .padding(vertical = sectionSpacing),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         OnboardingIconGlow(icon = spec.icon, iconSize = ICON_SIZE_SP.sp, glowRadius = 180f)
-        Spacer(modifier = Modifier.height(Spacing.Large))
+        Spacer(modifier = Modifier.height(sectionSpacing))
         Text(
             text = spec.title,
             style = SleepTypography.HeadlineLarge,
@@ -337,7 +356,7 @@ private fun OnboardingFeaturePage(spec: FeaturePageSpec, onAction: () -> Unit) {
             color = SleepColors.Silver,
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(Spacing.XL))
+        Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
         PrimaryButton(text = spec.ctaLabel, onClick = onAction)
     }
 }
@@ -481,6 +500,14 @@ private fun PageIndicator(
 @Preview(showBackground = true, backgroundColor = 0xFF1E1040)
 @Composable
 internal fun OnboardingScreenPreview() {
+    NightSkyTheme {
+        OnboardingScreen(onComplete = {})
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1E1040, widthDp = 640, heightDp = 360)
+@Composable
+internal fun OnboardingScreenLandscapePreview() {
     NightSkyTheme {
         OnboardingScreen(onComplete = {})
     }

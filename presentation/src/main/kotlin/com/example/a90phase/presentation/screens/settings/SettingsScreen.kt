@@ -527,3 +527,11 @@ internal fun SettingsScreenPreview() {
         SettingsScreen(onNavigateBack = {})
     }
 }
+
+@Preview(showBackground = true, backgroundColor = 0xFF0B1120, widthDp = 640, heightDp = 360)
+@Composable
+internal fun SettingsScreenLandscapePreview() {
+    NightSkyTheme {
+        SettingsScreen(onNavigateBack = {})
+    }
+}

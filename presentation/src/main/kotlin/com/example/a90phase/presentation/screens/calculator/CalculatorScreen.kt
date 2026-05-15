@@ -269,3 +269,11 @@ internal fun CalculatorScreenPreview() {
         CalculatorScreen(onNavigateToSettings = {})
     }
 }
+
+@Preview(showBackground = true, backgroundColor = 0xFF0B1120, widthDp = 640, heightDp = 360)
+@Composable
+internal fun CalculatorScreenLandscapePreview() {
+    NightSkyTheme {
+        CalculatorScreen(onNavigateToSettings = {})
+    }
+}

@@ -469,6 +469,14 @@ internal fun HistoryScreenPreview() {
     }
 }
 
+@Preview(showBackground = true, backgroundColor = 0xFF0B1120, widthDp = 640, heightDp = 360)
+@Composable
+internal fun HistoryScreenLandscapePreview() {
+    NightSkyTheme {
+        HistoryScreen(onNavigateToLogDetail = {})
+    }
+}
+
 @Preview(showBackground = true, backgroundColor = 0xFF0B1120)
 @Composable
 internal fun HistoryEmptyStatePreview() {
