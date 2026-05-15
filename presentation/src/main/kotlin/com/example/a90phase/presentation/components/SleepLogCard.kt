@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.a90phase.domain.entities.SleepLog
 import com.example.a90phase.domain.entities.SyncStatus
@@ -42,6 +43,7 @@ fun SleepLogCard(
             .fillMaxWidth()
             .padding(horizontal = Spacing.Medium, vertical = Spacing.XXS)
             .glassCard()
+            .semantics(mergeDescendants = true) { }
             .padding(Spacing.Medium),
     ) {
         Row(

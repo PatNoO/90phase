@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.a90phase.presentation.theme.NightSkyTheme
 import com.example.a90phase.presentation.theme.SleepColors
@@ -19,7 +21,11 @@ fun StarRating(
     modifier: Modifier = Modifier,
 ) {
     val displayRating = rating?.coerceIn(0, MAX_STARS) ?: 0
-    Row(modifier = modifier) {
+    Row(
+        modifier = modifier.semantics(mergeDescendants = true) {
+            contentDescription = "$displayRating out of $MAX_STARS stars"
+        },
+    ) {
         repeat(MAX_STARS) { index ->
             if (index < displayRating) {
                 Text(

@@ -28,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,6 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.a90phase.presentation.components.SleepToggle
 import com.example.a90phase.presentation.theme.BackgroundGradient
@@ -127,6 +133,9 @@ private fun SettingsTopBar(onNavigateBack: () -> Unit) {
                     text = "←",
                     style = SleepTypography.HeadlineMedium,
                     color = SleepColors.Silver,
+                    modifier = Modifier.clearAndSetSemantics {
+                        contentDescription = "Navigate back"
+                    },
                 )
             }
         },
@@ -225,6 +234,7 @@ private fun SettingsSliderRow(
             value = value,
             onValueChange = onValueChange,
             valueRange = range,
+            modifier = Modifier.semantics { contentDescription = "$label slider, $valueLabel" },
             colors = SliderDefaults.colors(
                 thumbColor = SleepColors.CyanGlow,
                 activeTrackColor = SleepColors.CyanGlow,
@@ -280,6 +290,11 @@ private fun CheckInRow(
                 color = SleepColors.CyanGlow,
                 modifier = Modifier
                     .padding(start = Spacing.XS, top = Spacing.XXS, bottom = Spacing.XXS)
+                    .minimumInteractiveComponentSize()
+                    .clearAndSetSemantics {
+                        contentDescription = "Check-in time $timeText, tap to change"
+                        role = Role.Button
+                    }
                     .clickable(onClick = onTapTime),
             )
         }
@@ -398,6 +413,8 @@ private fun SettingsLinkRow(label: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .minimumInteractiveComponentSize()
+            .semantics(mergeDescendants = true) { role = Role.Button }
             .clickable(onClick = onClick)
             .padding(vertical = Spacing.XS),
         horizontalArrangement = Arrangement.SpaceBetween,

@@ -36,6 +36,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
@@ -171,6 +176,7 @@ private fun OnboardingTopBar(showBack: Boolean, onBack: () -> Unit) {
                     text = "←",
                     style = SleepTypography.HeadlineMedium,
                     color = SleepColors.Silver,
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = "Go back" },
                 )
             }
         }
@@ -340,7 +346,9 @@ private fun OnboardingFeaturePage(spec: FeaturePageSpec, onAction: () -> Unit) {
 private fun OnboardingIconGlow(icon: String, iconSize: TextUnit, glowRadius: Float) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.drawBehind {
+        modifier = Modifier
+            .clearAndSetSemantics { }
+            .drawBehind {
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
@@ -392,11 +400,17 @@ private fun PermissionRow(icon: String, title: String, subtitle: String, isOptio
 
 @Composable
 private fun WakeTimeDisplay(hour: Int, minute: Int, onClick: () -> Unit) {
+    val timeText = "%02d:%02d".format(hour, minute)
     Text(
-        text = "%02d:%02d".format(hour, minute),
+        text = timeText,
         style = SleepTypography.DisplayLarge,
         color = SleepColors.CyanGlow,
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier
+            .clearAndSetSemantics {
+                contentDescription = "$timeText, wake time, tap to change"
+                role = Role.Button
+            }
+            .clickable(onClick = onClick),
     )
 }
 
@@ -444,7 +458,9 @@ private fun PageIndicator(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.semantics {
+            contentDescription = "Page ${currentPage + 1} of $pageCount"
+        },
         horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
         verticalAlignment = Alignment.CenterVertically,
     ) {

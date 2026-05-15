@@ -37,6 +37,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.BedtimeRecommendation
@@ -178,7 +180,14 @@ private fun CalculatorTopBar(onNavigateToSettings: () -> Unit) {
         },
         actions = {
             IconButton(onClick = onNavigateToSettings) {
-                Text(text = "⚙", style = SleepTypography.HeadlineMedium, color = SleepColors.Silver)
+                Text(
+                    text = "⚙",
+                    style = SleepTypography.HeadlineMedium,
+                    color = SleepColors.Silver,
+                    modifier = Modifier.clearAndSetSemantics {
+                        contentDescription = "Open settings"
+                    },
+                )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(

@@ -28,6 +28,10 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.a90phase.presentation.theme.NightSkyTheme
@@ -84,6 +88,7 @@ fun WakeTimeCard(
 
 @Composable
 private fun WakeTimeCardInner(time: LocalTime, isActive: Boolean, onClick: () -> Unit) {
+    val timeLabel = time.format(DateTimeFormatter.ofPattern("HH:mm"))
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -97,6 +102,10 @@ private fun WakeTimeCardInner(time: LocalTime, isActive: Boolean, onClick: () ->
                 },
                 shape = CARD_SHAPE,
             )
+            .clearAndSetSemantics {
+                contentDescription = "Wake time $timeLabel, tap to change"
+                role = Role.Button
+            }
             .clickable(onClick = onClick)
             .padding(vertical = Spacing.XXL, horizontal = Spacing.Large),
         contentAlignment = Alignment.Center,

@@ -29,6 +29,11 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,12 +73,23 @@ fun BedtimeResultCard(
         label = "CheckmarkProgress",
     )
 
+    val timeFormatted = time.format(DateTimeFormatter.ofPattern("HH:mm"))
+    val qualityLabel = quality.name.lowercase().replaceFirstChar { it.uppercase() }
     Box(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = Spacing.Medium, vertical = Spacing.XXS)
             .glassCard(cornerRadius = 16.dp)
             .background(cardBackground, SleepShapes.Large)
+            .semantics {
+                contentDescription = "Bedtime $timeFormatted, $cycleCount cycles, $qualityLabel, $durationLabel"
+                stateDescription = when {
+                    isPassed -> "Passed"
+                    isSelected -> "Selected"
+                    else -> ""
+                }
+                role = Role.Button
+            }
             .clickable(enabled = !isPassed, onClick = onClick)
             .padding(Spacing.Medium),
     ) {
