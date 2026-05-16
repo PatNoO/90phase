@@ -1,5 +1,3 @@
-@file:Suppress("ForbiddenComment")
-
 package com.example.a90phase.data.repositories
 
 import android.content.Context
@@ -7,6 +5,10 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.a90phase.data.local.datastore.UserPreferencesDataStore
+import com.example.a90phase.data.local.room.dao.UserProfileDao
+import com.example.a90phase.data.local.room.mapper.toEntity
+import com.example.a90phase.data.local.room.mapper.toDomain
+import com.example.a90phase.data.local.room.mapper.toJson
 import com.example.a90phase.data.workers.SmartWakeMonitorWorker
 import com.example.a90phase.domain.common.DomainError
 import com.example.a90phase.domain.common.Result
@@ -15,66 +17,97 @@ import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Suppress("TooManyFunctions")
 @Singleton
 class UserPreferencesRepositoryImpl @Inject constructor(
+    private val userProfileDao: UserProfileDao,
     private val dataStore: UserPreferencesDataStore,
     @ApplicationContext private val context: Context,
 ) : UserPreferencesRepository {
-
-    // Smart Wake Window
 
     override suspend fun setSmartWakeWindowEnabled(enabled: Boolean): Result<Unit> =
         runCatching {
             dataStore.setSmartWakeWindowEnabled(enabled)
             if (enabled) scheduleSmartWakeMonitor() else cancelSmartWakeMonitor()
+            val profile = getOrCreateProfile()
+            userProfileDao.insertOrUpdateProfile(profile.copy(smartWakeWindowEnabled = enabled).toEntity())
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
     override fun observeSmartWakeWindowEnabled(): Flow<Boolean> =
         dataStore.observeSmartWakeWindowEnabled()
 
-    // TODO: PH-24 — implement with Room once database is set up
     override suspend fun getUserProfile(): Result<UserProfile> =
-        Result.Error(DomainError.DatabaseError("Room not yet configured — PH-24"))
+        runCatching {
+            val entity = userProfileDao.getUserProfile()
+            Result.Success(entity?.toDomain() ?: defaultProfile())
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
-    // TODO: PH-24
     override suspend fun updateUserProfile(profile: UserProfile): Result<Unit> =
-        Result.Error(DomainError.DatabaseError("Room not yet configured — PH-24"))
+        runCatching {
+            userProfileDao.insertOrUpdateProfile(profile.toEntity())
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
-    // TODO: PH-24
     override suspend fun setCycleDuration(minutes: Int): Result<Unit> =
-        Result.Error(DomainError.DatabaseError("Room not yet configured — PH-24"))
+        runCatching {
+            val profile = getOrCreateProfile()
+            userProfileDao.insertOrUpdateProfile(profile.copy(optimalCycleMinutes = minutes).toEntity())
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
-    // TODO: PH-24
     override suspend fun setSleepLatency(minutes: Int): Result<Unit> =
-        Result.Error(DomainError.DatabaseError("Room not yet configured — PH-24"))
+        runCatching {
+            val profile = getOrCreateProfile()
+            userProfileDao.insertOrUpdateProfile(profile.copy(sleepLatencyMinutes = minutes).toEntity())
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
-    // TODO: PH-24
     override suspend fun setReminderTime(time: String): Result<Unit> =
-        Result.Error(DomainError.DatabaseError("Room not yet configured — PH-24"))
+        runCatching {
+            val profile = getOrCreateProfile()
+            userProfileDao.insertOrUpdateProfile(profile.copy(reminderTime = time).toEntity())
+            dataStore.setNotificationTime(time)
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
-    // TODO: PH-24
     override suspend fun setNotificationsEnabled(enabled: Boolean): Result<Unit> =
-        Result.Error(DomainError.DatabaseError("Room not yet configured — PH-24"))
+        runCatching {
+            val profile = getOrCreateProfile()
+            userProfileDao.insertOrUpdateProfile(profile.copy(notificationsEnabled = enabled).toEntity())
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
-    // TODO: PH-24
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> =
-        Result.Error(DomainError.DatabaseError("Room not yet configured — PH-24"))
+        runCatching {
+            val profile = getOrCreateProfile()
+            userProfileDao.insertOrUpdateProfile(profile.copy(discoveryPhase = phase).toEntity())
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
-    // TODO: PH-24
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> =
-        Result.Error(DomainError.DatabaseError("Room not yet configured — PH-24"))
+        runCatching {
+            userProfileDao.updateDiscoveryPhase(phase.toJson())
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
-    // TODO: PH-24
     override suspend fun endDiscoveryPhase(): Result<Unit> =
-        Result.Error(DomainError.DatabaseError("Room not yet configured — PH-24"))
+        runCatching {
+            userProfileDao.updateDiscoveryPhase(null)
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
-    // TODO: PH-24
     override fun observeUserProfile(): Flow<UserProfile> =
-        kotlinx.coroutines.flow.emptyFlow()
+        userProfileDao.getUserProfileFlow().map { it?.toDomain() ?: defaultProfile() }
+
+    private suspend fun getOrCreateProfile(): UserProfile =
+        userProfileDao.getUserProfile()?.toDomain() ?: defaultProfile()
+
+    private fun defaultProfile() = UserProfile(userId = DEFAULT_USER_ID)
 
     private fun scheduleSmartWakeMonitor() {
         val request = OneTimeWorkRequestBuilder<SmartWakeMonitorWorker>()
@@ -86,5 +119,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     private fun cancelSmartWakeMonitor() {
         WorkManager.getInstance(context).cancelAllWorkByTag(SmartWakeMonitorWorker.WORK_TAG)
+    }
+
+    companion object {
+        private const val DEFAULT_USER_ID = "local_user"
     }
 }
