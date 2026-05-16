@@ -47,16 +47,16 @@ Call the result `NEXT`. Use it as `PH-<NEXT>` in the title.
 
 | Clue in description | Epic milestone | Labels |
 |---|---|---|
-| module, gradle, hilt, setup, config, project structure | EPIC-0: Project Setup | `p0,epic:setup,setup` |
-| entity, usecase, domain, repository interface, result type | EPIC-1: Domain Layer | `p0,epic:domain,feature` |
-| screen, compose, UI, design, component, theme, color, typography | EPIC-2: UI Design | `p0,epic:ui,feature` |
-| room, dao, datastore, database, mapper, migration | EPIC-3: Data Layer | `p0,epic:data,feature` |
-| notification, alarm, broadcast, receiver, boot | EPIC-4: Notifications | `p0,epic:notifications,feature` |
-| firebase, firestore, auth, sync, worker | EPIC-5: Firebase Sync | `p1,epic:firebase,feature` |
-| discovery, phase, analysis, adaptive, weekly shift | EPIC-6: Discovery Phase | `p2,epic:discovery,feature` |
-| viewmodel, stateflow, integration, navigation | EPIC-7: ViewModels | `p0,epic:viewmodels,feature` |
-| test, coverage, unit test, integration test, e2e | EPIC-8: Testing | `p0,epic:testing,feature` |
-| polish, bug fix, performance, animation, icon, readme | EPIC-9: Polish & MVP | `p0,epic:polish,enhancement` |
+| module, gradle, hilt, setup, config, project structure | EPIC-0: Project Setup | `p0,epic-0:setup,feature` |
+| entity, usecase, domain, repository interface, result type | EPIC-1: Domain Layer | `p0,epic-1:domain,feature` |
+| screen, compose, UI, design, component, theme, color, typography | EPIC-2: UI Design | `p0,epic-2:ui,feature` |
+| room, dao, datastore, database, mapper, migration | EPIC-3: Data Layer | `p0,epic-3:data,feature` |
+| notification, alarm, broadcast, receiver, boot | EPIC-4: Notifications | `p0,epic-4:notifications,feature` |
+| firebase, firestore, auth, sync, worker | EPIC-5: Firebase Sync | `p1,epic-5:firebase,feature` |
+| discovery, phase, analysis, adaptive, weekly shift | EPIC-6: Discovery Phase | `p2,epic-6:discovery,feature` |
+| viewmodel, stateflow, integration, navigation | EPIC-7: ViewModels | `p0,epic-7:viewmodels,feature` |
+| test, coverage, unit test, integration test, e2e | EPIC-8: Testing | `p0,epic-8:testing,feature` |
+| polish, bug fix, performance, animation, icon, readme | EPIC-9: Polish & MVP | `p0,epic-9:polish,enhancement` |
 
 **Add type label** from Step 1: `feature` / `bug` / `chore` / `spike`
 
@@ -207,6 +207,41 @@ gh issue create \
   --body "<drafted body from Step 4>" \
   --label "<labels from Step 3>" \
   --milestone "<epic milestone from Step 3>"
+```
+
+Save the returned issue number as `NEW_ISSUE_NUMBER` and the URL as `NEW_ISSUE_URL`.
+
+---
+
+## Step 5b — Add the ticket to the epic parent issue
+
+Every epic has a parent issue (e.g. "[EPIC-3] Data Layer") that contains a checklist of all its child tickets. The new ticket must be appended to that checklist as an unchecked item.
+
+**Find the epic parent issue for this milestone:**
+
+```bash
+gh issue list --repo PatNoO/90phase --state all --json number,title,labels \
+  --limit 200 | jq -r '.[] | select(.labels[]?.name == "epic") | "\(.number) \(.title)"'
+```
+
+Match the result to the milestone (e.g. milestone "EPIC-3: Data Layer" → look for "[EPIC-3]" in the title). Call the matching issue number `EPIC_ISSUE_NUMBER`.
+
+**Fetch the current epic body:**
+
+```bash
+gh issue view <EPIC_ISSUE_NUMBER> --repo PatNoO/90phase --json body | jq -r '.body'
+```
+
+**Append the new ticket as an unchecked checklist item** at the end of the `## Issues` list in the epic body:
+
+```
+- [ ] #<NEW_ISSUE_NUMBER> [PH-<NEXT>] <drafted title>
+```
+
+**Update the epic issue body:**
+
+```bash
+gh issue edit <EPIC_ISSUE_NUMBER> --repo PatNoO/90phase --body "<updated body with new line appended>"
 ```
 
 ---
