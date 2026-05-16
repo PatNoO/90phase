@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.a90phase.data.local.room.SleepOptimizerDatabase
 import com.example.a90phase.data.local.room.dao.SleepLogDao
+import com.example.a90phase.data.local.room.dao.UserProfileDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,4 +30,8 @@ object DatabaseModule {
     @Provides
     fun provideSleepLogDao(database: SleepOptimizerDatabase): SleepLogDao =
         database.sleepLogDao()
+
+    @Provides
+    fun provideUserProfileDao(database: SleepOptimizerDatabase): UserProfileDao =
+        database.userProfileDao()
 }
