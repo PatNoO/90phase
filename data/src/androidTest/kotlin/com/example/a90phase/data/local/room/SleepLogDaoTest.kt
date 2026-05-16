@@ -13,6 +13,7 @@ import java.time.LocalDate
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -113,6 +114,47 @@ class SleepLogDaoTest {
         dao.insertSleepLog(buildEntity("2", LocalDate.of(2026, 5, 14), syncStatus = SyncStatus.PENDING_UPLOAD))
 
         dao.markAsSynced(listOf("1"))
+
+        val unsynced = dao.getUnsyncedLogs()
+        assertEquals(1, unsynced.size)
+        assertEquals("2", unsynced.first().id)
+    }
+
+    @Test
+    fun getSleepLogById_returnsMatchingEntry() = runTest {
+        dao.insertSleepLog(buildEntity("1", LocalDate.of(2026, 5, 15)))
+        dao.insertSleepLog(buildEntity("2", LocalDate.of(2026, 5, 14)))
+
+        dao.getSleepLogById("1").test {
+            assertEquals("1", awaitItem()?.id)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun getSleepLogById_returnsNullForUnknownId() = runTest {
+        dao.getSleepLogById("unknown").test {
+            assertNull(awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun updateSyncStatus_changesStatusForId() = runTest {
+        dao.insertSleepLog(buildEntity("1", LocalDate.of(2026, 5, 15), syncStatus = SyncStatus.PENDING_UPLOAD))
+
+        dao.updateSyncStatus("1", SyncStatus.SYNCED)
+
+        val unsynced = dao.getUnsyncedLogs()
+        assertTrue(unsynced.isEmpty())
+    }
+
+    @Test
+    fun updateSyncStatus_doesNotAffectOtherEntries() = runTest {
+        dao.insertSleepLog(buildEntity("1", LocalDate.of(2026, 5, 15), syncStatus = SyncStatus.PENDING_UPLOAD))
+        dao.insertSleepLog(buildEntity("2", LocalDate.of(2026, 5, 14), syncStatus = SyncStatus.PENDING_UPLOAD))
+
+        dao.updateSyncStatus("1", SyncStatus.SYNCED)
 
         val unsynced = dao.getUnsyncedLogs()
         assertEquals(1, unsynced.size)
