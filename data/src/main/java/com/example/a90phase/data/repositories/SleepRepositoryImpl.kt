@@ -1,39 +1,34 @@
 package com.example.a90phase.data.repositories
 
-import android.content.Context
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.example.a90phase.data.local.datastore.UserPreferencesDataStore
 import com.example.a90phase.data.local.room.dao.SleepLogDao
 import com.example.a90phase.data.local.room.mapper.toDomain
 import com.example.a90phase.data.local.room.mapper.toEntity
-import com.example.a90phase.data.workers.SleepLogSyncWorker
+import com.example.a90phase.data.sync.SyncScheduler
 import com.example.a90phase.domain.common.DomainError
 import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.SleepLog
 import com.example.a90phase.domain.entities.SyncStatus
 import com.example.a90phase.domain.repositories.SleepRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import java.time.Instant
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 @Singleton
 class SleepRepositoryImpl @Inject constructor(
     private val sleepLogDao: SleepLogDao,
     private val dataStore: UserPreferencesDataStore,
-    @ApplicationContext private val context: Context,
+    private val syncScheduler: SyncScheduler,
 ) : SleepRepository {
 
     override suspend fun saveSleepLog(log: SleepLog): Result<Unit> =
         runCatching {
             sleepLogDao.insertSleepLog(log.toEntity())
-            enqueueSyncWork()
+            syncScheduler.enqueueSleepLogSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
@@ -53,7 +48,7 @@ class SleepRepositoryImpl @Inject constructor(
     override suspend fun updateSleepLog(log: SleepLog): Result<Unit> =
         runCatching {
             sleepLogDao.insertSleepLog(log.toEntity())
-            enqueueSyncWork()
+            syncScheduler.enqueueSleepLogSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
@@ -86,12 +81,4 @@ class SleepRepositoryImpl @Inject constructor(
             dataStore.setLastSyncTimestamp(timestamp.toEpochMilli())
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
-
-    private fun enqueueSyncWork() {
-        val request = OneTimeWorkRequestBuilder<SleepLogSyncWorker>()
-            .addTag(SleepLogSyncWorker.WORK_TAG)
-            .build()
-        WorkManager.getInstance(context)
-            .enqueueUniqueWork(SleepLogSyncWorker.WORK_TAG, ExistingWorkPolicy.KEEP, request)
-    }
 }

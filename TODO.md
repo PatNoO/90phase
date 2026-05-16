@@ -30,6 +30,7 @@ The Night Sky design system uses **Urbanist** as its font family. Currently `Sle
 
 ---
 
+
 ## Notable Architecture Decisions (PH-15)
 
 - **StarRating uses unicode ★/☆** — `material-icons-core` is not a transitive dep of `material3`, so star icons would need a new Gradle dependency. Unicode characters render identically and require nothing extra.
