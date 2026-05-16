@@ -1,10 +1,10 @@
 package com.example.a90phase.data.repositories
 
-import android.content.Context
 import app.cash.turbine.test
 import com.example.a90phase.data.local.datastore.UserPreferencesDataStore
 import com.example.a90phase.data.local.room.dao.SleepLogDao
 import com.example.a90phase.data.local.room.entity.SleepLogEntity
+import com.example.a90phase.data.sync.SyncScheduler
 import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.SleepLog
 import com.example.a90phase.domain.entities.SyncStatus
@@ -31,9 +31,9 @@ class SleepRepositoryImplTest {
 
     private val sleepLogDao = mockk<SleepLogDao>(relaxed = true)
     private val dataStore = mockk<UserPreferencesDataStore>(relaxed = true)
-    private val context = mockk<Context>(relaxed = true)
+    private val syncScheduler = mockk<SyncScheduler>(relaxed = true)
 
-    private val repo = SleepRepositoryImpl(sleepLogDao, dataStore, context)
+    private val repo = SleepRepositoryImpl(sleepLogDao, dataStore, syncScheduler)
 
     private val baseInstant = Instant.parse("2026-05-15T06:00:00Z")
     private val baseDate = LocalDate.of(2026, 5, 15)

@@ -1,10 +1,10 @@
 package com.example.a90phase.data.repositories
 
-import android.content.Context
 import app.cash.turbine.test
 import com.example.a90phase.data.local.datastore.UserPreferencesDataStore
 import com.example.a90phase.data.local.room.dao.UserProfileDao
 import com.example.a90phase.data.local.room.entity.UserProfileEntity
+import com.example.a90phase.data.sync.SyncScheduler
 import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.UserProfile
 import io.mockk.coEvery
@@ -27,9 +27,9 @@ class UserPreferencesRepositoryImplTest {
 
     private val userProfileDao = mockk<UserProfileDao>(relaxed = true)
     private val dataStore = mockk<UserPreferencesDataStore>(relaxed = true)
-    private val context = mockk<Context>(relaxed = true)
+    private val syncScheduler = mockk<SyncScheduler>(relaxed = true)
 
-    private val repo = UserPreferencesRepositoryImpl(userProfileDao, dataStore, context)
+    private val repo = UserPreferencesRepositoryImpl(userProfileDao, dataStore, syncScheduler)
 
     // region getUserProfile
 

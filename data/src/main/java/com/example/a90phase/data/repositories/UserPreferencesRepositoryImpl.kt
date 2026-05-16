@@ -1,38 +1,33 @@
 package com.example.a90phase.data.repositories
 
-import android.content.Context
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.example.a90phase.data.local.datastore.UserPreferencesDataStore
 import com.example.a90phase.data.local.room.dao.UserProfileDao
-import com.example.a90phase.data.local.room.mapper.toEntity
 import com.example.a90phase.data.local.room.mapper.toDomain
+import com.example.a90phase.data.local.room.mapper.toEntity
 import com.example.a90phase.data.local.room.mapper.toJson
-import com.example.a90phase.data.workers.SmartWakeMonitorWorker
+import com.example.a90phase.data.sync.SyncScheduler
 import com.example.a90phase.domain.common.DomainError
 import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.DiscoveryPhase
 import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 @Suppress("TooManyFunctions")
 @Singleton
 class UserPreferencesRepositoryImpl @Inject constructor(
     private val userProfileDao: UserProfileDao,
     private val dataStore: UserPreferencesDataStore,
-    @ApplicationContext private val context: Context,
+    private val syncScheduler: SyncScheduler,
 ) : UserPreferencesRepository {
 
     override suspend fun setSmartWakeWindowEnabled(enabled: Boolean): Result<Unit> =
         runCatching {
             dataStore.setSmartWakeWindowEnabled(enabled)
-            if (enabled) scheduleSmartWakeMonitor() else cancelSmartWakeMonitor()
+            if (enabled) syncScheduler.scheduleSmartWakeMonitor() else syncScheduler.cancelSmartWakeMonitor()
             val profile = getOrCreateProfile()
             userProfileDao.insertOrUpdateProfile(profile.copy(smartWakeWindowEnabled = enabled).toEntity())
             Result.Success(Unit)
@@ -108,18 +103,6 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         userProfileDao.getUserProfile()?.toDomain() ?: defaultProfile()
 
     private fun defaultProfile() = UserProfile(userId = DEFAULT_USER_ID)
-
-    private fun scheduleSmartWakeMonitor() {
-        val request = OneTimeWorkRequestBuilder<SmartWakeMonitorWorker>()
-            .addTag(SmartWakeMonitorWorker.WORK_TAG)
-            .build()
-        WorkManager.getInstance(context)
-            .enqueueUniqueWork(SmartWakeMonitorWorker.WORK_TAG, ExistingWorkPolicy.REPLACE, request)
-    }
-
-    private fun cancelSmartWakeMonitor() {
-        WorkManager.getInstance(context).cancelAllWorkByTag(SmartWakeMonitorWorker.WORK_TAG)
-    }
 
     companion object {
         private const val DEFAULT_USER_ID = "local_user"
