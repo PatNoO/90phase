@@ -52,11 +52,22 @@ class UserPreferencesDataStore @Inject constructor(
     fun observeLastSyncTimestamp(): Flow<Long> =
         dataStore.data.map { it[Keys.LAST_SYNC_TIMESTAMP] ?: 0L }
 
+    suspend fun setOnboardingState(json: String?) {
+        dataStore.edit { prefs ->
+            if (json == null) prefs.remove(Keys.ONBOARDING_STATE_JSON)
+            else prefs[Keys.ONBOARDING_STATE_JSON] = json
+        }
+    }
+
+    fun observeOnboardingState(): Flow<String?> =
+        dataStore.data.map { it[Keys.ONBOARDING_STATE_JSON] }
+
     private object Keys {
         val SMART_WAKE_ENABLED = booleanPreferencesKey("smart_wake_window_enabled")
         val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
         val NOTIFICATION_TIME = stringPreferencesKey("notification_time")
         val LAST_SYNC_TIMESTAMP = longPreferencesKey("last_sync_timestamp")
+        val ONBOARDING_STATE_JSON = stringPreferencesKey("onboarding_state_json")
     }
 
     companion object {
