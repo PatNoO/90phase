@@ -30,6 +30,24 @@ The Night Sky design system uses **Urbanist** as its font family. Currently `Sle
 
 ---
 
+## WorkManager JVM Test Gap (PH-31)
+
+`WorkManager.getInstance()` is a static Java method that cannot be intercepted by MockK's
+`mockkStatic` in the AGP 9.x JVM unit test environment. As a result, three test paths are
+missing from the JVM suite:
+
+- `SleepRepositoryImpl.saveSleepLog` — happy path (DAO write + WorkManager enqueue)
+- `SleepRepositoryImpl.updateSleepLog` — happy path
+- `UserPreferencesRepositoryImpl.setSmartWakeWindowEnabled` — WorkManager schedule/cancel
+
+**Fix options (pick one):**
+1. Add `androidx.work:work-testing` as `androidTestImplementation` and cover these in androidTest
+   with `WorkManagerTestInitHelper.initializeTestWorkManager(context)`.
+2. Refactor the repositories to accept a `SyncScheduler` interface instead of calling
+   `WorkManager.getInstance()` directly — this makes the scheduling mockable on JVM.
+
+---
+
 ## Notable Architecture Decisions (PH-15)
 
 - **StarRating uses unicode ★/☆** — `material-icons-core` is not a transitive dep of `material3`, so star icons would need a new Gradle dependency. Unicode characters render identically and require nothing extra.
