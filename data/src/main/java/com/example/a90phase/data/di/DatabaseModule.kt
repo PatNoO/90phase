@@ -3,6 +3,7 @@ package com.example.a90phase.data.di
 import android.content.Context
 import androidx.room.Room
 import com.example.a90phase.data.local.room.SleepOptimizerDatabase
+import com.example.a90phase.data.local.room.dao.SleepLogDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,4 +25,8 @@ object DatabaseModule {
             SleepOptimizerDatabase::class.java,
             SleepOptimizerDatabase.DATABASE_NAME,
         ).build()
+
+    @Provides
+    fun provideSleepLogDao(database: SleepOptimizerDatabase): SleepLogDao =
+        database.sleepLogDao()
 }
