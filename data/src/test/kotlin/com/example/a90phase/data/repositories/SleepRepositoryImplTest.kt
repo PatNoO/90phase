@@ -12,6 +12,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import java.time.Instant
 import java.time.LocalDate
 import kotlinx.coroutines.flow.flowOf
@@ -21,12 +22,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * JVM unit tests for SleepRepositoryImpl.
- * Write paths (saveSleepLog, updateSleepLog) are not tested here because they invoke
- * WorkManager.getInstance() which requires Android runtime. Those paths are covered
- * by androidTest integration tests.
- */
+/** JVM unit tests for SleepRepositoryImpl. */
 class SleepRepositoryImplTest {
 
     private val sleepLogDao = mockk<SleepLogDao>(relaxed = true)
@@ -175,6 +171,28 @@ class SleepRepositoryImplTest {
 
         assertTrue(result is Result.Success)
         coVerify { dataStore.setLastSyncTimestamp(2_000_000L) }
+    }
+
+    // endregion
+
+    // region write — saveSleepLog / updateSleepLog
+
+    @Test
+    fun saveSleepLog_writesToDaoAndEnqueuesSync() = runTest {
+        val result = repo.saveSleepLog(buildLog("1"))
+
+        assertTrue(result is Result.Success)
+        coVerify { sleepLogDao.insertSleepLog(any()) }
+        verify { syncScheduler.enqueueSleepLogSync() }
+    }
+
+    @Test
+    fun updateSleepLog_writesToDaoAndEnqueuesSync() = runTest {
+        val result = repo.updateSleepLog(buildLog("1"))
+
+        assertTrue(result is Result.Success)
+        coVerify { sleepLogDao.insertSleepLog(any()) }
+        verify { syncScheduler.enqueueSleepLogSync() }
     }
 
     // endregion

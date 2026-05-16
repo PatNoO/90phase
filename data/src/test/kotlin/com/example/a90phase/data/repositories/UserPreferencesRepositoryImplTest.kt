@@ -11,6 +11,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -30,6 +31,32 @@ class UserPreferencesRepositoryImplTest {
     private val syncScheduler = mockk<SyncScheduler>(relaxed = true)
 
     private val repo = UserPreferencesRepositoryImpl(userProfileDao, dataStore, syncScheduler)
+
+    // region setSmartWakeWindowEnabled
+
+    @Test
+    fun setSmartWakeWindowEnabled_true_schedulesMonitorAndMirrorsRoom() = runTest {
+        coEvery { userProfileDao.getUserProfile() } returns buildEntity(userId = "user-1")
+
+        val result = repo.setSmartWakeWindowEnabled(true)
+
+        assertTrue(result is Result.Success)
+        verify { syncScheduler.scheduleSmartWakeMonitor() }
+        coVerify { userProfileDao.insertOrUpdateProfile(match { it.smartWakeWindowEnabled }) }
+    }
+
+    @Test
+    fun setSmartWakeWindowEnabled_false_cancelsMonitorAndMirrorsRoom() = runTest {
+        coEvery { userProfileDao.getUserProfile() } returns buildEntity(userId = "user-1")
+
+        val result = repo.setSmartWakeWindowEnabled(false)
+
+        assertTrue(result is Result.Success)
+        verify { syncScheduler.cancelSmartWakeMonitor() }
+        coVerify { userProfileDao.insertOrUpdateProfile(match { !it.smartWakeWindowEnabled }) }
+    }
+
+    // endregion
 
     // region getUserProfile
 
