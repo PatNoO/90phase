@@ -1,9 +1,12 @@
 package com.example.a90phase.data.sync
 
 import android.content.Context
+import androidx.work.BackoffPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.WorkRequest
+import java.util.concurrent.TimeUnit
 import com.example.a90phase.data.workers.SleepLogSyncWorker
 import com.example.a90phase.data.workers.SmartWakeMonitorWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -18,9 +21,14 @@ class WorkManagerSyncScheduler @Inject constructor(
     override fun enqueueSleepLogSync() {
         val request = OneTimeWorkRequestBuilder<SleepLogSyncWorker>()
             .addTag(SleepLogSyncWorker.WORK_TAG)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                WorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS,
+            )
             .build()
         WorkManager.getInstance(context)
-            .enqueueUniqueWork(SleepLogSyncWorker.WORK_TAG, ExistingWorkPolicy.KEEP, request)
+            .enqueueUniqueWork(SleepLogSyncWorker.WORK_TAG, ExistingWorkPolicy.APPEND_OR_REPLACE, request)
     }
 
     override fun scheduleSmartWakeMonitor() {

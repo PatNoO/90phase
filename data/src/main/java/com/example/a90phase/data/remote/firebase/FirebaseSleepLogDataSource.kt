@@ -1,0 +1,26 @@
+package com.example.a90phase.data.remote.firebase
+
+import com.example.a90phase.domain.common.DomainError
+import com.example.a90phase.domain.common.Result
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
+
+class FirebaseSleepLogDataSource {
+
+    private val firestore = FirebaseFirestore.getInstance()
+
+    suspend fun uploadSleepLog(userId: String, document: FirestoreSleepLogDocument): Result<Unit> =
+        suspendCancellableCoroutine { continuation ->
+            firestore
+                .collection(FirestoreSchema.USERS)
+                .document(userId)
+                .collection(FirestoreSchema.SleepLogs.COLLECTION)
+                .document(document.id)
+                .set(document)
+                .addOnSuccessListener { continuation.resume(Result.Success(Unit)) }
+                .addOnFailureListener { e ->
+                    continuation.resume(Result.Error(DomainError.SyncError(e.message)))
+                }
+        }
+}
