@@ -83,6 +83,33 @@ class UserPreferencesDataStore @Inject constructor(
     fun observeSelectedBedtimeDuration(): Flow<Int> =
         dataStore.data.map { it[Keys.SELECTED_BEDTIME_DURATION] ?: 450 }
 
+    suspend fun setMorningRatingEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.MORNING_RATING_ENABLED] = enabled }
+    }
+
+    fun observeMorningRatingEnabled(): Flow<Boolean> =
+        dataStore.data.map { it[Keys.MORNING_RATING_ENABLED] ?: true }
+
+    suspend fun setMorningBedtimeLogEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.MORNING_BEDTIME_LOG_ENABLED] = enabled }
+    }
+
+    fun observeMorningBedtimeLogEnabled(): Flow<Boolean> =
+        dataStore.data.map { it[Keys.MORNING_BEDTIME_LOG_ENABLED] ?: true }
+
+    suspend fun setSelectedWakeTime(hour: Int, minute: Int) {
+        dataStore.edit {
+            it[Keys.SELECTED_WAKE_HOUR] = hour
+            it[Keys.SELECTED_WAKE_MINUTE] = minute
+        }
+    }
+
+    fun observeSelectedWakeHour(): Flow<Int> =
+        dataStore.data.map { it[Keys.SELECTED_WAKE_HOUR] ?: DEFAULT_WAKE_HOUR }
+
+    fun observeSelectedWakeMinute(): Flow<Int> =
+        dataStore.data.map { it[Keys.SELECTED_WAKE_MINUTE] ?: 0 }
+
     suspend fun setOnboardingState(json: String?) {
         dataStore.edit { prefs ->
             if (json == null) prefs.remove(Keys.ONBOARDING_STATE_JSON)
@@ -105,9 +132,14 @@ class UserPreferencesDataStore @Inject constructor(
         val SELECTED_BEDTIME_MINUTE = intPreferencesKey("selected_bedtime_minute")
         val SELECTED_BEDTIME_CYCLES = intPreferencesKey("selected_bedtime_cycles")
         val SELECTED_BEDTIME_DURATION = intPreferencesKey("selected_bedtime_duration_minutes")
+        val MORNING_RATING_ENABLED = booleanPreferencesKey("morning_rating_enabled")
+        val MORNING_BEDTIME_LOG_ENABLED = booleanPreferencesKey("morning_bedtime_log_enabled")
+        val SELECTED_WAKE_HOUR = intPreferencesKey("selected_wake_hour")
+        val SELECTED_WAKE_MINUTE = intPreferencesKey("selected_wake_minute")
     }
 
     companion object {
         const val DEFAULT_NOTIFICATION_TIME = "18:00"
+        const val DEFAULT_WAKE_HOUR = 7
     }
 }

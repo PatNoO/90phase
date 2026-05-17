@@ -40,6 +40,27 @@
         <receiver
             android:name=".notifications.BedtimeReminderReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".notifications.MorningFeedbackReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".notifications.RatingActionReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".notifications.SkipMorningFeedbackReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".notifications.DisableMorningFeedbackReceiver"
+            android:exported="false" />
+
+        <activity
+            android:name=".MorningBedtimeLogActivity"
+            android:exported="false"
+            android:theme="@style/Theme._90phase.Transparent" />
     </application>
 
 </manifest>

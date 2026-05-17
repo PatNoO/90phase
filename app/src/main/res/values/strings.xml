@@ -12,4 +12,15 @@
     <string name="notification_bedtime_title">Dags att lägga sig!</string>
     <string name="notification_bedtime_body">%1$d cykler · %2$s sömn</string>
     <string name="notification_set_alarm">Ställ alarm</string>
+
+    <!-- Morning feedback notification -->
+    <string name="notification_morning_title">☀️ God morgon!</string>
+    <string name="notification_morning_body">Hur kändes sömnen i natt?</string>
+    <string name="notification_morning_skip">Hoppa</string>
+    <string name="notification_morning_turn_off">Stäng av dessa påminnelser</string>
+
+    <!-- Morning bedtime log bottom sheet -->
+    <string name="morning_sheet_title">Vad dags gick du och lade dig?</string>
+    <string name="morning_sheet_save">Spara</string>
+    <string name="morning_sheet_skip">Hoppa över</string>
 </resources>
