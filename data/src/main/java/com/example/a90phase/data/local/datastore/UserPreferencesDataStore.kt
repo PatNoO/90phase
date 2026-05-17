@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -18,6 +19,7 @@ private val Context.userPreferencesDataStore: DataStore<Preferences> by preferen
     name = "user_preferences",
 )
 
+@Suppress("TooManyFunctions")
 @Singleton
 class UserPreferencesDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -59,6 +61,28 @@ class UserPreferencesDataStore @Inject constructor(
     fun observeDailyCheckInEnabled(): Flow<Boolean> =
         dataStore.data.map { it[Keys.DAILY_CHECKIN_ENABLED] ?: true }
 
+    suspend fun setBedtimeReminderEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.BEDTIME_REMINDER_ENABLED] = enabled }
+    }
+
+    fun observeBedtimeReminderEnabled(): Flow<Boolean> =
+        dataStore.data.map { it[Keys.BEDTIME_REMINDER_ENABLED] ?: false }
+
+    suspend fun setSelectedBedtime(hour: Int, minute: Int, cycleCount: Int, durationMinutes: Int) {
+        dataStore.edit {
+            it[Keys.SELECTED_BEDTIME_HOUR] = hour
+            it[Keys.SELECTED_BEDTIME_MINUTE] = minute
+            it[Keys.SELECTED_BEDTIME_CYCLES] = cycleCount
+            it[Keys.SELECTED_BEDTIME_DURATION] = durationMinutes
+        }
+    }
+
+    fun observeSelectedBedtimeCycles(): Flow<Int> =
+        dataStore.data.map { it[Keys.SELECTED_BEDTIME_CYCLES] ?: 5 }
+
+    fun observeSelectedBedtimeDuration(): Flow<Int> =
+        dataStore.data.map { it[Keys.SELECTED_BEDTIME_DURATION] ?: 450 }
+
     suspend fun setOnboardingState(json: String?) {
         dataStore.edit { prefs ->
             if (json == null) prefs.remove(Keys.ONBOARDING_STATE_JSON)
@@ -76,6 +100,11 @@ class UserPreferencesDataStore @Inject constructor(
         val LAST_SYNC_TIMESTAMP = longPreferencesKey("last_sync_timestamp")
         val ONBOARDING_STATE_JSON = stringPreferencesKey("onboarding_state_json")
         val DAILY_CHECKIN_ENABLED = booleanPreferencesKey("daily_checkin_enabled")
+        val BEDTIME_REMINDER_ENABLED = booleanPreferencesKey("bedtime_reminder_enabled")
+        val SELECTED_BEDTIME_HOUR = intPreferencesKey("selected_bedtime_hour")
+        val SELECTED_BEDTIME_MINUTE = intPreferencesKey("selected_bedtime_minute")
+        val SELECTED_BEDTIME_CYCLES = intPreferencesKey("selected_bedtime_cycles")
+        val SELECTED_BEDTIME_DURATION = intPreferencesKey("selected_bedtime_duration_minutes")
     }
 
     companion object {
