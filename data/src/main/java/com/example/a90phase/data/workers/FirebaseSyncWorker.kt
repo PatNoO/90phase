@@ -6,7 +6,10 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.a90phase.data.remote.firebase.FirebaseSleepLogDataSource
 import com.example.a90phase.data.remote.firebase.FirebaseUserProfileDataSource
+import com.example.a90phase.data.remote.firebase.toDomainSleepLog
 import com.example.a90phase.data.remote.firebase.toFirestoreDocument
+import com.example.a90phase.data.sync.ConflictResolution
+import com.example.a90phase.data.sync.SleepLogConflictResolver
 import com.example.a90phase.domain.common.Result as DomainResult
 import com.example.a90phase.domain.entities.SyncStatus
 import com.example.a90phase.domain.repositories.AuthRepository
@@ -16,6 +19,8 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import java.time.Instant
+import kotlinx.coroutines.flow.first
 
 class FirebaseSyncWorker(
     context: Context,
@@ -47,18 +52,24 @@ class FirebaseSyncWorker(
             return Result.retry()
         }
 
-        var syncedCount = 0
-        var failedCount = 0
+        uploadPendingSleepLogs(userId, sleepRepository)
+        syncUserProfile(userId, prefsRepository)
+        resolveRemoteConflicts(userId, sleepRepository)
 
-        // Sync pending sleep logs — continue on individual failures (partial-failure handling)
+        return Result.success()
+    }
+
+    private suspend fun uploadPendingSleepLogs(userId: String, sleepRepository: SleepRepository) {
         val pendingLogs = when (val r = sleepRepository.getPendingUploadLogs()) {
             is DomainResult.Success -> r.data
             else -> {
                 Log.d(TAG, "Failed to load pending logs from Room")
-                emptyList()
+                return
             }
         }
 
+        var syncedCount = 0
+        var failedCount = 0
         for (log in pendingLogs) {
             when (sleepLogDataSource.uploadSleepLog(userId, log.toFirestoreDocument())) {
                 is DomainResult.Success -> {
@@ -68,24 +79,74 @@ class FirebaseSyncWorker(
                 else -> failedCount++
             }
         }
+        Log.d(TAG, "Upload: $syncedCount synced, $failedCount failed (will retry next run)")
+    }
 
-        // Sync user profile
+    private suspend fun syncUserProfile(userId: String, prefsRepository: UserPreferencesRepository) {
         val profile = when (val r = prefsRepository.getUserProfile()) {
             is DomainResult.Success -> r.data
-            else -> null
+            else -> return
+        }
+        if (profile.userId == LOCAL_USER_ID) return
+        when (profileDataSource.uploadProfile(userId, profile.copy(userId = userId).toFirestoreDocument())) {
+            is DomainResult.Success -> Log.d(TAG, "Profile synced")
+            else -> Log.d(TAG, "Profile sync failed — will retry next run")
+        }
+    }
+
+    /**
+     * Downloads Firestore logs updated since the last sync and applies conflict resolution.
+     * Firestore wins only when its updatedAt is strictly newer than Room's version.
+     */
+    private suspend fun resolveRemoteConflicts(userId: String, sleepRepository: SleepRepository) {
+        val since = when (val r = sleepRepository.getLastSyncTimestamp()) {
+            is DomainResult.Success -> r.data
+            else -> Instant.EPOCH
         }
 
-        if (profile != null && profile.userId != LOCAL_USER_ID) {
-            when (profileDataSource.uploadProfile(userId, profile.copy(userId = userId).toFirestoreDocument())) {
-                is DomainResult.Success -> Log.d(TAG, "Profile synced")
-                else -> Log.d(TAG, "Profile sync failed — will retry next run")
+        val remoteLogs = when (val r = sleepLogDataSource.downloadSleepLogsUpdatedAfter(userId, since)) {
+            is DomainResult.Success -> r.data
+            else -> {
+                Log.d(TAG, "Failed to fetch remote logs for conflict resolution")
+                return
             }
         }
 
-        Log.d(TAG, "Sync complete: $syncedCount synced, $failedCount failed (will retry next run)")
+        var localWins = 0
+        var remoteWins = 0
 
-        // Always succeed — failed items remain PENDING and are picked up on the next run
-        return Result.success()
+        for (remote in remoteLogs) {
+            val remoteUpdatedAt = Instant.ofEpochSecond(
+                remote.updatedAt.seconds,
+                remote.updatedAt.nanoseconds.toLong(),
+            )
+            val local = sleepRepository.getSleepLog(remote.id).first()
+
+            if (local == null) {
+                // Log exists remotely but not locally — always take remote
+                sleepRepository.saveSleepLog(remote.toDomainSleepLog())
+                remoteWins++
+                continue
+            }
+
+            when (SleepLogConflictResolver.resolve(local.updatedAt, remoteUpdatedAt)) {
+                ConflictResolution.LOCAL_WINS -> {
+                    Log.d(TAG, "Conflict log=${remote.id}: LOCAL wins")
+                    localWins++
+                }
+                ConflictResolution.REMOTE_WINS -> {
+                    Log.d(TAG, "Conflict log=${remote.id}: REMOTE wins — updating Room")
+                    sleepRepository.saveSleepLog(remote.toDomainSleepLog())
+                    remoteWins++
+                }
+            }
+        }
+
+        if (localWins + remoteWins > 0) {
+            Log.d(TAG, "Conflict resolution: local=$localWins remote=$remoteWins")
+        }
+
+        sleepRepository.updateLastSyncTimestamp(Instant.now())
     }
 
     companion object {
