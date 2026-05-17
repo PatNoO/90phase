@@ -52,6 +52,13 @@ class UserPreferencesDataStore @Inject constructor(
     fun observeLastSyncTimestamp(): Flow<Long> =
         dataStore.data.map { it[Keys.LAST_SYNC_TIMESTAMP] ?: 0L }
 
+    suspend fun setDailyCheckInEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.DAILY_CHECKIN_ENABLED] = enabled }
+    }
+
+    fun observeDailyCheckInEnabled(): Flow<Boolean> =
+        dataStore.data.map { it[Keys.DAILY_CHECKIN_ENABLED] ?: true }
+
     suspend fun setOnboardingState(json: String?) {
         dataStore.edit { prefs ->
             if (json == null) prefs.remove(Keys.ONBOARDING_STATE_JSON)
@@ -68,6 +75,7 @@ class UserPreferencesDataStore @Inject constructor(
         val NOTIFICATION_TIME = stringPreferencesKey("notification_time")
         val LAST_SYNC_TIMESTAMP = longPreferencesKey("last_sync_timestamp")
         val ONBOARDING_STATE_JSON = stringPreferencesKey("onboarding_state_json")
+        val DAILY_CHECKIN_ENABLED = booleanPreferencesKey("daily_checkin_enabled")
     }
 
     companion object {

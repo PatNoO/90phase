@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">90phase</string>
+
+    <!-- Daily check-in notification -->
+    <string name="notification_checkin_title">När ska du vakna imorgon?</string>
+    <string name="notification_checkin_body">Ange din väckningstid för optimal sömnplanering.</string>
+    <string name="notification_turn_off">Stäng av dessa påminnelser</string>
+    <string name="notification_alarm_label">%1$s (Från larm)</string>
+    <string name="notification_customize">Anpassa</string>
 </resources>

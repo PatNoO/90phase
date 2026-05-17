@@ -96,6 +96,15 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
+    override suspend fun setDailyCheckInEnabled(enabled: Boolean): Result<Unit> =
+        runCatching {
+            dataStore.setDailyCheckInEnabled(enabled)
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
+
+    override fun observeDailyCheckInEnabled(): Flow<Boolean> =
+        dataStore.observeDailyCheckInEnabled()
+
     override fun observeUserProfile(): Flow<UserProfile> =
         userProfileDao.getUserProfileFlow().map { it?.toDomain() ?: defaultProfile() }
 

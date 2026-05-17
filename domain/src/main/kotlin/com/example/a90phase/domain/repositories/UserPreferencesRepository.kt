@@ -32,6 +32,11 @@ interface UserPreferencesRepository {
 
     suspend fun endDiscoveryPhase(): Result<Unit>
 
+    // Notification toggles
+    suspend fun setDailyCheckInEnabled(enabled: Boolean): Result<Unit>
+
+    fun observeDailyCheckInEnabled(): Flow<Boolean>
+
     // Reactive
     fun observeUserProfile(): Flow<UserProfile>
 }
