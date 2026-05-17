@@ -83,6 +83,12 @@ class UserPreferencesDataStore @Inject constructor(
     fun observeSelectedBedtimeDuration(): Flow<Int> =
         dataStore.data.map { it[Keys.SELECTED_BEDTIME_DURATION] ?: 450 }
 
+    fun observeSelectedBedtimeHour(): Flow<Int> =
+        dataStore.data.map { it[Keys.SELECTED_BEDTIME_HOUR] ?: DEFAULT_BEDTIME_HOUR }
+
+    fun observeSelectedBedtimeMinute(): Flow<Int> =
+        dataStore.data.map { it[Keys.SELECTED_BEDTIME_MINUTE] ?: 0 }
+
     suspend fun setMorningRatingEnabled(enabled: Boolean) {
         dataStore.edit { it[Keys.MORNING_RATING_ENABLED] = enabled }
     }
@@ -141,5 +147,6 @@ class UserPreferencesDataStore @Inject constructor(
     companion object {
         const val DEFAULT_NOTIFICATION_TIME = "18:00"
         const val DEFAULT_WAKE_HOUR = 7
+        const val DEFAULT_BEDTIME_HOUR = 22
     }
 }
