@@ -24,6 +24,7 @@ android {
 
 dependencies {
     implementation(project(":domain"))
+    ksp(libs.hilt.compiler)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
