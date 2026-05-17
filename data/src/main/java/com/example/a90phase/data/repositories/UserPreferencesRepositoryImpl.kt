@@ -114,11 +114,34 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> =
         dataStore.observeBedtimeReminderEnabled()
 
-    override suspend fun setSelectedBedtime(hour: Int, minute: Int, cycleCount: Int, durationMinutes: Int): Result<Unit> =
+    override suspend fun setSelectedBedtime(
+        hour: Int,
+        minute: Int,
+        cycleCount: Int,
+        durationMinutes: Int,
+    ): Result<Unit> =
         runCatching {
             dataStore.setSelectedBedtime(hour, minute, cycleCount, durationMinutes)
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
+
+    override suspend fun setMorningRatingEnabled(enabled: Boolean): Result<Unit> =
+        runCatching {
+            dataStore.setMorningRatingEnabled(enabled)
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
+
+    override fun observeMorningRatingEnabled(): Flow<Boolean> =
+        dataStore.observeMorningRatingEnabled()
+
+    override suspend fun setMorningBedtimeLogEnabled(enabled: Boolean): Result<Unit> =
+        runCatching {
+            dataStore.setMorningBedtimeLogEnabled(enabled)
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
+
+    override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> =
+        dataStore.observeMorningBedtimeLogEnabled()
 
     override fun observeUserProfile(): Flow<UserProfile> =
         userProfileDao.getUserProfileFlow().map { it?.toDomain() ?: defaultProfile() }

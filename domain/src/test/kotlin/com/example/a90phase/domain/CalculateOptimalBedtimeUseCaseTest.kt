@@ -222,6 +222,14 @@ private class FakeUserPreferencesRepository(
         durationMinutes: Int,
     ): Result<Unit> = Result.Success(Unit)
 
+    override suspend fun setMorningRatingEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeMorningRatingEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setMorningBedtimeLogEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> = emptyFlow()
+
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
 
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
@@ -262,6 +270,14 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
         cycleCount: Int,
         durationMinutes: Int,
     ): Result<Unit> = Result.Success(Unit)
+
+    override suspend fun setMorningRatingEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeMorningRatingEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setMorningBedtimeLogEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> = emptyFlow()
 
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
 

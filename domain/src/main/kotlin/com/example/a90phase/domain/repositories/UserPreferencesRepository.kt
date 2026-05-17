@@ -49,6 +49,14 @@ interface UserPreferencesRepository {
         durationMinutes: Int,
     ): Result<Unit>
 
+    suspend fun setMorningRatingEnabled(enabled: Boolean): Result<Unit>
+
+    fun observeMorningRatingEnabled(): Flow<Boolean>
+
+    suspend fun setMorningBedtimeLogEnabled(enabled: Boolean): Result<Unit>
+
+    fun observeMorningBedtimeLogEnabled(): Flow<Boolean>
+
     // Reactive
     fun observeUserProfile(): Flow<UserProfile>
 }
