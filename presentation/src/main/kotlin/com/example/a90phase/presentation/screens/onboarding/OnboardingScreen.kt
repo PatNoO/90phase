@@ -2,6 +2,16 @@
 
 package com.example.a90phase.presentation.screens.onboarding
 
+import android.Manifest
+import android.app.Activity
+import android.app.AlarmManager
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +37,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -59,6 +71,7 @@ import com.example.a90phase.presentation.theme.rememberIsCompactHeight
 import kotlinx.coroutines.launch
 
 private const val ONBOARDING_PAGE_COUNT = 8
+private const val PERMISSIONS_PAGE = 1
 private const val GLOW_RADIUS = 200f
 internal const val FEATURE_GLOW_RADIUS = 160f
 internal const val ICON_SIZE_SP = 72
@@ -87,8 +100,16 @@ fun OnboardingScreen(onComplete: () -> Unit) {
     val pagerState = rememberPagerState(pageCount = { ONBOARDING_PAGE_COUNT })
     val scope = rememberCoroutineScope()
     var uiState by remember { mutableStateOf(OnboardingUiState()) }
+    var showNotifRationale by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
     fun goNext() { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } }
     fun goBack() { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } }
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == PERMISSIONS_PAGE) {
+            checkAndRequestNotificationPermission(context, notifLauncher) { showNotifRationale = true }
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -112,10 +133,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                     .padding(vertical = Spacing.Large),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                PageIndicator(
-                    pageCount = ONBOARDING_PAGE_COUNT,
-                    currentPage = pagerState.currentPage,
-                )
+                PageIndicator(pageCount = ONBOARDING_PAGE_COUNT, currentPage = pagerState.currentPage)
             }
         }
     }
@@ -123,12 +141,54 @@ fun OnboardingScreen(onComplete: () -> Unit) {
         WakeTimePickerDialog(
             initialHour = uiState.wakeHour,
             initialMinute = uiState.wakeMinute,
-            onConfirm = { h, m ->
-                uiState = uiState.copy(wakeHour = h, wakeMinute = m, showWakeTimePicker = false)
-            },
+            onConfirm = { h, m -> uiState = uiState.copy(wakeHour = h, wakeMinute = m, showWakeTimePicker = false) },
             onDismiss = { uiState = uiState.copy(showWakeTimePicker = false) },
         )
     }
+    if (showNotifRationale) {
+        PermissionRationaleDialog(
+            onConfirm = { showNotifRationale = false; notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
+            onDismiss = { showNotifRationale = false },
+        )
+    }
+}
+
+private fun checkAndRequestNotificationPermission(
+    context: android.content.Context,
+    launcher: ActivityResultLauncher<String>,
+    onShowRationale: () -> Unit,
+) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    val granted = context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+        PackageManager.PERMISSION_GRANTED
+    val shouldShowRationale = (context as? Activity)?.shouldShowRequestPermissionRationale(
+        Manifest.permission.POST_NOTIFICATIONS,
+    ) == true
+    when {
+        granted -> Unit
+        shouldShowRationale -> onShowRationale()
+        else -> launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+}
+
+@Composable
+private fun PermissionRationaleDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Notifications Needed", style = SleepTypography.HeadlineMedium, color = SleepColors.White)
+        },
+        text = {
+            Text(
+                text = "Notifications power daily check-ins and bedtime reminders. Please grant access.",
+                style = SleepTypography.BodyMedium,
+                color = SleepColors.Silver,
+            )
+        },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(text = "Grant", color = SleepColors.CyanGlow) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(text = "Skip", color = SleepColors.Silver) } },
+        containerColor = SleepColors.MidnightBlue,
+    )
 }
 
 @Composable
@@ -236,7 +296,7 @@ private fun OnboardingWelcomePage(onGetStarted: () -> Unit) {
 
 @Composable
 private fun OnboardingPermissionsPage(onContinue: () -> Unit) {
-    // TODO: wire to ViewModel — permission request launcher
+    val context = LocalContext.current
     val isCompact = rememberIsCompactHeight()
     val sectionSpacing = if (isCompact) Spacing.Medium else Spacing.Large
     Column(
@@ -250,11 +310,7 @@ private fun OnboardingPermissionsPage(onContinue: () -> Unit) {
     ) {
         OnboardingIconGlow(icon = "🛡", iconSize = ICON_SIZE_SP.sp, glowRadius = GLOW_RADIUS)
         Spacer(modifier = Modifier.height(sectionSpacing))
-        Text(
-            text = "Permissions",
-            style = SleepTypography.HeadlineLarge,
-            color = SleepColors.White,
-        )
+        Text(text = "Permissions", style = SleepTypography.HeadlineLarge, color = SleepColors.White)
         Spacer(modifier = Modifier.height(Spacing.Small))
         Text(
             text = PERMISSIONS_SUBTITLE,
@@ -269,7 +325,19 @@ private fun OnboardingPermissionsPage(onContinue: () -> Unit) {
         Spacer(modifier = Modifier.height(Spacing.Small))
         PermissionRow("📅", "Read Alarm", "Detects your existing alarm", true)
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
-        PrimaryButton(text = "Continue", onClick = onContinue)
+        PrimaryButton(text = "Continue", onClick = {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val alarmManager = context.getSystemService(AlarmManager::class.java)
+                if (!alarmManager.canScheduleExactAlarms()) {
+                    context.startActivity(
+                        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        },
+                    )
+                }
+            }
+            onContinue()
+        })
     }
 }
 
@@ -294,17 +362,9 @@ private fun OnboardingWakeTimePage(
     ) {
         OnboardingIconGlow(icon = "⏰", iconSize = ICON_SIZE_SP.sp, glowRadius = GLOW_RADIUS)
         Spacer(modifier = Modifier.height(sectionSpacing))
-        Text(
-            text = "Wake Time",
-            style = SleepTypography.HeadlineLarge,
-            color = SleepColors.White,
-        )
+        Text(text = "Wake Time", style = SleepTypography.HeadlineLarge, color = SleepColors.White)
         Spacer(modifier = Modifier.height(Spacing.Small))
-        Text(
-            text = "When do you want to wake up?",
-            style = SleepTypography.BodyLarge,
-            color = SleepColors.Silver,
-        )
+        Text(text = "When do you want to wake up?", style = SleepTypography.BodyLarge, color = SleepColors.Silver)
         Spacer(modifier = Modifier.height(sectionSpacing))
         WakeTimeDisplay(hour = wakeHour, minute = wakeMinute, onClick = onTapTime)
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
@@ -351,24 +411,12 @@ private fun PermissionRow(icon: String, title: String, subtitle: String, isOptio
         Spacer(modifier = Modifier.width(Spacing.Medium))
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = title,
-                    style = SleepTypography.BodyLarge,
-                    color = SleepColors.White,
-                )
+                Text(text = title, style = SleepTypography.BodyLarge, color = SleepColors.White)
                 if (isOptional) {
-                    Text(
-                        text = "  (optional)",
-                        style = SleepTypography.BodyMedium,
-                        color = SleepColors.Silver,
-                    )
+                    Text(text = "  (optional)", style = SleepTypography.BodyMedium, color = SleepColors.Silver)
                 }
             }
-            Text(
-                text = subtitle,
-                style = SleepTypography.BodyMedium,
-                color = SleepColors.Silver,
-            )
+            Text(text = subtitle, style = SleepTypography.BodyMedium, color = SleepColors.Silver)
         }
     }
 }
@@ -404,13 +452,7 @@ private fun WakeTimePickerDialog(
     )
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Wake Time",
-                style = SleepTypography.HeadlineMedium,
-                color = SleepColors.White,
-            )
-        },
+        title = { Text(text = "Wake Time", style = SleepTypography.HeadlineMedium, color = SleepColors.White) },
         text = { TimePicker(state = pickerState) },
         confirmButton = {
             TextButton(onClick = { onConfirm(pickerState.hour, pickerState.minute) }) {
@@ -418,9 +460,7 @@ private fun WakeTimePickerDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = "Cancel", color = SleepColors.Silver)
-            }
+            TextButton(onClick = onDismiss) { Text(text = "Cancel", color = SleepColors.Silver) }
         },
         containerColor = SleepColors.MidnightBlue,
     )
