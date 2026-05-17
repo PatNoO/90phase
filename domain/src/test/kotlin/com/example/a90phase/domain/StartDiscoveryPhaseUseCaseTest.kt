@@ -157,6 +157,17 @@ internal class FakePreferencesRepository(
 
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = emptyFlow()
 
+    override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setSelectedBedtime(
+        hour: Int,
+        minute: Int,
+        cycleCount: Int,
+        durationMinutes: Int,
+    ): Result<Unit> = Result.Success(Unit)
+
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> {
         profile = profile.copy(discoveryPhase = phase)
         return Result.Success(Unit)
@@ -197,6 +208,17 @@ internal class FailingPreferencesRepository : UserPreferencesRepository {
     override suspend fun setDailyCheckInEnabled(enabled: Boolean): Result<Unit> = error
 
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = error
+
+    override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setSelectedBedtime(
+        hour: Int,
+        minute: Int,
+        cycleCount: Int,
+        durationMinutes: Int,
+    ): Result<Unit> = error
 
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = error
 

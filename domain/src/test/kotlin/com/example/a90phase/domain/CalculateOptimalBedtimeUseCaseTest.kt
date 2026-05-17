@@ -211,6 +211,17 @@ private class FakeUserPreferencesRepository(
 
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = emptyFlow()
 
+    override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setSelectedBedtime(
+        hour: Int,
+        minute: Int,
+        cycleCount: Int,
+        durationMinutes: Int,
+    ): Result<Unit> = Result.Success(Unit)
+
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
 
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
@@ -240,6 +251,17 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun setDailyCheckInEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
 
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setSelectedBedtime(
+        hour: Int,
+        minute: Int,
+        cycleCount: Int,
+        durationMinutes: Int,
+    ): Result<Unit> = Result.Success(Unit)
 
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
 
