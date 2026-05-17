@@ -30,6 +30,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             if (enabled) syncScheduler.scheduleSmartWakeMonitor() else syncScheduler.cancelSmartWakeMonitor()
             val profile = getOrCreateProfile()
             userProfileDao.insertOrUpdateProfile(profile.copy(smartWakeWindowEnabled = enabled).toEntity())
+            syncScheduler.enqueueUserProfileSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
@@ -45,6 +46,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun updateUserProfile(profile: UserProfile): Result<Unit> =
         runCatching {
             userProfileDao.insertOrUpdateProfile(profile.toEntity())
+            syncScheduler.enqueueUserProfileSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
@@ -52,6 +54,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         runCatching {
             val profile = getOrCreateProfile()
             userProfileDao.insertOrUpdateProfile(profile.copy(optimalCycleMinutes = minutes).toEntity())
+            syncScheduler.enqueueUserProfileSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
@@ -59,6 +62,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         runCatching {
             val profile = getOrCreateProfile()
             userProfileDao.insertOrUpdateProfile(profile.copy(sleepLatencyMinutes = minutes).toEntity())
+            syncScheduler.enqueueUserProfileSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
@@ -67,6 +71,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             val profile = getOrCreateProfile()
             userProfileDao.insertOrUpdateProfile(profile.copy(reminderTime = time).toEntity())
             dataStore.setNotificationTime(time)
+            syncScheduler.enqueueUserProfileSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
@@ -74,6 +79,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         runCatching {
             val profile = getOrCreateProfile()
             userProfileDao.insertOrUpdateProfile(profile.copy(notificationsEnabled = enabled).toEntity())
+            syncScheduler.enqueueUserProfileSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
@@ -81,18 +87,21 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         runCatching {
             val profile = getOrCreateProfile()
             userProfileDao.insertOrUpdateProfile(profile.copy(discoveryPhase = phase).toEntity())
+            syncScheduler.enqueueUserProfileSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> =
         runCatching {
             userProfileDao.updateDiscoveryPhase(phase.toJson())
+            syncScheduler.enqueueUserProfileSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
     override suspend fun endDiscoveryPhase(): Result<Unit> =
         runCatching {
             userProfileDao.updateDiscoveryPhase(null)
+            syncScheduler.enqueueUserProfileSync()
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
 
