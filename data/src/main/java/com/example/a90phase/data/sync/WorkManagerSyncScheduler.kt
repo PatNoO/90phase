@@ -2,11 +2,16 @@ package com.example.a90phase.data.sync
 
 import android.content.Context
 import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import java.util.concurrent.TimeUnit
+import com.example.a90phase.data.workers.FirebaseSyncWorker
 import com.example.a90phase.data.workers.SleepLogSyncWorker
 import com.example.a90phase.data.workers.SmartWakeMonitorWorker
 import com.example.a90phase.data.workers.UserProfileSyncWorker
@@ -43,6 +48,39 @@ class WorkManagerSyncScheduler @Inject constructor(
             .build()
         WorkManager.getInstance(context)
             .enqueueUniqueWork(UserProfileSyncWorker.WORK_TAG, ExistingWorkPolicy.KEEP, request)
+    }
+
+    override fun schedulePeriodicFirebaseSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val request = PeriodicWorkRequestBuilder<FirebaseSyncWorker>(6, TimeUnit.HOURS)
+            .addTag(FirebaseSyncWorker.WORK_TAG)
+            .setConstraints(constraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                WorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS,
+            )
+            .build()
+        WorkManager.getInstance(context)
+            .enqueueUniquePeriodicWork(FirebaseSyncWorker.WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
+    }
+
+    override fun triggerManualFirebaseSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val request = OneTimeWorkRequestBuilder<FirebaseSyncWorker>()
+            .addTag(FirebaseSyncWorker.WORK_TAG)
+            .setConstraints(constraints)
+            .build()
+        WorkManager.getInstance(context)
+            .enqueueUniqueWork(
+                "${FirebaseSyncWorker.WORK_NAME}_manual",
+                ExistingWorkPolicy.REPLACE,
+                request,
+            )
     }
 
     override fun scheduleSmartWakeMonitor() {
