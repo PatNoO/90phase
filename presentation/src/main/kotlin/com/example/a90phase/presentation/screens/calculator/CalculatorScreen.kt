@@ -9,15 +9,21 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,12 +33,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -40,8 +48,10 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.BedtimeRecommendation
+import com.example.a90phase.domain.entities.SystemAlarm
 import com.example.a90phase.presentation.components.BedtimeResultCard
 import com.example.a90phase.presentation.components.SectionHeader
 import com.example.a90phase.presentation.components.SleepToggle
@@ -51,8 +61,11 @@ import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.StarFieldBackground
+import com.example.a90phase.presentation.viewmodels.CalculatorViewModel
 import kotlinx.coroutines.delay
 import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 private data class CalculatorUiState(
     val wakeTime: LocalTime,
@@ -61,6 +74,7 @@ private data class CalculatorUiState(
     val isDailyReminderActive: Boolean,
     val selectedBedtimeIndex: Int,
     val bedtimes: List<BedtimeRecommendation>,
+    val nextSystemAlarm: SystemAlarm? = null,
 )
 
 private val fakeBedtimes = listOf(
@@ -75,7 +89,10 @@ private fun BedtimeRecommendation.toDurationLabel(): String =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalculatorScreen(onNavigateToSettings: () -> Unit) {
+fun CalculatorScreen(
+    onNavigateToSettings: () -> Unit,
+    viewModel: CalculatorViewModel = hiltViewModel(),
+) {
     // TODO: wire to ViewModel
     var wakeTime by rememberSaveable { mutableStateOf(LocalTime.of(7, 0)) }
     var isWakeTimeActive by rememberSaveable { mutableStateOf(true) }
@@ -84,6 +101,7 @@ fun CalculatorScreen(onNavigateToSettings: () -> Unit) {
     var isDailyReminderActive by rememberSaveable { mutableStateOf(true) }
     var selectedBedtimeIndex by rememberSaveable { mutableIntStateOf(-1) }
     val hapticFeedback = LocalHapticFeedback.current
+    val nextAlarm by viewModel.nextAlarm.collectAsState()
 
     CalculatorScaffold(
         state = CalculatorUiState(
@@ -93,6 +111,7 @@ fun CalculatorScreen(onNavigateToSettings: () -> Unit) {
             isDailyReminderActive = isDailyReminderActive,
             selectedBedtimeIndex = selectedBedtimeIndex,
             bedtimes = fakeBedtimes, // TODO: wire to ViewModel
+            nextSystemAlarm = nextAlarm,
         ),
         onNavigateToSettings = onNavigateToSettings,
         onWakeTimeClick = { showTimePicker = true },
@@ -150,6 +169,9 @@ private fun CalculatorScaffold(
                     )
                 }
                 item {
+                    AlarmSuggestionBanner(alarm = state.nextSystemAlarm)
+                }
+                item {
                     Spacer(modifier = Modifier.height(Spacing.Large))
                     SectionHeader(title = "Recommended Bedtimes")
                     Spacer(modifier = Modifier.height(Spacing.XS))
@@ -160,6 +182,46 @@ private fun CalculatorScaffold(
                         bedtime = bedtime,
                         isSelected = state.selectedBedtimeIndex == index,
                         onSelect = { onBedtimeSelect(index) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlarmSuggestionBanner(alarm: SystemAlarm?) {
+    if (alarm == null) return
+    val localTime = alarm.time.atZone(ZoneId.systemDefault()).toLocalTime()
+    val formatted = localTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+    Spacer(modifier = Modifier.height(Spacing.Medium))
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.Medium),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = SleepColors.NavyBlue.copy(alpha = 0.7f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = Spacing.Medium, vertical = Spacing.Small),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = "⏰", style = SleepTypography.HeadlineMedium)
+            Spacer(modifier = Modifier.width(Spacing.Small))
+            Column {
+                Text(
+                    text = "Din alarm: $formatted",
+                    style = SleepTypography.BodyMedium,
+                    color = SleepColors.CyanGlow,
+                )
+                val label = alarm.label
+                if (!label.isNullOrBlank()) {
+                    Text(
+                        text = label,
+                        style = SleepTypography.LabelMedium,
+                        color = SleepColors.Silver,
                     )
                 }
             }
