@@ -3,6 +3,7 @@ package com.example.a90phase.domain.entities
 import java.time.Instant
 import java.time.LocalDate
 import java.time.Period
+import java.time.temporal.ChronoUnit
 
 data class DiscoveryPhase(
     val isActive: Boolean,
@@ -18,6 +19,15 @@ data class DiscoveryPhase(
         return if (now.isBefore(endDate)) Period.between(now, endDate).days else 0
     }
 
+    fun getCurrentShift(today: LocalDate = LocalDate.now()): ShiftType {
+        val daysPassed = ChronoUnit.DAYS.between(startDate, today).toInt()
+        return when {
+            daysPassed < WEEK_DAYS -> ShiftType.LongerLatency
+            daysPassed < WEEK_DAYS * 2 -> ShiftType.LongerCycles
+            else -> ShiftType.FewerCycles
+        }
+    }
+
     fun hasEnoughData(): Boolean = weeklyRatings.size >= MIN_RATINGS_REQUIRED
 
     fun getAverageRating(): Double? = weeklyRatings.mapNotNull { it.rating }.takeIf { it.isNotEmpty() }?.average()
@@ -25,6 +35,7 @@ data class DiscoveryPhase(
     companion object {
         const val DISCOVERY_DURATION_DAYS = 21
         const val MIN_RATINGS_REQUIRED = 7
+        private const val WEEK_DAYS = 7
     }
 }
 

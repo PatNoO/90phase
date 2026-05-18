@@ -152,4 +152,36 @@ class DiscoveryPhaseTest {
     fun `FewerCycles getCycleCount returns 5`() {
         ShiftType.FewerCycles.getCycleCount() shouldBe 5
     }
+
+    // ── getCurrentShift rotation ───────────────────────────────────────────────
+
+    @Test
+    fun `getCurrentShift returns LongerLatency on day 1 (startDate)`() {
+        phase().getCurrentShift(today) shouldBe ShiftType.LongerLatency
+    }
+
+    @Test
+    fun `getCurrentShift returns LongerLatency on day 7`() {
+        phase().getCurrentShift(today.plusDays(6)) shouldBe ShiftType.LongerLatency
+    }
+
+    @Test
+    fun `getCurrentShift returns LongerCycles on day 8`() {
+        phase().getCurrentShift(today.plusDays(7)) shouldBe ShiftType.LongerCycles
+    }
+
+    @Test
+    fun `getCurrentShift returns LongerCycles on day 14`() {
+        phase().getCurrentShift(today.plusDays(13)) shouldBe ShiftType.LongerCycles
+    }
+
+    @Test
+    fun `getCurrentShift returns FewerCycles on day 15`() {
+        phase().getCurrentShift(today.plusDays(14)) shouldBe ShiftType.FewerCycles
+    }
+
+    @Test
+    fun `getCurrentShift returns FewerCycles on day 21`() {
+        phase().getCurrentShift(today.plusDays(20)) shouldBe ShiftType.FewerCycles
+    }
 }

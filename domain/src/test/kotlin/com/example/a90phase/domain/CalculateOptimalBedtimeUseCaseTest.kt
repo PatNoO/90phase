@@ -4,6 +4,7 @@ import com.example.a90phase.domain.common.DomainError
 import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.DiscoveryPhase
+import com.example.a90phase.domain.entities.ShiftType
 import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import com.example.a90phase.domain.usecases.CalculateOptimalBedtimeUseCase
@@ -13,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 import java.time.LocalTime
 
 class CalculateOptimalBedtimeUseCaseTest {
@@ -172,6 +174,84 @@ class CalculateOptimalBedtimeUseCaseTest {
                 ).data
             assertEquals(LocalTime.of(21, 30), recs[0].bedtime)
             assertEquals(570, recs[0].durationMinutes)
+        }
+
+    // ── Discovery Phase shift rotation ────────────────────────────────────────
+
+    @Test
+    fun `uses LongerLatency params (latency 30) on discovery phase day 1`() =
+        runTest {
+            val startDate = LocalDate.of(2024, 3, 1)
+            val phase = DiscoveryPhase(isActive = true, currentShift = ShiftType.LongerLatency, startDate = startDate)
+            val profile = defaultProfile().copy(discoveryPhase = phase)
+            // LongerLatency: cycle 90, latency 30 → 6×90+30 = 570 → 07:00 - 570min = 21:30
+            val recs =
+                (
+                    useCase(
+                        profile,
+                    ).invoke(LocalTime.of(7, 0), currentTime = LocalTime.of(18, 0), today = startDate) as Result.Success
+                ).data
+            assertEquals(LocalTime.of(21, 30), recs[0].bedtime)
+            assertEquals(570, recs[0].durationMinutes)
+        }
+
+    @Test
+    fun `uses LongerCycles params (cycle 105) on discovery phase day 8`() =
+        runTest {
+            val startDate = LocalDate.of(2024, 3, 1)
+            val phase = DiscoveryPhase(isActive = true, currentShift = ShiftType.LongerLatency, startDate = startDate)
+            val profile = defaultProfile().copy(discoveryPhase = phase)
+            // LongerCycles: cycle 105, latency 15 → 6×105+15 = 645 → 07:00 - 645min = 20:15
+            val today = startDate.plusDays(7)
+            val recs =
+                (
+                    useCase(
+                        profile,
+                    ).invoke(LocalTime.of(7, 0), currentTime = LocalTime.of(18, 0), today = today) as Result.Success
+                ).data
+            assertEquals(LocalTime.of(20, 15), recs[0].bedtime)
+            assertEquals(645, recs[0].durationMinutes)
+        }
+
+    @Test
+    fun `uses FewerCycles params (cycle count 5 wins quality label) on discovery phase day 15`() =
+        runTest {
+            val startDate = LocalDate.of(2024, 3, 1)
+            val phase = DiscoveryPhase(isActive = true, currentShift = ShiftType.LongerLatency, startDate = startDate)
+            val profile = defaultProfile().copy(discoveryPhase = phase)
+            // FewerCycles: cycle 90, latency 15 → same as default profile but max cycles = 5 per ShiftType
+            val today = startDate.plusDays(14)
+            val recs =
+                (
+                    useCase(
+                        profile,
+                    ).invoke(LocalTime.of(7, 0), currentTime = LocalTime.of(18, 0), today = today) as Result.Success
+                ).data
+            // FewerCycles: cycle 90, latency 15 — same duration as default, params unchanged
+            assertEquals(555, recs[0].durationMinutes) // 6×90+15 (CYCLE_COUNTS still 6,5,4)
+        }
+
+    @Test
+    fun `falls back to profile params when discovery phase is inactive`() =
+        runTest {
+            val startDate = LocalDate.of(2024, 3, 1)
+            val phase = DiscoveryPhase(isActive = false, currentShift = ShiftType.LongerLatency, startDate = startDate)
+            val profile = defaultProfile().copy(discoveryPhase = phase)
+            // Inactive phase → use profile defaults: cycle 90, latency 15
+            val recs =
+                (
+                    useCase(
+                        profile,
+                    ).invoke(LocalTime.of(7, 0), currentTime = LocalTime.of(18, 0), today = startDate) as Result.Success
+                ).data
+            assertEquals(555, recs[0].durationMinutes) // 6×90+15
+        }
+
+    @Test
+    fun `falls back to profile params when no discovery phase`() =
+        runTest {
+            val recs = (useCase().invoke(LocalTime.of(7, 0), currentTime = LocalTime.of(18, 0)) as Result.Success).data
+            assertEquals(555, recs[0].durationMinutes) // 6×90+15
         }
 
     // ── Error propagation ─────────────────────────────────────────────────────

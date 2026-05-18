@@ -5,6 +5,7 @@ import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.BedtimeRecommendation
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
+import java.time.LocalDate
 import java.time.LocalTime
 
 class CalculateOptimalBedtimeUseCase(
@@ -13,6 +14,7 @@ class CalculateOptimalBedtimeUseCase(
     suspend operator fun invoke(
         wakeUpTime: LocalTime,
         currentTime: LocalTime = LocalTime.now(),
+        today: LocalDate = LocalDate.now(),
     ): Result<List<BedtimeRecommendation>> {
         val profileResult = userPreferencesRepository.getUserProfile()
         if (profileResult is Result.Error) {
@@ -23,8 +25,9 @@ class CalculateOptimalBedtimeUseCase(
             )
         }
         val profile = (profileResult as Result.Success).data
-        val cycleDuration = profile.optimalCycleMinutes
-        val sleepLatency = profile.sleepLatencyMinutes
+        val activeShift = profile.discoveryPhase?.takeIf { it.isActive }?.getCurrentShift(today)
+        val cycleDuration = activeShift?.getCycleDuration() ?: profile.optimalCycleMinutes
+        val sleepLatency = activeShift?.getSleepLatency() ?: profile.sleepLatencyMinutes
 
         val recommendations =
             CYCLE_COUNTS.map { cycles ->
