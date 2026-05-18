@@ -3,10 +3,13 @@ package com.example.a90phase.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.a90phase.domain.common.Result
-import com.example.a90phase.domain.entities.SystemAlarm
+import com.example.a90phase.domain.entities.BedtimeRecommendation
 import com.example.a90phase.domain.repositories.AlarmRepository
+import com.example.a90phase.domain.repositories.UserPreferencesRepository
+import com.example.a90phase.domain.usecases.CalculateOptimalBedtimeUseCase
 import com.example.a90phase.domain.usecases.FetchSystemAlarmsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalTime
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,20 +18,48 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class CalculatorViewModel @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository,
     alarmRepository: AlarmRepository,
 ) : ViewModel() {
 
+    private val calculateOptimalBedtimeUseCase = CalculateOptimalBedtimeUseCase(userPreferencesRepository)
     private val fetchSystemAlarmsUseCase = FetchSystemAlarmsUseCase(alarmRepository)
 
-    private val _nextAlarm = MutableStateFlow<SystemAlarm?>(null)
-    val nextAlarm: StateFlow<SystemAlarm?> = _nextAlarm.asStateFlow()
+    private val _uiState = MutableStateFlow<SleepCalculatorUiState>(SleepCalculatorUiState.Loading)
+    val uiState: StateFlow<SleepCalculatorUiState> = _uiState.asStateFlow()
 
     init {
+        onWakeTimeChanged(LocalTime.of(7, 0))
+    }
+
+    fun onWakeTimeChanged(wakeTime: LocalTime) {
         viewModelScope.launch {
-            when (val result = fetchSystemAlarmsUseCase()) {
-                is Result.Success -> _nextAlarm.value = result.data.firstOrNull()
-                is Result.Error, is Result.Loading -> _nextAlarm.value = null
+            _uiState.value = SleepCalculatorUiState.Loading
+            val nextAlarm = fetchSystemAlarmsUseCase().getOrNull()?.firstOrNull()
+            when (val result = calculateOptimalBedtimeUseCase(wakeTime)) {
+                is Result.Success -> _uiState.value = SleepCalculatorUiState.Success(
+                    wakeTime = wakeTime,
+                    bedtimes = result.data,
+                    nextSystemAlarm = nextAlarm,
+                )
+                is Result.Error -> _uiState.value = SleepCalculatorUiState.Error(
+                    message = result.error.message ?: "Calculation failed",
+                )
+                is Result.Loading -> Unit
             }
+        }
+    }
+
+    fun onBedtimeSelected(recommendation: BedtimeRecommendation, index: Int) {
+        val current = _uiState.value as? SleepCalculatorUiState.Success ?: return
+        _uiState.value = current.copy(selectedBedtimeIndex = index)
+        viewModelScope.launch {
+            userPreferencesRepository.setSelectedBedtime(
+                hour = recommendation.bedtime.hour,
+                minute = recommendation.bedtime.minute,
+                cycleCount = recommendation.cycleCount,
+                durationMinutes = recommendation.durationMinutes,
+            )
         }
     }
 }
