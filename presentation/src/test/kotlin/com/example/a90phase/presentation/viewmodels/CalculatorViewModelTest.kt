@@ -234,6 +234,7 @@ private class FakeUserPreferencesRepository(
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun endDiscoveryPhase(): Result<Unit> = Result.Success(Unit)
+    override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }
 
@@ -265,6 +266,7 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun endDiscoveryPhase(): Result<Unit> = Result.Success(Unit)
+    override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }
 
@@ -304,5 +306,6 @@ private class CapturingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun endDiscoveryPhase(): Result<Unit> = Result.Success(Unit)
+    override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }
