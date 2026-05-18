@@ -62,6 +62,7 @@ import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.StarFieldBackground
 import com.example.a90phase.presentation.viewmodels.CalculatorViewModel
+import com.example.a90phase.presentation.viewmodels.SleepCalculatorUiState
 import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.ZoneId
@@ -101,7 +102,8 @@ fun CalculatorScreen(
     var isDailyReminderActive by rememberSaveable { mutableStateOf(true) }
     var selectedBedtimeIndex by rememberSaveable { mutableIntStateOf(-1) }
     val hapticFeedback = LocalHapticFeedback.current
-    val nextAlarm by viewModel.nextAlarm.collectAsState()
+    val vmState by viewModel.uiState.collectAsState()
+    val nextAlarm = (vmState as? SleepCalculatorUiState.Success)?.nextSystemAlarm
 
     CalculatorScaffold(
         state = CalculatorUiState(
