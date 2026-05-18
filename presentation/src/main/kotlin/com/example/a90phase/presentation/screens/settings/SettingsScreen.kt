@@ -77,6 +77,9 @@ private data class SettingsUiState(
     val consistencyScoreEnabled: Boolean = false,
     val firebaseSyncEnabled: Boolean = true,
     val ratingDaysCount: Int = FAKE_RATING_DAYS,
+    val discoveryPhaseActive: Boolean = false,
+    val discoveryDayNumber: Int = 0,
+    val discoveryStartError: String? = null,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,6 +88,7 @@ fun SettingsScreen(onNavigateBack: () -> Unit) {
     // TODO: wire to ViewModel
     var state by remember { mutableStateOf(SettingsUiState()) }
     var showCheckInPicker by remember { mutableStateOf(false) }
+    var showDiscoveryInfoDialog by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -99,6 +103,7 @@ fun SettingsScreen(onNavigateBack: () -> Unit) {
                 state = state,
                 onStateChange = { state = it },
                 onShowCheckInPicker = { showCheckInPicker = true },
+                onShowDiscoveryInfo = { showDiscoveryInfoDialog = true },
                 modifier = Modifier.padding(padding),
             )
         }
@@ -112,6 +117,9 @@ fun SettingsScreen(onNavigateBack: () -> Unit) {
                 },
                 onDismiss = { showCheckInPicker = false },
             )
+        }
+        if (showDiscoveryInfoDialog) {
+            DiscoveryPhaseInfoDialog(onDismiss = { showDiscoveryInfoDialog = false })
         }
     }
 }
@@ -150,6 +158,7 @@ private fun SettingsContent(
     state: SettingsUiState,
     onStateChange: (SettingsUiState) -> Unit,
     onShowCheckInPicker: () -> Unit,
+    onShowDiscoveryInfo: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -166,7 +175,13 @@ private fun SettingsContent(
             )
         }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
-        item { FeaturesSection(state = state, onStateChange = onStateChange) }
+        item {
+            FeaturesSection(
+                state = state,
+                onStateChange = onStateChange,
+                onShowDiscoveryInfo = onShowDiscoveryInfo,
+            )
+        }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
         item { DataPrivacySection(state = state, onStateChange = onStateChange) }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
@@ -337,53 +352,167 @@ private fun NotificationsSection(
 }
 
 @Composable
-private fun DiscoveryPhaseRow(ratingDaysCount: Int) {
-    val locked = ratingDaysCount < DISCOVERY_LOCK_THRESHOLD
-    val contentAlpha = if (locked) 0.4f else 1f
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+private fun DiscoveryPhaseRow(
+    state: SettingsUiState,
+    onStartDiscovery: () -> Unit,
+    onCancelDiscovery: () -> Unit,
+    onShowInfo: () -> Unit,
+) {
+    val locked = state.ratingDaysCount < DISCOVERY_LOCK_THRESHOLD
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Discovery Phase",
                     style = SleepTypography.BodyLarge,
-                    color = SleepColors.White.copy(alpha = contentAlpha),
+                    color = if (locked) SleepColors.White.copy(alpha = 0.4f) else SleepColors.White,
                 )
                 if (locked) {
                     Text(
                         text = "  🔒",
                         style = SleepTypography.BodyLarge,
-                        color = SleepColors.Silver.copy(alpha = contentAlpha),
+                        color = SleepColors.Silver.copy(alpha = 0.4f),
                     )
                 }
             }
             Text(
-                text = if (locked) {
-                    "$ratingDaysCount / $DISCOVERY_LOCK_THRESHOLD days rated"
-                } else {
-                    "Ready to activate"
-                },
-                style = SleepTypography.BodyMedium,
-                color = SleepColors.Silver.copy(alpha = contentAlpha),
+                text = "ℹ",
+                style = SleepTypography.BodyLarge,
+                color = SleepColors.Silver,
+                modifier = Modifier
+                    .minimumInteractiveComponentSize()
+                    .clearAndSetSemantics { contentDescription = "Discovery Phase information" }
+                    .clickable(onClick = onShowInfo),
             )
         }
-        if (!locked) {
+        Spacer(modifier = Modifier.height(Spacing.XXS))
+        DiscoveryPhaseStatus(
+            state = state,
+            locked = locked,
+            onStartDiscovery = onStartDiscovery,
+            onCancelDiscovery = onCancelDiscovery,
+        )
+        if (state.discoveryStartError != null) {
+            Spacer(modifier = Modifier.height(Spacing.XXS))
             Text(
-                text = "Activate →",
+                text = state.discoveryStartError,
                 style = SleepTypography.BodyMedium,
-                color = SleepColors.CyanGlow,
+                color = SleepColors.ErrorRed,
             )
         }
     }
 }
 
 @Composable
+private fun DiscoveryPhaseStatus(
+    state: SettingsUiState,
+    locked: Boolean,
+    onStartDiscovery: () -> Unit,
+    onCancelDiscovery: () -> Unit,
+) {
+    when {
+        state.discoveryPhaseActive -> {
+            Text(
+                text = "Aktiv · Dag ${state.discoveryDayNumber}/21",
+                style = SleepTypography.BodyMedium,
+                color = SleepColors.IndigoGlow,
+            )
+            Spacer(modifier = Modifier.height(Spacing.XS))
+            Text(
+                text = "Avsluta →",
+                style = SleepTypography.BodyMedium,
+                color = SleepColors.ErrorRed,
+                modifier = Modifier
+                    .minimumInteractiveComponentSize()
+                    .clearAndSetSemantics { contentDescription = "Cancel Discovery Phase" }
+                    .clickable(onClick = onCancelDiscovery), // TODO: wire to ViewModel
+            )
+        }
+        locked -> {
+            Text(
+                text = "${state.ratingDaysCount} / $DISCOVERY_LOCK_THRESHOLD days rated",
+                style = SleepTypography.BodyMedium,
+                color = SleepColors.Silver.copy(alpha = 0.4f),
+            )
+        }
+        else -> {
+            Text(
+                text = "Inaktiv",
+                style = SleepTypography.BodyMedium,
+                color = SleepColors.Silver,
+            )
+            Spacer(modifier = Modifier.height(Spacing.XS))
+            Text(
+                text = "Starta Discovery Phase →",
+                style = SleepTypography.BodyMedium,
+                color = SleepColors.IndigoGlow,
+                modifier = Modifier
+                    .minimumInteractiveComponentSize()
+                    .clearAndSetSemantics { contentDescription = "Start Discovery Phase" }
+                    .clickable(onClick = onStartDiscovery), // TODO: wire to ViewModel
+            )
+        }
+    }
+}
+
+@Composable
+private fun DiscoveryPhaseInfoDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Discovery Phase",
+                style = SleepTypography.HeadlineMedium,
+                color = SleepColors.White,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                Text(
+                    text = "Under 21 dagar testar appen tre varianter av din sömnrutin för att hitta vad som funkar bäst för dig.",
+                    style = SleepTypography.BodyMedium,
+                    color = SleepColors.Silver,
+                )
+                Text(
+                    text = "• Vecka 1 — längre insomningstid (30 min)",
+                    style = SleepTypography.BodyMedium,
+                    color = SleepColors.Silver,
+                )
+                Text(
+                    text = "• Vecka 2 — längre cykler (105 min)",
+                    style = SleepTypography.BodyMedium,
+                    color = SleepColors.Silver,
+                )
+                Text(
+                    text = "• Vecka 3 — färre cykler (5 st)",
+                    style = SleepTypography.BodyMedium,
+                    color = SleepColors.Silver,
+                )
+                Text(
+                    text = "Betygsätt din sömn varje dag. Efter 21 dagar väljs den bästa varianten automatiskt.",
+                    style = SleepTypography.BodyMedium,
+                    color = SleepColors.Silver,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "Stäng", color = SleepColors.CyanGlow)
+            }
+        },
+        containerColor = SleepColors.MidnightBlue,
+    )
+}
+
+@Composable
 private fun FeaturesSection(
     state: SettingsUiState,
     onStateChange: (SettingsUiState) -> Unit,
+    onShowDiscoveryInfo: () -> Unit,
 ) {
     SettingsSection(title = "FEATURES") {
         SleepToggle(
@@ -392,7 +521,12 @@ private fun FeaturesSection(
             onCheckedChange = { onStateChange(state.copy(smartWakeEnabled = it)) },
         )
         SettingsDivider()
-        DiscoveryPhaseRow(ratingDaysCount = state.ratingDaysCount)
+        DiscoveryPhaseRow(
+            state = state,
+            onStartDiscovery = { /* TODO: wire to ViewModel */ },
+            onCancelDiscovery = { /* TODO: wire to ViewModel */ },
+            onShowInfo = onShowDiscoveryInfo,
+        )
         SettingsDivider()
         SleepToggle(
             label = "Pattern Insights in History",
