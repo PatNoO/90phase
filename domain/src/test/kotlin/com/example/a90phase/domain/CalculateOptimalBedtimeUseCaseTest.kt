@@ -310,6 +310,10 @@ private class FakeUserPreferencesRepository(
 
     override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> = emptyFlow()
 
+    override suspend fun setFirebaseSyncEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeFirebaseSyncEnabled(): Flow<Boolean> = emptyFlow()
+
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
 
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
@@ -358,6 +362,10 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun setMorningBedtimeLogEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
 
     override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setFirebaseSyncEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeFirebaseSyncEnabled(): Flow<Boolean> = emptyFlow()
 
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
 
