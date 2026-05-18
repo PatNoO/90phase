@@ -3,6 +3,7 @@ package com.example.a90phase.domain.usecases
 import com.example.a90phase.domain.common.DomainError
 import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.DiscoveryPhase
+import com.example.a90phase.domain.entities.ShiftType
 import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 
@@ -32,11 +33,22 @@ class AnalyzeDiscoveryPhaseUseCase(
                 .groupBy { it.shiftType }
                 .mapValues { (_, ratings) -> ratings.mapNotNull { it.rating }.average() }
 
-        if (averageByShift.isEmpty()) {
-            return Result.Error(DomainError.InsufficientData("No rated entries found in discovery phase"))
+        val allShifts = setOf(ShiftType.LongerLatency, ShiftType.LongerCycles, ShiftType.FewerCycles)
+        if (averageByShift.keys != allShifts) {
+            return Result.Error(
+                DomainError.InsufficientData("All 3 shifts must have rated data before analysis can run"),
+            )
         }
 
-        val bestShift = averageByShift.maxByOrNull { it.value }!!.key
+        // Tie-break: prefer LongerCycles when averages are equal
+        val bestShift =
+            averageByShift.entries
+                .sortedWith(
+                    compareByDescending<Map.Entry<ShiftType, Double>> { it.value }
+                        .thenBy { if (it.key is ShiftType.LongerCycles) 0 else 1 },
+                ).first()
+                .key
+
         val updatedProfile =
             profile.copy(
                 optimalCycleMinutes = bestShift.getCycleDuration(),

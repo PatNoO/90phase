@@ -149,6 +149,84 @@ class AnalyzeDiscoveryPhaseUseCaseTest {
             assertTrue((result as Result.Error).error is DomainError.InsufficientData)
         }
 
+    // ── Tie-breaking: prefer LongerCycles ─────────────────────────────────────
+
+    @Test
+    fun `prefers LongerCycles when tied with LongerLatency`() =
+        runTest {
+            val phase =
+                phaseWithRatings(
+                    longerLatencyRatings = listOf(4, 4, 4, 4, 4, 4, 4),
+                    longerCyclesRatings = listOf(4, 4, 4, 4, 4, 4, 4),
+                    fewerCyclesRatings = listOf(3, 3, 3, 3, 3, 3, 3),
+                )
+            val prefsRepo = FakePreferencesRepository(defaultProfile().copy(discoveryPhase = phase))
+
+            val result = AnalyzeDiscoveryPhaseUseCase(prefsRepo)()
+
+            val updated = (result as Result.Success).data
+            // LongerCycles wins tie → cycle 105, latency 15, count 6
+            assertEquals(105, updated.optimalCycleMinutes)
+            assertEquals(15, updated.sleepLatencyMinutes)
+            assertEquals(6, updated.preferredCycleCount)
+        }
+
+    @Test
+    fun `prefers LongerCycles when all three shifts are tied`() =
+        runTest {
+            val phase =
+                phaseWithRatings(
+                    longerLatencyRatings = listOf(3, 3, 3, 3, 3, 3, 3),
+                    longerCyclesRatings = listOf(3, 3, 3, 3, 3, 3, 3),
+                    fewerCyclesRatings = listOf(3, 3, 3, 3, 3, 3, 3),
+                )
+            val prefsRepo = FakePreferencesRepository(defaultProfile().copy(discoveryPhase = phase))
+
+            val result = AnalyzeDiscoveryPhaseUseCase(prefsRepo)()
+
+            val updated = (result as Result.Success).data
+            assertEquals(105, updated.optimalCycleMinutes)
+        }
+
+    // ── Precondition: all 3 shifts required ───────────────────────────────────
+
+    @Test
+    fun `returns InsufficientData when only one shift has ratings`() =
+        runTest {
+            val ratings =
+                (0..6).map { DailyRating(today.plusDays(it.toLong()), rating = 4, shiftType = ShiftType.LongerLatency) }
+            val phase =
+                DiscoveryPhase(
+                    isActive = true,
+                    currentShift = ShiftType.LongerLatency,
+                    startDate = today,
+                    weeklyRatings = ratings,
+                )
+            val prefsRepo = FakePreferencesRepository(defaultProfile().copy(discoveryPhase = phase))
+
+            val result = AnalyzeDiscoveryPhaseUseCase(prefsRepo)()
+
+            assertTrue(result is Result.Error)
+            assertTrue((result as Result.Error).error is DomainError.InsufficientData)
+        }
+
+    @Test
+    fun `returns InsufficientData when two shifts have ratings but third is missing`() =
+        runTest {
+            val phase =
+                phaseWithRatings(
+                    longerLatencyRatings = listOf(4, 4, 4, 4, 4, 4, 4),
+                    longerCyclesRatings = listOf(3, 3, 3, 3, 3, 3, 3),
+                    fewerCyclesRatings = emptyList(),
+                )
+            val prefsRepo = FakePreferencesRepository(defaultProfile().copy(discoveryPhase = phase))
+
+            val result = AnalyzeDiscoveryPhaseUseCase(prefsRepo)()
+
+            assertTrue(result is Result.Error)
+            assertTrue((result as Result.Error).error is DomainError.InsufficientData)
+        }
+
     // ── Error propagation ──────────────────────────────────────────────────────
 
     @Test
