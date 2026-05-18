@@ -1,5 +1,3 @@
-@file:Suppress("ForbiddenComment")
-
 package com.example.a90phase.presentation.screens.discovery
 
 import androidx.compose.foundation.background
@@ -14,22 +12,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.a90phase.domain.entities.ShiftType
 import com.example.a90phase.presentation.theme.BackgroundGradient
 import com.example.a90phase.presentation.theme.NightSkyTheme
@@ -38,41 +43,22 @@ import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.StarFieldBackground
 import com.example.a90phase.presentation.theme.glassCard
-
-private data class DiscoveryResultsUiState(
-    val winningShift: ShiftType,
-    val averageRatings: Map<ShiftType, Double>,
-    val previousCycleDuration: Int,
-    val previousSleepLatency: Int,
-    val previousCycleCount: Int,
-    val newCycleDuration: Int,
-    val newSleepLatency: Int,
-    val newCycleCount: Int,
-)
-
-private val fakeResults = DiscoveryResultsUiState(
-    winningShift = ShiftType.LongerLatency,
-    averageRatings = mapOf(
-        ShiftType.LongerLatency to 4.3,
-        ShiftType.LongerCycles to 3.1,
-        ShiftType.FewerCycles to 2.8,
-    ),
-    previousCycleDuration = 90,
-    previousSleepLatency = 15,
-    previousCycleCount = 6,
-    newCycleDuration = 90,
-    newSleepLatency = 30,
-    newCycleCount = 6,
-)
+import com.example.a90phase.presentation.viewmodels.DiscoveryResultsUiState
+import com.example.a90phase.presentation.viewmodels.DiscoveryResultsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscoveryResultsScreen(
     onApply: () -> Unit,
     onDismiss: () -> Unit,
+    viewModel: DiscoveryResultsViewModel = hiltViewModel(),
 ) {
-    // TODO: wire to ViewModel
-    val state = fakeResults
+    val vmState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isApplied = (vmState as? DiscoveryResultsUiState.Ready)?.isApplied ?: false
+    LaunchedEffect(isApplied) {
+        if (isApplied) onApply()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -83,11 +69,42 @@ fun DiscoveryResultsScreen(
             topBar = { DiscoveryResultsTopBar(onDismiss = onDismiss) },
             containerColor = Color.Transparent,
         ) { padding ->
-            DiscoveryResultsContent(
-                state = state,
-                onApply = onApply,
-                modifier = Modifier.padding(padding),
-            )
+            when (val state = vmState) {
+                is DiscoveryResultsUiState.Loading -> Box(
+                    modifier = Modifier
+                        .padding(padding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(color = SleepColors.CyanGlow)
+                }
+                is DiscoveryResultsUiState.Error -> Box(
+                    modifier = Modifier
+                        .padding(padding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = state.message,
+                        color = SleepColors.ErrorRed,
+                        style = SleepTypography.BodyLarge,
+                    )
+                }
+                is DiscoveryResultsUiState.Ready -> {
+                    DiscoveryResultsContent(
+                        state = state,
+                        onApply = viewModel::onApply,
+                        onDismiss = onDismiss,
+                        modifier = Modifier.padding(padding),
+                    )
+                    if (state.applyError != null) {
+                        ApplyErrorDialog(
+                            message = state.applyError,
+                            onDismiss = onDismiss,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -123,8 +140,9 @@ private fun DiscoveryResultsTopBar(onDismiss: () -> Unit) {
 
 @Composable
 private fun DiscoveryResultsContent(
-    state: DiscoveryResultsUiState,
+    state: DiscoveryResultsUiState.Ready,
     onApply: () -> Unit,
+    onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -135,7 +153,7 @@ private fun DiscoveryResultsContent(
         item { WinnerSection(state = state) }
         item { RatingsSection(state = state) }
         item { ParametersSection(state = state) }
-        item { ActionButtons(onApply = onApply, onDismiss = {}) }
+        item { ActionButtons(onApply = onApply, onDismiss = onDismiss) }
         item { Spacer(modifier = Modifier.height(Spacing.XL)) }
     }
 }
@@ -165,7 +183,7 @@ private fun SectionCard(title: String, content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun WinnerSection(state: DiscoveryResultsUiState) {
+private fun WinnerSection(state: DiscoveryResultsUiState.Ready) {
     SectionCard(title = "WINNING SHIFT") {
         Text(
             text = state.winningShift.displayName,
@@ -191,7 +209,7 @@ private fun WinnerSection(state: DiscoveryResultsUiState) {
 }
 
 @Composable
-private fun RatingsSection(state: DiscoveryResultsUiState) {
+private fun RatingsSection(state: DiscoveryResultsUiState.Ready) {
     SectionCard(title = "ALL SHIFT RATINGS") {
         val orderedShifts = listOf(ShiftType.LongerLatency, ShiftType.LongerCycles, ShiftType.FewerCycles)
         orderedShifts.forEachIndexed { index, shift ->
@@ -263,7 +281,7 @@ private fun ParameterRow(label: String, before: String, after: String, changed: 
 }
 
 @Composable
-private fun ParametersSection(state: DiscoveryResultsUiState) {
+private fun ParametersSection(state: DiscoveryResultsUiState.Ready) {
     SectionCard(title = "BEFORE / AFTER") {
         ParameterRow(
             label = "Cycle duration",
@@ -300,7 +318,7 @@ private fun ActionButtons(
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         Button(
-            onClick = onApply, // TODO: wire to ViewModel — calls AnalyzeDiscoveryPhaseUseCase
+            onClick = onApply,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = SleepColors.IndigoGlow,
@@ -325,6 +343,25 @@ private fun ActionButtons(
             modifier = Modifier.padding(top = Spacing.XXS),
         )
     }
+}
+
+@Composable
+private fun ApplyErrorDialog(message: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Could Not Apply", style = SleepTypography.HeadlineMedium, color = SleepColors.White)
+        },
+        text = {
+            Text(text = message, style = SleepTypography.BodyMedium, color = SleepColors.Silver)
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "OK", color = SleepColors.CyanGlow)
+            }
+        },
+        containerColor = SleepColors.MidnightBlue,
+    )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF0B1120)

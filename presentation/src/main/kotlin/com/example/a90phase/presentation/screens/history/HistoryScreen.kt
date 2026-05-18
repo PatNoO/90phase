@@ -1,5 +1,3 @@
-@file:Suppress("ForbiddenComment")
-
 package com.example.a90phase.presentation.screens.history
 
 import androidx.compose.animation.AnimatedVisibility
@@ -27,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,8 +55,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.a90phase.domain.entities.SleepLog
-import com.example.a90phase.domain.entities.SyncStatus
 import com.example.a90phase.presentation.components.SectionHeader
 import com.example.a90phase.presentation.components.SleepLogCard
 import com.example.a90phase.presentation.theme.NightSkyTheme
@@ -67,77 +67,50 @@ import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.StarFieldBackground
 import com.example.a90phase.presentation.theme.glassCard
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneId
+import com.example.a90phase.presentation.viewmodels.HistoryUiState
+import com.example.a90phase.presentation.viewmodels.HistoryViewModel
 
 private enum class HistoryPeriod { WEEK, MONTH }
-private enum class HistoryUiState { LOADING, EMPTY, CONTENT }
-
-private fun makeInstant(date: LocalDate, hour: Int, minute: Int): Instant =
-    LocalDateTime.of(date, LocalTime.of(hour, minute)).atZone(ZoneId.systemDefault()).toInstant()
-
-private data class FakeLogSpec(
-    val id: String,
-    val date: LocalDate,
-    val bedtime: LocalTime,
-    val wakeTime: LocalTime,
-    val rating: Int,
-    val cycles: Int,
-)
-
-private fun FakeLogSpec.toSleepLog(): SleepLog = SleepLog(
-    id = id,
-    date = date,
-    bedtime = makeInstant(date.minusDays(1), bedtime.hour, bedtime.minute),
-    wakeTime = makeInstant(date, wakeTime.hour, wakeTime.minute),
-    qualityRating = rating,
-    cycleCount = cycles,
-    cycleDurationUsed = 90,
-    sleepLatencyUsed = 15,
-    syncStatus = SyncStatus.SYNCED,
-)
-
-private val fakeLogs: List<SleepLog> = run {
-    val base = LocalDate.of(2025, 5, 15)
-    listOf(
-        FakeLogSpec("1", base, LocalTime.of(23, 0), LocalTime.of(6, 30), 5, 6),
-        FakeLogSpec("2", base.minusDays(1), LocalTime.of(23, 30), LocalTime.of(7, 0), 4, 6),
-        FakeLogSpec("3", base.minusDays(2), LocalTime.of(0, 15), LocalTime.of(7, 30), 3, 5),
-        FakeLogSpec("4", base.minusDays(3), LocalTime.of(22, 45), LocalTime.of(6, 0), 5, 6),
-        FakeLogSpec("5", base.minusDays(4), LocalTime.of(23, 15), LocalTime.of(6, 45), 4, 6),
-        FakeLogSpec("6", base.minusDays(5), LocalTime.of(1, 0), LocalTime.of(8, 0), 2, 5),
-        FakeLogSpec("7", base.minusDays(6), LocalTime.of(23, 30), LocalTime.of(7, 0), 4, 6),
-    ).map { it.toSleepLog() }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HistoryScreen(onNavigateToLogDetail: (logId: String) -> Unit) {
-    // TODO: wire to ViewModel
+fun HistoryScreen(
+    onNavigateToLogDetail: (logId: String) -> Unit,
+    viewModel: HistoryViewModel = hiltViewModel(),
+) {
+    val vmState by viewModel.uiState.collectAsStateWithLifecycle()
     var period by remember { mutableStateOf(HistoryPeriod.WEEK) }
-    var uiState by remember { mutableStateOf(HistoryUiState.CONTENT) }
-    var showInsights by remember { mutableStateOf(false) } // TODO: wire to ViewModel (Settings toggle)
+    val showInsights by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         StarFieldBackground()
         Scaffold(
             containerColor = Color.Transparent,
             topBar = { HistoryTopBar(period = period, onPeriodChange = { period = it }) },
-            floatingActionButton = { HistoryFab(visible = uiState == HistoryUiState.CONTENT) },
+            floatingActionButton = { HistoryFab(visible = vmState is HistoryUiState.Content) },
         ) { innerPadding ->
-            when (uiState) {
-                HistoryUiState.LOADING -> HistoryLoadingState(Modifier.padding(innerPadding))
-                HistoryUiState.EMPTY -> HistoryEmptyState(Modifier.padding(innerPadding))
-                HistoryUiState.CONTENT -> HistoryContent(
-                    logs = fakeLogs, // TODO: wire to ViewModel
+            when (val state = vmState) {
+                is HistoryUiState.Loading -> HistoryLoadingState(Modifier.padding(innerPadding))
+                is HistoryUiState.Empty -> HistoryEmptyState(Modifier.padding(innerPadding))
+                is HistoryUiState.Content -> HistoryContent(
+                    logs = state.logs,
                     period = period,
                     showInsights = showInsights,
                     onNavigateToLogDetail = onNavigateToLogDetail,
                     modifier = Modifier.padding(innerPadding),
                 )
+                is HistoryUiState.Error -> Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = state.message,
+                        color = SleepColors.ErrorRed,
+                        style = SleepTypography.BodyLarge,
+                    )
+                }
             }
         }
     }
@@ -151,7 +124,7 @@ private fun HistoryFab(visible: Boolean) {
         exit = scaleOut(tween(150)) + fadeOut(tween(150)),
     ) {
         FloatingActionButton(
-            onClick = { /* TODO: wire to ViewModel */ },
+            onClick = {},
             containerColor = SleepColors.CyanGlow,
             contentColor = SleepColors.DeepSpace,
             modifier = Modifier.semantics { contentDescription = "Add sleep log" },
@@ -221,7 +194,7 @@ private fun HistoryContent(
                 Spacer(Modifier.height(Spacing.Medium))
                 PatternInsightCard(
                     message = "You tend to sleep better mid-week.",
-                    onDismiss = {}, // TODO: wire to ViewModel
+                    onDismiss = {},
                 )
             }
         }
@@ -482,5 +455,19 @@ internal fun HistoryScreenLandscapePreview() {
 internal fun HistoryEmptyStatePreview() {
     NightSkyTheme {
         HistoryEmptyState()
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0B1120)
+@Composable
+internal fun HistoryLoadingStatePreview() {
+    NightSkyTheme {
+        Box(modifier = Modifier.fillMaxSize()) {
+            StarFieldBackground()
+            CircularProgressIndicator(
+                color = SleepColors.CyanGlow,
+                modifier = Modifier.align(Alignment.Center),
+            )
+        }
     }
 }
