@@ -1,7 +1,8 @@
-@file:Suppress("ForbiddenComment")
+@file:Suppress("ForbiddenComment", "TooManyFunctions")
 
 package com.example.a90phase.presentation.screens.settings
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
@@ -80,6 +82,8 @@ private data class SettingsUiState(
     val discoveryPhaseActive: Boolean = false,
     val discoveryDayNumber: Int = 0,
     val discoveryStartError: String? = null,
+    val discoveryCurrentShiftName: String = "",
+    val discoveryWeekRatingsCount: Int = 0,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -182,6 +186,8 @@ private fun SettingsContent(
                 onShowDiscoveryInfo = onShowDiscoveryInfo,
             )
         }
+        item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
+        item { DiscoveryProgressSection(state = state) }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
         item { DataPrivacySection(state = state, onStateChange = onStateChange) }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
@@ -509,6 +515,50 @@ private fun DiscoveryPhaseInfoDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
+private fun DiscoveryProgressSection(state: SettingsUiState) {
+    AnimatedVisibility(visible = state.discoveryPhaseActive) {
+        SettingsSection(title = "DISCOVERY PHASE PROGRESS") {
+            DiscoveryProgressBar(dayNumber = state.discoveryDayNumber)
+            Spacer(modifier = Modifier.height(Spacing.XS))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "Day ${state.discoveryDayNumber} / 21",
+                    style = SleepTypography.BodyMedium,
+                    color = SleepColors.IndigoGlow,
+                )
+                Text(
+                    text = "${state.discoveryWeekRatingsCount} ratings this week",
+                    style = SleepTypography.BodyMedium,
+                    color = SleepColors.Silver,
+                )
+            }
+            if (state.discoveryCurrentShiftName.isNotBlank()) {
+                Spacer(modifier = Modifier.height(Spacing.XXS))
+                Text(
+                    text = "Current shift: ${state.discoveryCurrentShiftName}",
+                    style = SleepTypography.BodyMedium,
+                    color = SleepColors.Silver,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiscoveryProgressBar(dayNumber: Int) {
+    val progress = (dayNumber.coerceIn(0, 21) / 21f)
+    LinearProgressIndicator(
+        progress = { progress },
+        modifier = Modifier.fillMaxWidth(),
+        color = SleepColors.IndigoGlow,
+        trackColor = SleepColors.SlateBlue.copy(alpha = 0.3f),
+    )
+}
+
+@Composable
 private fun FeaturesSection(
     state: SettingsUiState,
     onStateChange: (SettingsUiState) -> Unit,
@@ -659,6 +709,21 @@ private fun CheckInTimePickerDialog(
 internal fun SettingsScreenPreview() {
     NightSkyTheme {
         SettingsScreen(onNavigateBack = {})
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0B1120)
+@Composable
+internal fun DiscoveryProgressSectionPreview() {
+    NightSkyTheme {
+        DiscoveryProgressSection(
+            state = SettingsUiState(
+                discoveryPhaseActive = true,
+                discoveryDayNumber = 9,
+                discoveryCurrentShiftName = "Longer cycles (105 min)",
+                discoveryWeekRatingsCount = 2,
+            ),
+        )
     }
 }
 
