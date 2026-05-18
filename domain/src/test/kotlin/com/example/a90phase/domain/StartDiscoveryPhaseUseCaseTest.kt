@@ -195,6 +195,11 @@ internal class FakePreferencesRepository(
         return Result.Success(Unit)
     }
 
+    override suspend fun setSelectedWakeTime(
+        hour: Int,
+        minute: Int,
+    ): Result<Unit> = Result.Success(Unit)
+
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }
 
@@ -249,6 +254,11 @@ internal class FailingPreferencesRepository : UserPreferencesRepository {
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = error
 
     override suspend fun endDiscoveryPhase(): Result<Unit> = error
+
+    override suspend fun setSelectedWakeTime(
+        hour: Int,
+        minute: Int,
+    ): Result<Unit> = error
 
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }

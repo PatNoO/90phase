@@ -1,5 +1,3 @@
-@file:Suppress("ForbiddenComment")
-
 package com.example.a90phase.presentation.screens.onboarding
 
 import android.Manifest
@@ -60,6 +58,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.a90phase.presentation.components.PrimaryButton
 import com.example.a90phase.presentation.theme.NightSkyTheme
 import com.example.a90phase.presentation.theme.OnboardingBackgroundGradient
@@ -68,6 +68,9 @@ import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.rememberIsCompactHeight
+import com.example.a90phase.presentation.viewmodels.OnboardingFeature
+import com.example.a90phase.presentation.viewmodels.OnboardingUiState
+import com.example.a90phase.presentation.viewmodels.OnboardingViewModel
 import kotlinx.coroutines.launch
 
 private const val ONBOARDING_PAGE_COUNT = 8
@@ -82,29 +85,23 @@ private const val WELCOME_NOTE =
 private const val PERMISSIONS_SUBTITLE =
     "Grant access to enable check-ins, alarms, and reminders."
 
-internal data class OnboardingUiState(
-    val wakeHour: Int = 7,
-    val wakeMinute: Int = 0,
-    val showWakeTimePicker: Boolean = false,
-    val dailyCheckInEnabled: Boolean = false,
-    val bedtimeReminderEnabled: Boolean = false,
-    val morningRatingEnabled: Boolean = false,
-    val morningBedtimeLogEnabled: Boolean = false,
-    val smartWakeEnabled: Boolean = false,
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OnboardingScreen(onComplete: () -> Unit) {
-    // TODO: wire to ViewModel
+fun OnboardingScreen(
+    viewModel: OnboardingViewModel = hiltViewModel(),
+    onComplete: () -> Unit,
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { ONBOARDING_PAGE_COUNT })
     val scope = rememberCoroutineScope()
-    var uiState by remember { mutableStateOf(OnboardingUiState()) }
     var showNotifRationale by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val notifLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
     fun goNext() { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } }
     fun goBack() { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } }
+    LaunchedEffect(uiState.isOnboardingComplete) {
+        if (uiState.isOnboardingComplete) onComplete()
+    }
     LaunchedEffect(pagerState.currentPage) {
         if (pagerState.currentPage == PERMISSIONS_PAGE) {
             checkAndRequestNotificationPermission(context, notifLauncher) { showNotifRationale = true }
@@ -122,9 +119,10 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                 OnboardingPageContent(
                     page = page,
                     uiState = uiState,
-                    onUiStateChange = { uiState = it },
+                    onFeatureEnabled = viewModel::onFeatureEnabled,
+                    onShowWakeTimePicker = viewModel::onShowWakeTimePicker,
                     onNext = ::goNext,
-                    onComplete = onComplete,
+                    onComplete = viewModel::onOnboardingComplete,
                 )
             }
             Row(
@@ -137,18 +135,38 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             }
         }
     }
+    OnboardingDialogs(
+        uiState = uiState,
+        showNotifRationale = showNotifRationale,
+        onWakeTimeConfirmed = { h, m -> viewModel.onWakeTimeSelected(h, m); viewModel.onShowWakeTimePicker(false) },
+        onWakeTimeDismissed = { viewModel.onShowWakeTimePicker(false) },
+        onNotifRationaleConfirmed = { showNotifRationale = false; notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
+        onNotifRationaleDismissed = { showNotifRationale = false },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OnboardingDialogs(
+    uiState: OnboardingUiState,
+    showNotifRationale: Boolean,
+    onWakeTimeConfirmed: (Int, Int) -> Unit,
+    onWakeTimeDismissed: () -> Unit,
+    onNotifRationaleConfirmed: () -> Unit,
+    onNotifRationaleDismissed: () -> Unit,
+) {
     if (uiState.showWakeTimePicker) {
         WakeTimePickerDialog(
             initialHour = uiState.wakeHour,
             initialMinute = uiState.wakeMinute,
-            onConfirm = { h, m -> uiState = uiState.copy(wakeHour = h, wakeMinute = m, showWakeTimePicker = false) },
-            onDismiss = { uiState = uiState.copy(showWakeTimePicker = false) },
+            onConfirm = onWakeTimeConfirmed,
+            onDismiss = onWakeTimeDismissed,
         )
     }
     if (showNotifRationale) {
         PermissionRationaleDialog(
-            onConfirm = { showNotifRationale = false; notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
-            onDismiss = { showNotifRationale = false },
+            onConfirm = onNotifRationaleConfirmed,
+            onDismiss = onNotifRationaleDismissed,
         )
     }
 }
@@ -215,7 +233,8 @@ private fun OnboardingTopBar(showBack: Boolean, onBack: () -> Unit) {
 private fun OnboardingPageContent(
     page: Int,
     uiState: OnboardingUiState,
-    onUiStateChange: (OnboardingUiState) -> Unit,
+    onFeatureEnabled: (OnboardingFeature, Boolean) -> Unit,
+    onShowWakeTimePicker: (Boolean) -> Unit,
     onNext: () -> Unit,
     onComplete: () -> Unit,
 ) {
@@ -225,29 +244,29 @@ private fun OnboardingPageContent(
         2 -> OnboardingWakeTimePage(
             wakeHour = uiState.wakeHour,
             wakeMinute = uiState.wakeMinute,
-            onTapTime = { onUiStateChange(uiState.copy(showWakeTimePicker = true)) },
+            onTapTime = { onShowWakeTimePicker(true) },
             onContinue = onNext,
         )
         3 -> OnboardingDailyCheckInCard(
             enabled = uiState.dailyCheckInEnabled,
-            onToggle = { onUiStateChange(uiState.copy(dailyCheckInEnabled = it)) }, // TODO: wire to ViewModel
+            onToggle = { onFeatureEnabled(OnboardingFeature.DailyCheckIn, it) },
             onContinue = onNext,
         )
         4 -> OnboardingBedtimeReminderCard(
             enabled = uiState.bedtimeReminderEnabled,
-            onToggle = { onUiStateChange(uiState.copy(bedtimeReminderEnabled = it)) }, // TODO: wire to ViewModel
+            onToggle = { onFeatureEnabled(OnboardingFeature.BedtimeReminder, it) },
             onContinue = onNext,
         )
         5 -> OnboardingMorningCheckInCard(
             morningRatingEnabled = uiState.morningRatingEnabled,
             morningBedtimeLogEnabled = uiState.morningBedtimeLogEnabled,
-            onMorningRatingToggle = { onUiStateChange(uiState.copy(morningRatingEnabled = it)) }, // TODO: wire to ViewModel
-            onMorningBedtimeLogToggle = { onUiStateChange(uiState.copy(morningBedtimeLogEnabled = it)) }, // TODO: wire to ViewModel
+            onMorningRatingToggle = { onFeatureEnabled(OnboardingFeature.MorningRating, it) },
+            onMorningBedtimeLogToggle = { onFeatureEnabled(OnboardingFeature.MorningBedtimeLog, it) },
             onContinue = onNext,
         )
         6 -> OnboardingSmartWakeCard(
             enabled = uiState.smartWakeEnabled,
-            onToggle = { onUiStateChange(uiState.copy(smartWakeEnabled = it)) }, // TODO: wire to ViewModel
+            onToggle = { onFeatureEnabled(OnboardingFeature.SmartWake, it) },
             onContinue = onNext,
         )
         else -> OnboardingDiscoveryCard(onGotIt = onComplete)
@@ -348,7 +367,6 @@ private fun OnboardingWakeTimePage(
     onTapTime: () -> Unit,
     onContinue: () -> Unit,
 ) {
-    // TODO: wire to ViewModel — pre-fill from system alarm
     val isCompact = rememberIsCompactHeight()
     val sectionSpacing = if (isCompact) Spacing.Medium else Spacing.Large
     Column(
@@ -493,11 +511,47 @@ private fun PageIndicator(
     }
 }
 
+@Composable
+internal fun OnboardingScreenContent(uiState: OnboardingUiState, onComplete: () -> Unit) {
+    val pagerState = rememberPagerState(pageCount = { ONBOARDING_PAGE_COUNT })
+    val scope = rememberCoroutineScope()
+    fun goNext() { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } }
+    fun goBack() { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(brush = OnboardingBackgroundGradient),
+    ) {
+        Box(modifier = Modifier.fillMaxSize().background(brush = OnboardingNebulaWash))
+        Column(modifier = Modifier.fillMaxSize()) {
+            OnboardingTopBar(showBack = pagerState.currentPage > 0, onBack = ::goBack)
+            HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
+                OnboardingPageContent(
+                    page = page,
+                    uiState = uiState,
+                    onFeatureEnabled = { _, _ -> },
+                    onShowWakeTimePicker = {},
+                    onNext = ::goNext,
+                    onComplete = onComplete,
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = Spacing.Large),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                PageIndicator(pageCount = ONBOARDING_PAGE_COUNT, currentPage = pagerState.currentPage)
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true, backgroundColor = 0xFF1E1040)
 @Composable
 internal fun OnboardingScreenPreview() {
     NightSkyTheme {
-        OnboardingScreen(onComplete = {})
+        OnboardingScreenContent(uiState = OnboardingUiState(), onComplete = {})
     }
 }
 
@@ -505,6 +559,6 @@ internal fun OnboardingScreenPreview() {
 @Composable
 internal fun OnboardingScreenLandscapePreview() {
     NightSkyTheme {
-        OnboardingScreen(onComplete = {})
+        OnboardingScreenContent(uiState = OnboardingUiState(), onComplete = {})
     }
 }

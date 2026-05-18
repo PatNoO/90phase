@@ -61,6 +61,12 @@ interface UserPreferencesRepository {
 
     fun observeFirebaseSyncEnabled(): Flow<Boolean>
 
+    // Wake time
+    suspend fun setSelectedWakeTime(
+        hour: Int,
+        minute: Int,
+    ): Result<Unit>
+
     // Reactive
     fun observeUserProfile(): Flow<UserProfile>
 }
