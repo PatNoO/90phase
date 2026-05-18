@@ -132,6 +132,10 @@ private class FakeSmartWakeRepository(
 
     override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> = MutableStateFlow(true).asStateFlow()
 
+    override suspend fun setFirebaseSyncEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeFirebaseSyncEnabled(): Flow<Boolean> = MutableStateFlow(true).asStateFlow()
+
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
 
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
@@ -182,6 +186,10 @@ private class FailingSmartWakeRepository : UserPreferencesRepository {
     override suspend fun setMorningBedtimeLogEnabled(enabled: Boolean): Result<Unit> = error
 
     override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> = MutableStateFlow(true).asStateFlow()
+
+    override suspend fun setFirebaseSyncEnabled(enabled: Boolean): Result<Unit> = error
+
+    override fun observeFirebaseSyncEnabled(): Flow<Boolean> = MutableStateFlow(true).asStateFlow()
 
     override suspend fun startDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = error
 

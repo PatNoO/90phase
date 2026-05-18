@@ -152,6 +152,15 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> =
         dataStore.observeMorningBedtimeLogEnabled()
 
+    override suspend fun setFirebaseSyncEnabled(enabled: Boolean): Result<Unit> =
+        runCatching {
+            dataStore.setFirebaseSyncEnabled(enabled)
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
+
+    override fun observeFirebaseSyncEnabled(): Flow<Boolean> =
+        dataStore.observeFirebaseSyncEnabled()
+
     override fun observeUserProfile(): Flow<UserProfile> =
         userProfileDao.getUserProfileFlow().map { it?.toDomain() ?: defaultProfile() }
 

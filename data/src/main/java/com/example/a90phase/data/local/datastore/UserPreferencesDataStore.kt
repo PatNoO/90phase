@@ -103,6 +103,13 @@ class UserPreferencesDataStore @Inject constructor(
     fun observeMorningBedtimeLogEnabled(): Flow<Boolean> =
         dataStore.data.map { it[Keys.MORNING_BEDTIME_LOG_ENABLED] ?: true }
 
+    suspend fun setFirebaseSyncEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.FIREBASE_SYNC_ENABLED] = enabled }
+    }
+
+    fun observeFirebaseSyncEnabled(): Flow<Boolean> =
+        dataStore.data.map { it[Keys.FIREBASE_SYNC_ENABLED] ?: true }
+
     suspend fun setSelectedWakeTime(hour: Int, minute: Int) {
         dataStore.edit {
             it[Keys.SELECTED_WAKE_HOUR] = hour
@@ -140,6 +147,7 @@ class UserPreferencesDataStore @Inject constructor(
         val SELECTED_BEDTIME_DURATION = intPreferencesKey("selected_bedtime_duration_minutes")
         val MORNING_RATING_ENABLED = booleanPreferencesKey("morning_rating_enabled")
         val MORNING_BEDTIME_LOG_ENABLED = booleanPreferencesKey("morning_bedtime_log_enabled")
+        val FIREBASE_SYNC_ENABLED = booleanPreferencesKey("firebase_sync_enabled")
         val SELECTED_WAKE_HOUR = intPreferencesKey("selected_wake_hour")
         val SELECTED_WAKE_MINUTE = intPreferencesKey("selected_wake_minute")
     }

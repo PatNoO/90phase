@@ -57,6 +57,10 @@ interface UserPreferencesRepository {
 
     fun observeMorningBedtimeLogEnabled(): Flow<Boolean>
 
+    suspend fun setFirebaseSyncEnabled(enabled: Boolean): Result<Unit>
+
+    fun observeFirebaseSyncEnabled(): Flow<Boolean>
+
     // Reactive
     fun observeUserProfile(): Flow<UserProfile>
 }
