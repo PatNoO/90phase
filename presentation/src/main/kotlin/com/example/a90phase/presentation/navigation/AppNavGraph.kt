@@ -29,6 +29,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.a90phase.presentation.screens.calculator.CalculatorScreen
+import com.example.a90phase.presentation.screens.discovery.DiscoveryResultsScreen
 import com.example.a90phase.presentation.screens.history.HistoryScreen
 import com.example.a90phase.presentation.screens.history.LogDetailScreen
 import com.example.a90phase.presentation.screens.onboarding.OnboardingScreen
@@ -124,6 +125,14 @@ private fun NavGraphBuilder.mainRoutes(navController: NavHostController) {
     composable(Routes.SETTINGS) {
         ScreenFadeIn {
             SettingsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+    }
+    composable(Routes.DISCOVERY_RESULTS) {
+        ScreenFadeIn {
+            DiscoveryResultsScreen(
+                onApply = { navController.popBackStack() },
+                onDismiss = { navController.popBackStack() },
+            )
         }
     }
     composable(
