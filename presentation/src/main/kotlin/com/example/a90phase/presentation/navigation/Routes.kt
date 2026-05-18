@@ -7,6 +7,7 @@ object Routes {
     const val HISTORY = "history"
     const val SETTINGS = "settings"
     const val LOG_DETAIL = "log_detail/{logId}"
+    const val DISCOVERY_RESULTS = "discovery_results"
 
     fun logDetail(logId: String) = "log_detail/$logId"
 }
