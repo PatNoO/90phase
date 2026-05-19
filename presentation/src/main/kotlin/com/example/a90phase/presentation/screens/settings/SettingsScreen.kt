@@ -26,6 +26,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -94,6 +96,7 @@ fun SettingsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showCheckInPicker by remember { mutableStateOf(false) }
     var showDiscoveryInfoDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
     val callbacks = SettingsCallbacks(
         onCycleLengthChanged = viewModel::onCycleDurationChanged,
         onLatencyChanged = viewModel::onSleepLatencyChanged,
@@ -110,6 +113,10 @@ fun SettingsScreen(
         onViewDiscoveryResults = onNavigateToDiscoveryResults,
     )
 
+    LaunchedEffect(Unit) {
+        viewModel.errors.collect { message -> snackbarHostState.showSnackbar(message) }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -125,6 +132,7 @@ fun SettingsScreen(
             Scaffold(
                 topBar = { SettingsTopBar(onNavigateBack = onNavigateBack) },
                 containerColor = Color.Transparent,
+                snackbarHost = { SnackbarHost(snackbarHostState) },
             ) { padding ->
                 SettingsContent(
                     state = state,
@@ -140,7 +148,6 @@ fun SettingsScreen(
             onCheckInDismiss = { showCheckInPicker = false },
             onCheckInConfirm = { h, m -> viewModel.onReminderTimeChanged(h, m); showCheckInPicker = false },
             onDiscoveryInfoDismiss = { showDiscoveryInfoDialog = false },
-            onSaveErrorDismiss = viewModel::onSaveErrorDismissed,
         )
     }
 }
@@ -154,7 +161,6 @@ private fun SettingsDialogs(
     onCheckInDismiss: () -> Unit,
     onCheckInConfirm: (Int, Int) -> Unit,
     onDiscoveryInfoDismiss: () -> Unit,
-    onSaveErrorDismiss: () -> Unit,
 ) {
     if (showCheckInPicker) {
         CheckInTimePickerDialog(
@@ -166,9 +172,6 @@ private fun SettingsDialogs(
     }
     if (showDiscoveryInfo) {
         DiscoveryPhaseInfoDialog(onDismiss = onDiscoveryInfoDismiss)
-    }
-    if (state.saveError != null) {
-        SaveErrorDialog(message = state.saveError, onDismiss = onSaveErrorDismiss)
     }
 }
 
@@ -582,25 +585,6 @@ private fun DiscoveryPhaseInfoDialog(onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text(text = "Stäng", color = SleepColors.CyanGlow)
-            }
-        },
-        containerColor = SleepColors.MidnightBlue,
-    )
-}
-
-@Composable
-private fun SaveErrorDialog(message: String, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(text = "Save Failed", style = SleepTypography.HeadlineMedium, color = SleepColors.White)
-        },
-        text = {
-            Text(text = message, style = SleepTypography.BodyMedium, color = SleepColors.Silver)
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = "OK", color = SleepColors.CyanGlow)
             }
         },
         containerColor = SleepColors.MidnightBlue,

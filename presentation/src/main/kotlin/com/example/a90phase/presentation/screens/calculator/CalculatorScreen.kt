@@ -99,12 +99,10 @@ fun CalculatorScreen(
                 CircularProgressIndicator(color = SleepColors.CyanGlow)
             }
         }
-        is SleepCalculatorUiState.Error -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                StarFieldBackground()
-                Text(text = state.message, color = SleepColors.ErrorRed, style = SleepTypography.BodyLarge)
-            }
-        }
+        is SleepCalculatorUiState.Error -> CalculatorErrorState(
+            message = state.message,
+            onRetry = viewModel::retry,
+        )
         is SleepCalculatorUiState.Success -> {
             CalculatorScaffold(
                 state = CalculatorScreenState(
@@ -136,6 +134,26 @@ fun CalculatorScreen(
                     onDismiss = { showTimePicker = false },
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun CalculatorErrorState(message: String, onRetry: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        StarFieldBackground()
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(Spacing.Large),
+        ) {
+            Text(
+                text = message,
+                color = SleepColors.ErrorRed,
+                style = SleepTypography.BodyLarge,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(Spacing.Medium))
+            com.example.a90phase.presentation.components.PrimaryButton(text = "Försök igen", onClick = onRetry)
         }
     }
 }

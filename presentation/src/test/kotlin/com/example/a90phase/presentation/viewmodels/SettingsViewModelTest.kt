@@ -9,6 +9,7 @@ import com.example.a90phase.domain.entities.SyncStatus
 import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
+import app.cash.turbine.test
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +22,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -115,28 +115,17 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `onCycleDurationChanged sets saveError on failure`() = runTest {
+    fun `onCycleDurationChanged emits error on failure`() = runTest {
         val prefs = FakeSettingsPrefsRepository(failSave = true)
         val vm = viewModel(prefs)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        vm.onCycleDurationChanged(105)
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertNotNull(vm.uiState.value.saveError)
-    }
-
-    @Test
-    fun `onSaveErrorDismissed clears saveError`() = runTest {
-        val prefs = FakeSettingsPrefsRepository(failSave = true)
-        val vm = viewModel(prefs)
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        vm.onCycleDurationChanged(100)
-        testDispatcher.scheduler.advanceUntilIdle()
-        vm.onSaveErrorDismissed()
-
-        assertNull(vm.uiState.value.saveError)
+        vm.errors.test {
+            vm.onCycleDurationChanged(105)
+            testDispatcher.scheduler.advanceUntilIdle()
+            assertNotNull(awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     // ── Firebase sync ─────────────────────────────────────────────────────────
@@ -206,18 +195,6 @@ class SettingsViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertNotNull(vm.uiState.value.discoveryStartError)
-    }
-
-    @Test
-    fun `onDiscoveryStartErrorDismissed clears discoveryStartError`() = runTest {
-        val vm = viewModel(sleepRepo = FakeSettingsSleepRepository(flowOf(emptyList())))
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        vm.onStartDiscoveryPhase()
-        testDispatcher.scheduler.advanceUntilIdle()
-        vm.onDiscoveryStartErrorDismissed()
-
-        assertNull(vm.uiState.value.discoveryStartError)
     }
 
     @Test

@@ -28,11 +28,14 @@ class CalculatorViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<SleepCalculatorUiState>(SleepCalculatorUiState.Loading)
     val uiState: StateFlow<SleepCalculatorUiState> = _uiState.asStateFlow()
 
+    private var lastWakeTime: LocalTime = LocalTime.of(7, 0)
+
     init {
-        onWakeTimeChanged(LocalTime.of(7, 0))
+        onWakeTimeChanged(lastWakeTime)
     }
 
     fun onWakeTimeChanged(wakeTime: LocalTime) {
+        lastWakeTime = wakeTime
         viewModelScope.launch {
             _uiState.value = SleepCalculatorUiState.Loading
             val nextAlarm = fetchSystemAlarmsUseCase().getOrNull()?.firstOrNull()
@@ -43,12 +46,14 @@ class CalculatorViewModel @Inject constructor(
                     nextSystemAlarm = nextAlarm,
                 )
                 is Result.Error -> _uiState.value = SleepCalculatorUiState.Error(
-                    message = result.error.message ?: "Calculation failed",
+                    message = result.error.toSwedishMessage(),
                 )
                 is Result.Loading -> Unit
             }
         }
     }
+
+    fun retry() = onWakeTimeChanged(lastWakeTime)
 
     fun onBedtimeSelected(recommendation: BedtimeRecommendation, index: Int) {
         val current = _uiState.value as? SleepCalculatorUiState.Success ?: return
