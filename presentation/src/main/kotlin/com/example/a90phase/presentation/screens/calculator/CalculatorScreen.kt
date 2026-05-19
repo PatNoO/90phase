@@ -1,5 +1,3 @@
-@file:Suppress("ForbiddenComment")
-
 package com.example.a90phase.presentation.screens.calculator
 
 import androidx.compose.animation.AnimatedVisibility
@@ -21,6 +19,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,9 +32,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -49,6 +46,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.BedtimeRecommendation
 import com.example.a90phase.domain.entities.SystemAlarm
@@ -68,7 +66,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-private data class CalculatorUiState(
+private data class CalculatorScreenState(
     val wakeTime: LocalTime,
     val isWakeTimeActive: Boolean,
     val isAlarmActive: Boolean,
@@ -76,13 +74,6 @@ private data class CalculatorUiState(
     val selectedBedtimeIndex: Int,
     val bedtimes: List<BedtimeRecommendation>,
     val nextSystemAlarm: SystemAlarm? = null,
-)
-
-private val fakeBedtimes = listOf(
-    BedtimeRecommendation(LocalTime.of(23, 15), cycleCount = 6, quality = BedtimeQuality.OPTIMAL, durationMinutes = 450),
-    BedtimeRecommendation(LocalTime.of(1, 45), cycleCount = 5, quality = BedtimeQuality.GOOD, durationMinutes = 360),
-    BedtimeRecommendation(LocalTime.of(3, 15), cycleCount = 4, quality = BedtimeQuality.MINIMAL, durationMinutes = 270),
-    BedtimeRecommendation(LocalTime.of(21, 45), cycleCount = 7, quality = BedtimeQuality.PASSED, durationMinutes = 540),
 )
 
 private fun BedtimeRecommendation.toDurationLabel(): String =
@@ -94,53 +85,65 @@ fun CalculatorScreen(
     onNavigateToSettings: () -> Unit,
     viewModel: CalculatorViewModel = hiltViewModel(),
 ) {
-    // TODO: wire to ViewModel
-    var wakeTime by rememberSaveable { mutableStateOf(LocalTime.of(7, 0)) }
     var isWakeTimeActive by rememberSaveable { mutableStateOf(true) }
     var showTimePicker by remember { mutableStateOf(false) }
     var isAlarmActive by rememberSaveable { mutableStateOf(false) }
     var isDailyReminderActive by rememberSaveable { mutableStateOf(true) }
-    var selectedBedtimeIndex by rememberSaveable { mutableIntStateOf(-1) }
     val hapticFeedback = LocalHapticFeedback.current
-    val vmState by viewModel.uiState.collectAsState()
-    val nextAlarm = (vmState as? SleepCalculatorUiState.Success)?.nextSystemAlarm
+    val vmState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    CalculatorScaffold(
-        state = CalculatorUiState(
-            wakeTime = wakeTime,
-            isWakeTimeActive = isWakeTimeActive,
-            isAlarmActive = isAlarmActive,
-            isDailyReminderActive = isDailyReminderActive,
-            selectedBedtimeIndex = selectedBedtimeIndex,
-            bedtimes = fakeBedtimes, // TODO: wire to ViewModel
-            nextSystemAlarm = nextAlarm,
-        ),
-        onNavigateToSettings = onNavigateToSettings,
-        onWakeTimeClick = { showTimePicker = true },
-        onAlarmToggle = { isAlarmActive = it }, // TODO: wire to ViewModel
-        onReminderToggle = { isDailyReminderActive = it }, // TODO: wire to ViewModel
-        onBedtimeSelect = { index ->
-            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-            selectedBedtimeIndex = index // TODO: wire to ViewModel
-        },
-    )
-    if (showTimePicker) {
-        WakeTimePickerDialog(
-            initialTime = wakeTime,
-            onTimeSelected = { selected ->
-                wakeTime = selected // TODO: wire to ViewModel
-                isWakeTimeActive = true
-                showTimePicker = false
-            },
-            onDismiss = { showTimePicker = false },
-        )
+    when (val state = vmState) {
+        is SleepCalculatorUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                StarFieldBackground()
+                CircularProgressIndicator(color = SleepColors.CyanGlow)
+            }
+        }
+        is SleepCalculatorUiState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                StarFieldBackground()
+                Text(text = state.message, color = SleepColors.ErrorRed, style = SleepTypography.BodyLarge)
+            }
+        }
+        is SleepCalculatorUiState.Success -> {
+            CalculatorScaffold(
+                state = CalculatorScreenState(
+                    wakeTime = state.wakeTime,
+                    isWakeTimeActive = isWakeTimeActive,
+                    isAlarmActive = isAlarmActive,
+                    isDailyReminderActive = isDailyReminderActive,
+                    selectedBedtimeIndex = state.selectedBedtimeIndex,
+                    bedtimes = state.bedtimes,
+                    nextSystemAlarm = state.nextSystemAlarm,
+                ),
+                onNavigateToSettings = onNavigateToSettings,
+                onWakeTimeClick = { showTimePicker = true },
+                onAlarmToggle = { isAlarmActive = it },
+                onReminderToggle = { isDailyReminderActive = it },
+                onBedtimeSelect = { index ->
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.onBedtimeSelected(state.bedtimes[index], index)
+                },
+            )
+            if (showTimePicker) {
+                WakeTimePickerDialog(
+                    initialTime = state.wakeTime,
+                    onTimeSelected = { selected ->
+                        isWakeTimeActive = true
+                        showTimePicker = false
+                        viewModel.onWakeTimeChanged(selected)
+                    },
+                    onDismiss = { showTimePicker = false },
+                )
+            }
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CalculatorScaffold(
-    state: CalculatorUiState,
+    state: CalculatorScreenState,
     onNavigateToSettings: () -> Unit,
     onWakeTimeClick: () -> Unit,
     onAlarmToggle: (Boolean) -> Unit,

@@ -1,4 +1,4 @@
-@file:Suppress("ForbiddenComment", "TooManyFunctions")
+@file:Suppress("TooManyFunctions")
 
 package com.example.a90phase.presentation.screens.settings
 
@@ -18,10 +18,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -33,6 +34,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +48,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.a90phase.presentation.components.SleepToggle
 import com.example.a90phase.presentation.theme.BackgroundGradient
 import com.example.a90phase.presentation.theme.NightSkyTheme
@@ -54,77 +58,114 @@ import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.StarFieldBackground
 import com.example.a90phase.presentation.theme.glassCard
+import com.example.a90phase.presentation.viewmodels.SettingsUiState
+import com.example.a90phase.presentation.viewmodels.SettingsViewModel
 
 private const val CYCLE_MIN = 60f
 private const val CYCLE_MAX = 120f
-private const val CYCLE_DEFAULT = 90
 private const val LATENCY_MIN = 5f
 private const val LATENCY_MAX = 45f
-private const val LATENCY_DEFAULT = 15
 private const val DISCOVERY_LOCK_THRESHOLD = 7
-private const val FAKE_RATING_DAYS = 3
 private const val APP_VERSION = "1.0.0-alpha"
 
-private data class SettingsUiState(
-    val cycleLengthMin: Int = CYCLE_DEFAULT,
-    val sleepLatencyMin: Int = LATENCY_DEFAULT,
-    val dailyCheckInEnabled: Boolean = true,
-    val checkInHour: Int = 18,
-    val checkInMinute: Int = 0,
-    val bedtimeReminderEnabled: Boolean = true,
-    val morningRatingEnabled: Boolean = false,
-    val morningBedtimeLogEnabled: Boolean = false,
-    val smartWakeEnabled: Boolean = true,
-    val patternInsightsEnabled: Boolean = false,
-    val consistencyScoreEnabled: Boolean = false,
-    val firebaseSyncEnabled: Boolean = true,
-    val ratingDaysCount: Int = FAKE_RATING_DAYS,
-    val discoveryPhaseActive: Boolean = false,
-    val discoveryDayNumber: Int = 0,
-    val discoveryStartError: String? = null,
-    val discoveryCurrentShiftName: String = "",
-    val discoveryWeekRatingsCount: Int = 0,
+private data class SettingsCallbacks(
+    val onCycleLengthChanged: (Int) -> Unit,
+    val onLatencyChanged: (Int) -> Unit,
+    val onDailyCheckInToggled: (Boolean) -> Unit,
+    val onShowCheckInPicker: () -> Unit,
+    val onBedtimeReminderToggled: (Boolean) -> Unit,
+    val onMorningRatingToggled: (Boolean) -> Unit,
+    val onMorningBedtimeLogToggled: (Boolean) -> Unit,
+    val onSmartWakeToggled: (Boolean) -> Unit,
+    val onStartDiscovery: () -> Unit,
+    val onCancelDiscovery: () -> Unit,
+    val onShowDiscoveryInfo: () -> Unit,
+    val onFirebaseSyncToggled: (Boolean) -> Unit,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onNavigateBack: () -> Unit) {
-    // TODO: wire to ViewModel
-    var state by remember { mutableStateOf(SettingsUiState()) }
+fun SettingsScreen(
+    onNavigateBack: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showCheckInPicker by remember { mutableStateOf(false) }
     var showDiscoveryInfoDialog by remember { mutableStateOf(false) }
+    val callbacks = SettingsCallbacks(
+        onCycleLengthChanged = viewModel::onCycleDurationChanged,
+        onLatencyChanged = viewModel::onSleepLatencyChanged,
+        onDailyCheckInToggled = viewModel::onDailyCheckInToggled,
+        onShowCheckInPicker = { showCheckInPicker = true },
+        onBedtimeReminderToggled = viewModel::onBedtimeReminderToggled,
+        onMorningRatingToggled = viewModel::onMorningRatingToggled,
+        onMorningBedtimeLogToggled = viewModel::onMorningBedtimeLogToggled,
+        onSmartWakeToggled = viewModel::onSmartWakeToggled,
+        onStartDiscovery = viewModel::onStartDiscoveryPhase,
+        onCancelDiscovery = viewModel::onCancelDiscoveryPhase,
+        onShowDiscoveryInfo = { showDiscoveryInfoDialog = true },
+        onFirebaseSyncToggled = viewModel::onFirebaseSyncToggled,
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(brush = BackgroundGradient),
     ) {
         StarFieldBackground()
-        Scaffold(
-            topBar = { SettingsTopBar(onNavigateBack = onNavigateBack) },
-            containerColor = Color.Transparent,
-        ) { padding ->
-            SettingsContent(
-                state = state,
-                onStateChange = { state = it },
-                onShowCheckInPicker = { showCheckInPicker = true },
-                onShowDiscoveryInfo = { showDiscoveryInfoDialog = true },
-                modifier = Modifier.padding(padding),
+        if (state.isLoading) {
+            CircularProgressIndicator(
+                color = SleepColors.CyanGlow,
+                modifier = Modifier.align(Alignment.Center),
             )
+        } else {
+            Scaffold(
+                topBar = { SettingsTopBar(onNavigateBack = onNavigateBack) },
+                containerColor = Color.Transparent,
+            ) { padding ->
+                SettingsContent(
+                    state = state,
+                    callbacks = callbacks,
+                    modifier = Modifier.padding(padding),
+                )
+            }
         }
-        if (showCheckInPicker) {
-            CheckInTimePickerDialog(
-                initialHour = state.checkInHour,
-                initialMinute = state.checkInMinute,
-                onConfirm = { h, m ->
-                    state = state.copy(checkInHour = h, checkInMinute = m)
-                    showCheckInPicker = false
-                },
-                onDismiss = { showCheckInPicker = false },
-            )
-        }
-        if (showDiscoveryInfoDialog) {
-            DiscoveryPhaseInfoDialog(onDismiss = { showDiscoveryInfoDialog = false })
-        }
+        SettingsDialogs(
+            state = state,
+            showCheckInPicker = showCheckInPicker,
+            showDiscoveryInfo = showDiscoveryInfoDialog,
+            onCheckInDismiss = { showCheckInPicker = false },
+            onCheckInConfirm = { h, m -> viewModel.onReminderTimeChanged(h, m); showCheckInPicker = false },
+            onDiscoveryInfoDismiss = { showDiscoveryInfoDialog = false },
+            onSaveErrorDismiss = viewModel::onSaveErrorDismissed,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsDialogs(
+    state: SettingsUiState,
+    showCheckInPicker: Boolean,
+    showDiscoveryInfo: Boolean,
+    onCheckInDismiss: () -> Unit,
+    onCheckInConfirm: (Int, Int) -> Unit,
+    onDiscoveryInfoDismiss: () -> Unit,
+    onSaveErrorDismiss: () -> Unit,
+) {
+    if (showCheckInPicker) {
+        CheckInTimePickerDialog(
+            initialHour = state.checkInHour,
+            initialMinute = state.checkInMinute,
+            onConfirm = onCheckInConfirm,
+            onDismiss = onCheckInDismiss,
+        )
+    }
+    if (showDiscoveryInfo) {
+        DiscoveryPhaseInfoDialog(onDismiss = onDiscoveryInfoDismiss)
+    }
+    if (state.saveError != null) {
+        SaveErrorDialog(message = state.saveError, onDismiss = onSaveErrorDismiss)
     }
 }
 
@@ -160,36 +201,45 @@ private fun SettingsTopBar(onNavigateBack: () -> Unit) {
 @Composable
 private fun SettingsContent(
     state: SettingsUiState,
-    onStateChange: (SettingsUiState) -> Unit,
-    onShowCheckInPicker: () -> Unit,
-    onShowDiscoveryInfo: () -> Unit,
+    callbacks: SettingsCallbacks,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(vertical = Spacing.Medium),
     ) {
-        item { SleepPreferencesSection(state = state, onStateChange = onStateChange) }
+        item {
+            SleepPreferencesSection(
+                state = state,
+                onCycleLengthChanged = callbacks.onCycleLengthChanged,
+                onLatencyChanged = callbacks.onLatencyChanged,
+            )
+        }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
         item {
             NotificationsSection(
                 state = state,
-                onStateChange = onStateChange,
-                onShowCheckInPicker = onShowCheckInPicker,
+                onDailyCheckInToggled = callbacks.onDailyCheckInToggled,
+                onShowCheckInPicker = callbacks.onShowCheckInPicker,
+                onBedtimeReminderToggled = callbacks.onBedtimeReminderToggled,
+                onMorningRatingToggled = callbacks.onMorningRatingToggled,
+                onMorningBedtimeLogToggled = callbacks.onMorningBedtimeLogToggled,
             )
         }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
         item {
             FeaturesSection(
                 state = state,
-                onStateChange = onStateChange,
-                onShowDiscoveryInfo = onShowDiscoveryInfo,
+                onSmartWakeToggled = callbacks.onSmartWakeToggled,
+                onStartDiscovery = callbacks.onStartDiscovery,
+                onCancelDiscovery = callbacks.onCancelDiscovery,
+                onShowDiscoveryInfo = callbacks.onShowDiscoveryInfo,
             )
         }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
         item { DiscoveryProgressSection(state = state) }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
-        item { DataPrivacySection(state = state, onStateChange = onStateChange) }
+        item { DataPrivacySection(state = state, onFirebaseSyncToggled = callbacks.onFirebaseSyncToggled) }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
         item { AboutSection() }
         item { Spacer(modifier = Modifier.height(Spacing.XL)) }
@@ -234,26 +284,20 @@ private fun SettingsSliderRow(
     value: Float,
     range: ClosedFloatingPointRange<Float>,
     onValueChange: (Float) -> Unit,
+    onValueChangeFinished: (() -> Unit)? = null,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(
-                text = label,
-                style = SleepTypography.BodyLarge,
-                color = SleepColors.White,
-            )
-            Text(
-                text = valueLabel,
-                style = SleepTypography.BodyLarge,
-                color = SleepColors.CyanGlow,
-            )
+            Text(text = label, style = SleepTypography.BodyLarge, color = SleepColors.White)
+            Text(text = valueLabel, style = SleepTypography.BodyLarge, color = SleepColors.CyanGlow)
         }
         Slider(
             value = value,
             onValueChange = onValueChange,
+            onValueChangeFinished = onValueChangeFinished,
             valueRange = range,
             modifier = Modifier.semantics { contentDescription = "$label slider, $valueLabel" },
             colors = SliderDefaults.colors(
@@ -268,23 +312,31 @@ private fun SettingsSliderRow(
 @Composable
 private fun SleepPreferencesSection(
     state: SettingsUiState,
-    onStateChange: (SettingsUiState) -> Unit,
+    onCycleLengthChanged: (Int) -> Unit,
+    onLatencyChanged: (Int) -> Unit,
 ) {
+    var cycleSlider by remember { mutableStateOf(state.cycleLengthMin.toFloat()) }
+    var latencySlider by remember { mutableStateOf(state.sleepLatencyMin.toFloat()) }
+    LaunchedEffect(state.cycleLengthMin) { cycleSlider = state.cycleLengthMin.toFloat() }
+    LaunchedEffect(state.sleepLatencyMin) { latencySlider = state.sleepLatencyMin.toFloat() }
+
     SettingsSection(title = "SLEEP PREFERENCES") {
         SettingsSliderRow(
             label = "Cycle length",
-            valueLabel = "${state.cycleLengthMin} min",
-            value = state.cycleLengthMin.toFloat(),
+            valueLabel = "${cycleSlider.toInt()} min",
+            value = cycleSlider,
             range = CYCLE_MIN..CYCLE_MAX,
-            onValueChange = { onStateChange(state.copy(cycleLengthMin = it.toInt())) },
+            onValueChange = { cycleSlider = it },
+            onValueChangeFinished = { onCycleLengthChanged(cycleSlider.toInt()) },
         )
         SettingsDivider()
         SettingsSliderRow(
             label = "Sleep latency",
-            valueLabel = "${state.sleepLatencyMin} min",
-            value = state.sleepLatencyMin.toFloat(),
+            valueLabel = "${latencySlider.toInt()} min",
+            value = latencySlider,
             range = LATENCY_MIN..LATENCY_MAX,
-            onValueChange = { onStateChange(state.copy(sleepLatencyMin = it.toInt())) },
+            onValueChange = { latencySlider = it },
+            onValueChangeFinished = { onLatencyChanged(latencySlider.toInt()) },
         )
     }
 }
@@ -325,34 +377,37 @@ private fun CheckInRow(
 @Composable
 private fun NotificationsSection(
     state: SettingsUiState,
-    onStateChange: (SettingsUiState) -> Unit,
+    onDailyCheckInToggled: (Boolean) -> Unit,
     onShowCheckInPicker: () -> Unit,
+    onBedtimeReminderToggled: (Boolean) -> Unit,
+    onMorningRatingToggled: (Boolean) -> Unit,
+    onMorningBedtimeLogToggled: (Boolean) -> Unit,
 ) {
     SettingsSection(title = "NOTIFICATIONS") {
         CheckInRow(
             enabled = state.dailyCheckInEnabled,
             hour = state.checkInHour,
             minute = state.checkInMinute,
-            onToggle = { onStateChange(state.copy(dailyCheckInEnabled = it)) },
+            onToggle = onDailyCheckInToggled,
             onTapTime = onShowCheckInPicker,
         )
         SettingsDivider()
         SleepToggle(
             label = "Bedtime Reminder",
             checked = state.bedtimeReminderEnabled,
-            onCheckedChange = { onStateChange(state.copy(bedtimeReminderEnabled = it)) },
+            onCheckedChange = onBedtimeReminderToggled,
         )
         SettingsDivider()
         SleepToggle(
             label = "Morning Rating",
             checked = state.morningRatingEnabled,
-            onCheckedChange = { onStateChange(state.copy(morningRatingEnabled = it)) },
+            onCheckedChange = onMorningRatingToggled,
         )
         SettingsDivider()
         SleepToggle(
             label = "Morning Bedtime Log",
             checked = state.morningBedtimeLogEnabled,
-            onCheckedChange = { onStateChange(state.copy(morningBedtimeLogEnabled = it)) },
+            onCheckedChange = onMorningBedtimeLogToggled,
         )
     }
 }
@@ -435,7 +490,7 @@ private fun DiscoveryPhaseStatus(
                 modifier = Modifier
                     .minimumInteractiveComponentSize()
                     .clearAndSetSemantics { contentDescription = "Cancel Discovery Phase" }
-                    .clickable(onClick = onCancelDiscovery), // TODO: wire to ViewModel
+                    .clickable(onClick = onCancelDiscovery),
             )
         }
         locked -> {
@@ -459,7 +514,7 @@ private fun DiscoveryPhaseStatus(
                 modifier = Modifier
                     .minimumInteractiveComponentSize()
                     .clearAndSetSemantics { contentDescription = "Start Discovery Phase" }
-                    .clickable(onClick = onStartDiscovery), // TODO: wire to ViewModel
+                    .clickable(onClick = onStartDiscovery),
             )
         }
     }
@@ -515,6 +570,25 @@ private fun DiscoveryPhaseInfoDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
+private fun SaveErrorDialog(message: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Save Failed", style = SleepTypography.HeadlineMedium, color = SleepColors.White)
+        },
+        text = {
+            Text(text = message, style = SleepTypography.BodyMedium, color = SleepColors.Silver)
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "OK", color = SleepColors.CyanGlow)
+            }
+        },
+        containerColor = SleepColors.MidnightBlue,
+    )
+}
+
+@Composable
 private fun DiscoveryProgressSection(state: SettingsUiState) {
     AnimatedVisibility(visible = state.discoveryPhaseActive) {
         SettingsSection(title = "DISCOVERY PHASE PROGRESS") {
@@ -561,33 +635,37 @@ private fun DiscoveryProgressBar(dayNumber: Int) {
 @Composable
 private fun FeaturesSection(
     state: SettingsUiState,
-    onStateChange: (SettingsUiState) -> Unit,
+    onSmartWakeToggled: (Boolean) -> Unit,
+    onStartDiscovery: () -> Unit,
+    onCancelDiscovery: () -> Unit,
     onShowDiscoveryInfo: () -> Unit,
 ) {
+    var patternInsightsEnabled by remember { mutableStateOf(false) }
+    var consistencyScoreEnabled by remember { mutableStateOf(false) }
     SettingsSection(title = "FEATURES") {
         SleepToggle(
             label = "Smart Wake Window",
             checked = state.smartWakeEnabled,
-            onCheckedChange = { onStateChange(state.copy(smartWakeEnabled = it)) },
+            onCheckedChange = onSmartWakeToggled,
         )
         SettingsDivider()
         DiscoveryPhaseRow(
             state = state,
-            onStartDiscovery = { /* TODO: wire to ViewModel */ },
-            onCancelDiscovery = { /* TODO: wire to ViewModel */ },
+            onStartDiscovery = onStartDiscovery,
+            onCancelDiscovery = onCancelDiscovery,
             onShowInfo = onShowDiscoveryInfo,
         )
         SettingsDivider()
         SleepToggle(
             label = "Pattern Insights in History",
-            checked = state.patternInsightsEnabled,
-            onCheckedChange = { onStateChange(state.copy(patternInsightsEnabled = it)) },
+            checked = patternInsightsEnabled,
+            onCheckedChange = { patternInsightsEnabled = it },
         )
         SettingsDivider()
         SleepToggle(
             label = "Consistency Score in History",
-            checked = state.consistencyScoreEnabled,
-            onCheckedChange = { onStateChange(state.copy(consistencyScoreEnabled = it)) },
+            checked = consistencyScoreEnabled,
+            onCheckedChange = { consistencyScoreEnabled = it },
         )
     }
 }
@@ -612,14 +690,14 @@ private fun SettingsLinkRow(label: String, onClick: () -> Unit) {
 @Composable
 private fun DataPrivacySection(
     state: SettingsUiState,
-    onStateChange: (SettingsUiState) -> Unit,
+    onFirebaseSyncToggled: (Boolean) -> Unit,
 ) {
     SettingsSection(title = "DATA & PRIVACY") {
         Column(modifier = Modifier.fillMaxWidth()) {
             SleepToggle(
                 label = "Firebase Sync",
                 checked = state.firebaseSyncEnabled,
-                onCheckedChange = { onStateChange(state.copy(firebaseSyncEnabled = it)) },
+                onCheckedChange = onFirebaseSyncToggled,
             )
             Text(
                 text = "Last synced: Today",
@@ -629,10 +707,7 @@ private fun DataPrivacySection(
             )
         }
         SettingsDivider()
-        SettingsLinkRow(
-            label = "Export Data",
-            onClick = { /* TODO: wire to ViewModel */ },
-        )
+        SettingsLinkRow(label = "Export Data", onClick = {})
     }
 }
 
@@ -643,27 +718,13 @@ private fun AboutSection() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(
-                text = "Version",
-                style = SleepTypography.BodyLarge,
-                color = SleepColors.White,
-            )
-            Text(
-                text = APP_VERSION,
-                style = SleepTypography.BodyMedium,
-                color = SleepColors.Silver,
-            )
+            Text(text = "Version", style = SleepTypography.BodyLarge, color = SleepColors.White)
+            Text(text = APP_VERSION, style = SleepTypography.BodyMedium, color = SleepColors.Silver)
         }
         SettingsDivider()
-        SettingsLinkRow(
-            label = "Privacy Policy",
-            onClick = { /* TODO: wire to ViewModel */ },
-        )
+        SettingsLinkRow(label = "Privacy Policy", onClick = {})
         SettingsDivider()
-        SettingsLinkRow(
-            label = "GitHub",
-            onClick = { /* TODO: wire to ViewModel */ },
-        )
+        SettingsLinkRow(label = "GitHub", onClick = {})
     }
 }
 
@@ -718,6 +779,7 @@ internal fun DiscoveryProgressSectionPreview() {
     NightSkyTheme {
         DiscoveryProgressSection(
             state = SettingsUiState(
+                isLoading = false,
                 discoveryPhaseActive = true,
                 discoveryDayNumber = 9,
                 discoveryCurrentShiftName = "Longer cycles (105 min)",
