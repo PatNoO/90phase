@@ -10,8 +10,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,6 +30,9 @@ class SettingsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val errors: SharedFlow<String> = _errors.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -99,7 +105,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val result = userPreferencesRepository.setCycleDuration(minutes)
             if (result is Result.Error) {
-                _uiState.update { it.copy(saveError = result.error.message ?: "Save failed") }
+                _errors.tryEmit(result.error.toSwedishMessage())
             }
         }
     }
@@ -108,7 +114,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val result = userPreferencesRepository.setSleepLatency(minutes)
             if (result is Result.Error) {
-                _uiState.update { it.copy(saveError = result.error.message ?: "Save failed") }
+                _errors.tryEmit(result.error.toSwedishMessage())
             }
         }
     }
@@ -118,7 +124,7 @@ class SettingsViewModel @Inject constructor(
             val time = "%02d:%02d".format(hour, minute)
             val result = userPreferencesRepository.setReminderTime(time)
             if (result is Result.Error) {
-                _uiState.update { it.copy(saveError = result.error.message ?: "Save failed") }
+                _errors.tryEmit(result.error.toSwedishMessage())
             }
         }
     }
@@ -153,7 +159,7 @@ class SettingsViewModel @Inject constructor(
             when (val result = startDiscoveryPhaseUseCase()) {
                 is Result.Success -> Unit
                 is Result.Error -> _uiState.update {
-                    it.copy(discoveryStartError = result.error.message ?: "Failed to start Discovery Phase")
+                    it.copy(discoveryStartError = result.error.toSwedishMessage())
                 }
                 is Result.Loading -> Unit
             }
@@ -162,13 +168,5 @@ class SettingsViewModel @Inject constructor(
 
     fun onCancelDiscoveryPhase() {
         viewModelScope.launch { userPreferencesRepository.endDiscoveryPhase() }
-    }
-
-    fun onSaveErrorDismissed() {
-        _uiState.update { it.copy(saveError = null) }
-    }
-
-    fun onDiscoveryStartErrorDismissed() {
-        _uiState.update { it.copy(discoveryStartError = null) }
     }
 }

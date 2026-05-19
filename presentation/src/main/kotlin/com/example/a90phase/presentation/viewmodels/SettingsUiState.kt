@@ -19,5 +19,4 @@ data class SettingsUiState(
     val discoveryWeekRatingsCount: Int = 0,
     val discoveryPhaseCompleted: Boolean = false,
     val discoveryStartError: String? = null,
-    val saveError: String? = null,
 )

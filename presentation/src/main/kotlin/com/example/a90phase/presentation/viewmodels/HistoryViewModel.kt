@@ -7,8 +7,12 @@ import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.usecases.GetSleepHistoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -19,8 +23,12 @@ class HistoryViewModel @Inject constructor(
 
     private val getSleepHistoryUseCase = GetSleepHistoryUseCase(sleepRepository)
 
+    private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val errors: SharedFlow<String> = _errors.asSharedFlow()
+
     val uiState: StateFlow<HistoryUiState> = getSleepHistoryUseCase.allLogs()
         .map { logs -> toUiState(logs) }
+        .catch { _errors.tryEmit("Databasfel — försök igen") }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

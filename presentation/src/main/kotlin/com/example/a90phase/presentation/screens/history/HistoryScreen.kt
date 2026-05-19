@@ -31,11 +31,14 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,6 +84,11 @@ fun HistoryScreen(
     val vmState by viewModel.uiState.collectAsStateWithLifecycle()
     var period by remember { mutableStateOf(HistoryPeriod.WEEK) }
     val showInsights by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.errors.collect { message -> snackbarHostState.showSnackbar(message) }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         StarFieldBackground()
@@ -88,6 +96,7 @@ fun HistoryScreen(
             containerColor = Color.Transparent,
             topBar = { HistoryTopBar(period = period, onPeriodChange = { period = it }) },
             floatingActionButton = { HistoryFab(visible = vmState is HistoryUiState.Content) },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { innerPadding ->
             when (val state = vmState) {
                 is HistoryUiState.Loading -> HistoryLoadingState(Modifier.padding(innerPadding))
@@ -106,7 +115,7 @@ fun HistoryScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = state.message,
+                        text = "Databasfel — försök igen",
                         color = SleepColors.ErrorRed,
                         style = SleepTypography.BodyLarge,
                     )
