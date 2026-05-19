@@ -38,7 +38,7 @@ import com.example.a90phase.presentation.screens.splash.SplashScreen
 import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 
-private val bottomNavRoutes = setOf(Routes.CALCULATOR, Routes.HISTORY)
+private val bottomNavRoutes = setOf(Route.Calculator.path, Route.History.path)
 
 @Composable
 fun AppNavGraph() {
@@ -69,7 +69,7 @@ fun AppNavGraph() {
 private fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(
         navController = navController,
-        startDestination = Routes.SPLASH,
+        startDestination = Route.Splash.path,
         modifier = modifier,
     ) {
         authRoutes(navController)
@@ -78,28 +78,28 @@ private fun AppNavHost(navController: NavHostController, modifier: Modifier = Mo
 }
 
 private fun NavGraphBuilder.authRoutes(navController: NavHostController) {
-    composable(Routes.SPLASH) {
+    composable(Route.Splash.path) {
         ScreenFadeIn {
             SplashScreen(
                 onOnboardingNeeded = {
-                    navController.navigate(Routes.ONBOARDING) {
-                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    navController.navigate(Route.Onboarding.path) {
+                        popUpTo(Route.Splash.path) { inclusive = true }
                     }
                 },
                 onGoToMain = {
-                    navController.navigate(Routes.CALCULATOR) {
-                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    navController.navigate(Route.Calculator.path) {
+                        popUpTo(Route.Splash.path) { inclusive = true }
                     }
                 },
             )
         }
     }
-    composable(Routes.ONBOARDING) {
+    composable(Route.Onboarding.path) {
         ScreenFadeIn {
             OnboardingScreen(
                 onComplete = {
-                    navController.navigate(Routes.CALCULATOR) {
-                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    navController.navigate(Route.Calculator.path) {
+                        popUpTo(Route.Splash.path) { inclusive = true }
                     }
                 },
             )
@@ -108,26 +108,31 @@ private fun NavGraphBuilder.authRoutes(navController: NavHostController) {
 }
 
 private fun NavGraphBuilder.mainRoutes(navController: NavHostController) {
-    composable(Routes.CALCULATOR) {
+    composable(Route.Calculator.path) {
         ScreenFadeIn {
-            CalculatorScreen(onNavigateToSettings = { navController.navigate(Routes.SETTINGS) })
+            CalculatorScreen(onNavigateToSettings = { navController.navigate(Route.Settings.path) })
         }
     }
-    composable(Routes.HISTORY) {
+    composable(Route.History.path) {
         ScreenFadeIn {
             HistoryScreen(
                 onNavigateToLogDetail = { logId ->
-                    navController.navigate(Routes.logDetail(logId))
+                    navController.navigate(Route.LogDetail.build(logId))
                 },
             )
         }
     }
-    composable(Routes.SETTINGS) {
+    composable(Route.Settings.path) {
         ScreenFadeIn {
-            SettingsScreen(onNavigateBack = { navController.popBackStack() })
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDiscoveryResults = {
+                    navController.navigate(Route.DiscoveryResults.path)
+                },
+            )
         }
     }
-    composable(Routes.DISCOVERY_RESULTS) {
+    composable(Route.DiscoveryResults.path) {
         ScreenFadeIn {
             DiscoveryResultsScreen(
                 onApply = { navController.popBackStack() },
@@ -136,10 +141,10 @@ private fun NavGraphBuilder.mainRoutes(navController: NavHostController) {
         }
     }
     composable(
-        route = Routes.LOG_DETAIL,
-        arguments = listOf(navArgument("logId") { type = NavType.StringType }),
+        route = Route.LogDetail.path,
+        arguments = listOf(navArgument(Route.LogDetail.ARG_LOG_ID) { type = NavType.StringType }),
     ) { backStackEntry ->
-        val logId = backStackEntry.arguments?.getString("logId").orEmpty()
+        val logId = backStackEntry.arguments?.getString(Route.LogDetail.ARG_LOG_ID).orEmpty()
         ScreenFadeIn {
             LogDetailScreen(logId = logId, onNavigateBack = { navController.popBackStack() })
         }
@@ -166,8 +171,8 @@ private fun SleepBottomNav(currentRoute: String?, onNavigate: (String) -> Unit) 
         contentColor = SleepColors.CyanGlow,
     ) {
         NavigationBarItem(
-            selected = currentRoute == Routes.CALCULATOR,
-            onClick = { onNavigate(Routes.CALCULATOR) },
+            selected = currentRoute == Route.Calculator.path,
+            onClick = { onNavigate(Route.Calculator.path) },
             icon = { Text(text = "◎", style = SleepTypography.HeadlineMedium) },
             label = { Text(text = "Calculator", style = SleepTypography.LabelMedium) },
             colors = NavigationBarItemDefaults.colors(
@@ -179,8 +184,8 @@ private fun SleepBottomNav(currentRoute: String?, onNavigate: (String) -> Unit) 
             ),
         )
         NavigationBarItem(
-            selected = currentRoute == Routes.HISTORY,
-            onClick = { onNavigate(Routes.HISTORY) },
+            selected = currentRoute == Route.History.path,
+            onClick = { onNavigate(Route.History.path) },
             icon = { Text(text = "◈", style = SleepTypography.HeadlineMedium) },
             label = { Text(text = "History", style = SleepTypography.LabelMedium) },
             colors = NavigationBarItemDefaults.colors(
@@ -196,7 +201,7 @@ private fun SleepBottomNav(currentRoute: String?, onNavigate: (String) -> Unit) 
 
 private fun NavController.navigateToBottomNavTab(route: String) {
     navigate(route) {
-        popUpTo(Routes.CALCULATOR) { saveState = true }
+        popUpTo(Route.Calculator.path) { saveState = true }
         launchSingleTop = true
         restoreState = true
     }
