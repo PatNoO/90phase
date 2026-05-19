@@ -6,6 +6,7 @@ import com.example.a90phase.domain.entities.PatternInsight
 import com.example.a90phase.domain.entities.SleepLog
 import com.example.a90phase.domain.repositories.PatternInsightsRepository
 import com.example.a90phase.domain.repositories.SleepRepository
+import com.example.a90phase.domain.usecases.CalculateConsistencyScoreUseCase
 import com.example.a90phase.domain.usecases.DismissPatternInsightUseCase
 import com.example.a90phase.domain.usecases.GeneratePatternInsightsUseCase
 import com.example.a90phase.domain.usecases.GetSleepHistoryUseCase
@@ -30,6 +31,7 @@ class HistoryViewModel @Inject constructor(
     private val getSleepHistoryUseCase = GetSleepHistoryUseCase(sleepRepository)
     private val generatePatternInsightsUseCase = GeneratePatternInsightsUseCase()
     private val dismissPatternInsightUseCase = DismissPatternInsightUseCase(patternInsightsRepository)
+    private val calculateConsistencyScoreUseCase = CalculateConsistencyScoreUseCase()
 
     private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 1)
     val errors: SharedFlow<String> = _errors.asSharedFlow()
@@ -64,6 +66,7 @@ class HistoryViewModel @Inject constructor(
             .maxByOrNull { it.qualityRating!! }
             ?.date?.dayOfWeek
         val insights = buildInsights(logs, dismissedIds, insightsEnabled)
+        val consistencyScore = if (insightsEnabled) calculateConsistencyScoreUseCase(logs) else null
         return HistoryUiState.Content(
             logs = logs,
             averageRating = averageRating,
@@ -71,6 +74,7 @@ class HistoryViewModel @Inject constructor(
             bestDay = bestDay,
             insights = insights,
             insightsEnabled = insightsEnabled,
+            consistencyScore = consistencyScore,
         )
     }
 

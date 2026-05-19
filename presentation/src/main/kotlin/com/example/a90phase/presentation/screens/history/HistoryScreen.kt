@@ -60,6 +60,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.a90phase.domain.entities.ConsistencyScore
 import com.example.a90phase.domain.entities.PatternInsight
 import com.example.a90phase.domain.entities.SleepLog
 import com.example.a90phase.presentation.components.SectionHeader
@@ -105,6 +106,7 @@ fun HistoryScreen(
                     logs = state.logs,
                     period = period,
                     insights = state.insights,
+                    consistencyScore = state.consistencyScore,
                     onDismissInsight = viewModel::onDismissInsight,
                     onNavigateToLogDetail = onNavigateToLogDetail,
                     modifier = Modifier.padding(innerPadding),
@@ -184,6 +186,7 @@ private fun HistoryContent(
     logs: List<SleepLog>,
     period: HistoryPeriod,
     insights: List<PatternInsight>,
+    consistencyScore: ConsistencyScore?,
     onDismissInsight: (String) -> Unit,
     onNavigateToLogDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -194,7 +197,7 @@ private fun HistoryContent(
     ) {
         item {
             Spacer(Modifier.height(Spacing.Medium))
-            WeeklySummaryCard(logs = logs)
+            WeeklySummaryCard(logs = logs, consistencyScore = consistencyScore)
         }
         item {
             Spacer(Modifier.height(Spacing.Medium))
@@ -224,7 +227,7 @@ private fun HistoryContent(
 }
 
 @Composable
-private fun WeeklySummaryCard(logs: List<SleepLog>) {
+private fun WeeklySummaryCard(logs: List<SleepLog>, consistencyScore: ConsistencyScore?) {
     val avgRating = logs.mapNotNull { it.qualityRating }.average().takeIf { !it.isNaN() } ?: 0.0
     val bestDay = logs.maxByOrNull { it.qualityRating ?: 0 }?.date?.dayOfWeek?.toString()
         ?.lowercase()?.replaceFirstChar { it.uppercase() }
@@ -255,8 +258,46 @@ private fun WeeklySummaryCard(logs: List<SleepLog>) {
                     style = SleepTypography.BodyMedium,
                     color = SleepColors.Silver,
                 )
+                if (consistencyScore != null) {
+                    Spacer(Modifier.height(Spacing.XXS))
+                    ConsistencyScoreRow(score = consistencyScore)
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun ConsistencyScoreRow(score: ConsistencyScore) {
+    val labelColor = when (score.label) {
+        ConsistencyScore.Label.HIGH -> SleepColors.OptimalGreen
+        ConsistencyScore.Label.MEDIUM -> SleepColors.GoodAmber
+        ConsistencyScore.Label.LOW -> SleepColors.ErrorRed
+    }
+    val labelText = when (score.label) {
+        ConsistencyScore.Label.HIGH -> "Hög"
+        ConsistencyScore.Label.MEDIUM -> "Medel"
+        ConsistencyScore.Label.LOW -> "Låg"
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End,
+        modifier = Modifier.semantics(mergeDescendants = true) {
+            contentDescription = "Bedtime consistency: $labelText, ${score.percentage} percent"
+        },
+    ) {
+        Text(
+            text = "Konsekvens: ",
+            style = SleepTypography.BodyMedium,
+            color = SleepColors.Silver,
+            modifier = Modifier.clearAndSetSemantics {},
+        )
+        Text(
+            text = "$labelText ${score.percentage}%",
+            style = SleepTypography.BodyMedium,
+            color = labelColor,
+            modifier = Modifier.clearAndSetSemantics {},
+        )
     }
 }
 
