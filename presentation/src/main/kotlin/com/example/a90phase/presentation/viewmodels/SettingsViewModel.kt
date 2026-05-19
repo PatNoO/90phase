@@ -50,6 +50,7 @@ class SettingsViewModel @Inject constructor(
                         checkInHour = hour,
                         checkInMinute = minute,
                         discoveryPhaseActive = discovery != null,
+                        discoveryPhaseCompleted = profile.discoveryPhase?.isCompleted == true,
                         discoveryDayNumber = dayNumber,
                         discoveryCurrentShiftName = discovery?.getCurrentShift()?.displayName ?: "",
                         discoveryWeekRatingsCount = weekRatings,

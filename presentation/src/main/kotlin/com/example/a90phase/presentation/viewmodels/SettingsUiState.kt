@@ -17,6 +17,7 @@ data class SettingsUiState(
     val discoveryDayNumber: Int = 0,
     val discoveryCurrentShiftName: String = "",
     val discoveryWeekRatingsCount: Int = 0,
+    val discoveryPhaseCompleted: Boolean = false,
     val discoveryStartError: String? = null,
     val saveError: String? = null,
 )

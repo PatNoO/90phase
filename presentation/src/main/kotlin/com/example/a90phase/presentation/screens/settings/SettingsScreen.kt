@@ -81,12 +81,14 @@ private data class SettingsCallbacks(
     val onCancelDiscovery: () -> Unit,
     val onShowDiscoveryInfo: () -> Unit,
     val onFirebaseSyncToggled: (Boolean) -> Unit,
+    val onViewDiscoveryResults: () -> Unit,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToDiscoveryResults: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -105,6 +107,7 @@ fun SettingsScreen(
         onCancelDiscovery = viewModel::onCancelDiscoveryPhase,
         onShowDiscoveryInfo = { showDiscoveryInfoDialog = true },
         onFirebaseSyncToggled = viewModel::onFirebaseSyncToggled,
+        onViewDiscoveryResults = onNavigateToDiscoveryResults,
     )
 
     Box(
@@ -234,6 +237,7 @@ private fun SettingsContent(
                 onStartDiscovery = callbacks.onStartDiscovery,
                 onCancelDiscovery = callbacks.onCancelDiscovery,
                 onShowDiscoveryInfo = callbacks.onShowDiscoveryInfo,
+                onViewDiscoveryResults = callbacks.onViewDiscoveryResults,
             )
         }
         item { Spacer(modifier = Modifier.height(Spacing.Medium)) }
@@ -418,6 +422,7 @@ private fun DiscoveryPhaseRow(
     onStartDiscovery: () -> Unit,
     onCancelDiscovery: () -> Unit,
     onShowInfo: () -> Unit,
+    onViewDiscoveryResults: () -> Unit,
 ) {
     val locked = state.ratingDaysCount < DISCOVERY_LOCK_THRESHOLD
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -430,9 +435,9 @@ private fun DiscoveryPhaseRow(
                 Text(
                     text = "Discovery Phase",
                     style = SleepTypography.BodyLarge,
-                    color = if (locked) SleepColors.White.copy(alpha = 0.4f) else SleepColors.White,
+                    color = if (locked && !state.discoveryPhaseCompleted) SleepColors.White.copy(alpha = 0.4f) else SleepColors.White,
                 )
-                if (locked) {
+                if (locked && !state.discoveryPhaseCompleted) {
                     Text(
                         text = "  🔒",
                         style = SleepTypography.BodyLarge,
@@ -456,6 +461,7 @@ private fun DiscoveryPhaseRow(
             locked = locked,
             onStartDiscovery = onStartDiscovery,
             onCancelDiscovery = onCancelDiscovery,
+            onViewDiscoveryResults = onViewDiscoveryResults,
         )
         if (state.discoveryStartError != null) {
             Spacer(modifier = Modifier.height(Spacing.XXS))
@@ -469,13 +475,30 @@ private fun DiscoveryPhaseRow(
 }
 
 @Composable
+private fun DiscoveryPhaseCompletedStatus(onViewDiscoveryResults: () -> Unit) {
+    Text(text = "Phase complete", style = SleepTypography.BodyMedium, color = SleepColors.IndigoGlow)
+    Spacer(modifier = Modifier.height(Spacing.XS))
+    Text(
+        text = "View Results →",
+        style = SleepTypography.BodyMedium,
+        color = SleepColors.CyanGlow,
+        modifier = Modifier
+            .minimumInteractiveComponentSize()
+            .clearAndSetSemantics { contentDescription = "View Discovery Phase results" }
+            .clickable(onClick = onViewDiscoveryResults),
+    )
+}
+
+@Composable
 private fun DiscoveryPhaseStatus(
     state: SettingsUiState,
     locked: Boolean,
     onStartDiscovery: () -> Unit,
     onCancelDiscovery: () -> Unit,
+    onViewDiscoveryResults: () -> Unit,
 ) {
     when {
+        state.discoveryPhaseCompleted -> DiscoveryPhaseCompletedStatus(onViewDiscoveryResults)
         state.discoveryPhaseActive -> {
             Text(
                 text = "Aktiv · Dag ${state.discoveryDayNumber}/21",
@@ -501,11 +524,7 @@ private fun DiscoveryPhaseStatus(
             )
         }
         else -> {
-            Text(
-                text = "Inaktiv",
-                style = SleepTypography.BodyMedium,
-                color = SleepColors.Silver,
-            )
+            Text(text = "Inaktiv", style = SleepTypography.BodyMedium, color = SleepColors.Silver)
             Spacer(modifier = Modifier.height(Spacing.XS))
             Text(
                 text = "Starta Discovery Phase →",
@@ -639,6 +658,7 @@ private fun FeaturesSection(
     onStartDiscovery: () -> Unit,
     onCancelDiscovery: () -> Unit,
     onShowDiscoveryInfo: () -> Unit,
+    onViewDiscoveryResults: () -> Unit,
 ) {
     var patternInsightsEnabled by remember { mutableStateOf(false) }
     var consistencyScoreEnabled by remember { mutableStateOf(false) }
@@ -654,6 +674,7 @@ private fun FeaturesSection(
             onStartDiscovery = onStartDiscovery,
             onCancelDiscovery = onCancelDiscovery,
             onShowInfo = onShowDiscoveryInfo,
+            onViewDiscoveryResults = onViewDiscoveryResults,
         )
         SettingsDivider()
         SleepToggle(
@@ -769,7 +790,7 @@ private fun CheckInTimePickerDialog(
 @Composable
 internal fun SettingsScreenPreview() {
     NightSkyTheme {
-        SettingsScreen(onNavigateBack = {})
+        SettingsScreen(onNavigateBack = {}, onNavigateToDiscoveryResults = {})
     }
 }
 
@@ -793,6 +814,6 @@ internal fun DiscoveryProgressSectionPreview() {
 @Composable
 internal fun SettingsScreenLandscapePreview() {
     NightSkyTheme {
-        SettingsScreen(onNavigateBack = {})
+        SettingsScreen(onNavigateBack = {}, onNavigateToDiscoveryResults = {})
     }
 }
