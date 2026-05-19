@@ -11,6 +11,7 @@ data class SettingsUiState(
     val morningRatingEnabled: Boolean = false,
     val morningBedtimeLogEnabled: Boolean = false,
     val smartWakeEnabled: Boolean = false,
+    val patternInsightsEnabled: Boolean = false,
     val firebaseSyncEnabled: Boolean = true,
     val ratingDaysCount: Int = 0,
     val discoveryPhaseActive: Boolean = false,

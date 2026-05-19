@@ -79,6 +79,7 @@ private data class SettingsCallbacks(
     val onMorningRatingToggled: (Boolean) -> Unit,
     val onMorningBedtimeLogToggled: (Boolean) -> Unit,
     val onSmartWakeToggled: (Boolean) -> Unit,
+    val onPatternInsightsToggled: (Boolean) -> Unit,
     val onStartDiscovery: () -> Unit,
     val onCancelDiscovery: () -> Unit,
     val onShowDiscoveryInfo: () -> Unit,
@@ -106,6 +107,7 @@ fun SettingsScreen(
         onMorningRatingToggled = viewModel::onMorningRatingToggled,
         onMorningBedtimeLogToggled = viewModel::onMorningBedtimeLogToggled,
         onSmartWakeToggled = viewModel::onSmartWakeToggled,
+        onPatternInsightsToggled = viewModel::onPatternInsightsToggled,
         onStartDiscovery = viewModel::onStartDiscoveryPhase,
         onCancelDiscovery = viewModel::onCancelDiscoveryPhase,
         onShowDiscoveryInfo = { showDiscoveryInfoDialog = true },
@@ -237,6 +239,7 @@ private fun SettingsContent(
             FeaturesSection(
                 state = state,
                 onSmartWakeToggled = callbacks.onSmartWakeToggled,
+                onPatternInsightsToggled = callbacks.onPatternInsightsToggled,
                 onStartDiscovery = callbacks.onStartDiscovery,
                 onCancelDiscovery = callbacks.onCancelDiscovery,
                 onShowDiscoveryInfo = callbacks.onShowDiscoveryInfo,
@@ -639,12 +642,12 @@ private fun DiscoveryProgressBar(dayNumber: Int) {
 private fun FeaturesSection(
     state: SettingsUiState,
     onSmartWakeToggled: (Boolean) -> Unit,
+    onPatternInsightsToggled: (Boolean) -> Unit,
     onStartDiscovery: () -> Unit,
     onCancelDiscovery: () -> Unit,
     onShowDiscoveryInfo: () -> Unit,
     onViewDiscoveryResults: () -> Unit,
 ) {
-    var patternInsightsEnabled by remember { mutableStateOf(false) }
     var consistencyScoreEnabled by remember { mutableStateOf(false) }
     SettingsSection(title = "FEATURES") {
         SleepToggle(
@@ -663,8 +666,8 @@ private fun FeaturesSection(
         SettingsDivider()
         SleepToggle(
             label = "Pattern Insights in History",
-            checked = patternInsightsEnabled,
-            onCheckedChange = { patternInsightsEnabled = it },
+            checked = state.patternInsightsEnabled,
+            onCheckedChange = onPatternInsightsToggled,
         )
         SettingsDivider()
         SleepToggle(

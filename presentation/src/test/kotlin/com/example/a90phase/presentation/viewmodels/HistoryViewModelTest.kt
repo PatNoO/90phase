@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.SleepLog
 import com.example.a90phase.domain.entities.SyncStatus
+import com.example.a90phase.domain.repositories.PatternInsightsRepository
 import com.example.a90phase.domain.repositories.SleepRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,8 +40,10 @@ class HistoryViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(repo: SleepRepository = FakeSleepRepository()) =
-        HistoryViewModel(repo)
+    private fun viewModel(
+        repo: SleepRepository = FakeSleepRepository(),
+        insightsRepo: PatternInsightsRepository = FakeHistoryPatternInsightsRepository(),
+    ) = HistoryViewModel(repo, insightsRepo)
 
     // ── Initial state ─────────────────────────────────────────────────────────
 
@@ -171,6 +174,13 @@ class HistoryViewModelTest {
 }
 
 // ── Test doubles ──────────────────────────────────────────────────────────────
+
+private class FakeHistoryPatternInsightsRepository : PatternInsightsRepository {
+    override fun observePatternInsightsEnabled(): Flow<Boolean> = flowOf(false)
+    override suspend fun setPatternInsightsEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeDismissedInsightIds(): Flow<Set<String>> = flowOf(emptySet())
+    override suspend fun dismissInsight(id: String): Result<Unit> = Result.Success(Unit)
+}
 
 private class FakeSleepRepository(
     private val logsFlow: Flow<List<SleepLog>> = flowOf(emptyList()),

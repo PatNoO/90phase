@@ -3,6 +3,7 @@ package com.example.a90phase.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.a90phase.domain.common.Result
+import com.example.a90phase.domain.repositories.PatternInsightsRepository
 import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import com.example.a90phase.domain.usecases.StartDiscoveryPhaseUseCase
@@ -23,6 +24,7 @@ import kotlinx.coroutines.launch
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     sleepRepository: SleepRepository,
+    private val patternInsightsRepository: PatternInsightsRepository,
 ) : ViewModel() {
 
     private val startDiscoveryPhaseUseCase =
@@ -95,6 +97,11 @@ class SettingsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            patternInsightsRepository.observePatternInsightsEnabled().collect { enabled ->
+                _uiState.update { it.copy(patternInsightsEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
             sleepRepository.getAllSleepLogs().collect { logs ->
                 _uiState.update { it.copy(ratingDaysCount = logs.count { log -> log.qualityRating != null }) }
             }
@@ -151,6 +158,10 @@ class SettingsViewModel @Inject constructor(
 
     fun onFirebaseSyncToggled(enabled: Boolean) {
         viewModelScope.launch { userPreferencesRepository.setFirebaseSyncEnabled(enabled) }
+    }
+
+    fun onPatternInsightsToggled(enabled: Boolean) {
+        viewModelScope.launch { patternInsightsRepository.setPatternInsightsEnabled(enabled) }
     }
 
     fun onStartDiscoveryPhase() {

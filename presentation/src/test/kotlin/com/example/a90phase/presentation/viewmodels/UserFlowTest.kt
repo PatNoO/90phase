@@ -10,6 +10,7 @@ import com.example.a90phase.domain.entities.UserOnboardingState
 import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.AlarmRepository
 import com.example.a90phase.domain.repositories.OnboardingRepository
+import com.example.a90phase.domain.repositories.PatternInsightsRepository
 import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import kotlinx.coroutines.Dispatchers
@@ -117,7 +118,7 @@ class UserFlowTest {
     @Test
     fun `flow 4 saving rated sleep log is reflected in history`() = runTest {
         val sleepRepo = MutableFlowSleepRepository()
-        val historyVm = HistoryViewModel(sleepRepo)
+        val historyVm = HistoryViewModel(sleepRepo, NoOpPatternInsightsRepository())
 
         historyVm.uiState.test {
             awaitItem() // Loading
@@ -206,6 +207,13 @@ private class CapturingFlowPrefsRepository : UserPreferencesRepository {
 private class NoOpAlarmRepository : AlarmRepository {
     override suspend fun getNextAlarm(): Result<SystemAlarm?> = Result.Success(null)
     override suspend fun getAllAlarms(): Result<List<SystemAlarm>> = Result.Success(emptyList())
+}
+
+private class NoOpPatternInsightsRepository : PatternInsightsRepository {
+    override fun observePatternInsightsEnabled(): Flow<Boolean> = flowOf(false)
+    override suspend fun setPatternInsightsEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeDismissedInsightIds(): Flow<Set<String>> = flowOf(emptySet())
+    override suspend fun dismissInsight(id: String): Result<Unit> = Result.Success(Unit)
 }
 
 private class SimpleFlowOnboardingRepository : OnboardingRepository {
