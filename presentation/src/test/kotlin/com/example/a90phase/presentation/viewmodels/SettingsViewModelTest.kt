@@ -7,6 +7,7 @@ import com.example.a90phase.domain.entities.ShiftType
 import com.example.a90phase.domain.entities.SleepLog
 import com.example.a90phase.domain.entities.SyncStatus
 import com.example.a90phase.domain.entities.UserProfile
+import com.example.a90phase.domain.repositories.PatternInsightsRepository
 import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import app.cash.turbine.test
@@ -46,7 +47,8 @@ class SettingsViewModelTest {
     private fun viewModel(
         prefsRepo: FakeSettingsPrefsRepository = FakeSettingsPrefsRepository(),
         sleepRepo: FakeSettingsSleepRepository = FakeSettingsSleepRepository(),
-    ) = SettingsViewModel(prefsRepo, sleepRepo)
+        insightsRepo: FakeSettingsPatternInsightsRepository = FakeSettingsPatternInsightsRepository(),
+    ) = SettingsViewModel(prefsRepo, sleepRepo, insightsRepo)
 
     // ── Initial state ─────────────────────────────────────────────────────────
 
@@ -285,6 +287,13 @@ private class FakeSettingsPrefsRepository(
     }
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
+}
+
+private class FakeSettingsPatternInsightsRepository : PatternInsightsRepository {
+    override fun observePatternInsightsEnabled(): Flow<Boolean> = MutableStateFlow(false)
+    override suspend fun setPatternInsightsEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeDismissedInsightIds(): Flow<Set<String>> = MutableStateFlow(emptySet())
+    override suspend fun dismissInsight(id: String): Result<Unit> = Result.Success(Unit)
 }
 
 private class FakeSettingsSleepRepository(

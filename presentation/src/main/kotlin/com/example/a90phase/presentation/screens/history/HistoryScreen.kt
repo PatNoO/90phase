@@ -60,6 +60,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.a90phase.domain.entities.PatternInsight
 import com.example.a90phase.domain.entities.SleepLog
 import com.example.a90phase.presentation.components.SectionHeader
 import com.example.a90phase.presentation.components.SleepLogCard
@@ -83,7 +84,6 @@ fun HistoryScreen(
 ) {
     val vmState by viewModel.uiState.collectAsStateWithLifecycle()
     var period by remember { mutableStateOf(HistoryPeriod.WEEK) }
-    val showInsights by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -104,7 +104,8 @@ fun HistoryScreen(
                 is HistoryUiState.Content -> HistoryContent(
                     logs = state.logs,
                     period = period,
-                    showInsights = showInsights,
+                    insights = state.insights,
+                    onDismissInsight = viewModel::onDismissInsight,
                     onNavigateToLogDetail = onNavigateToLogDetail,
                     modifier = Modifier.padding(innerPadding),
                 )
@@ -182,7 +183,8 @@ private fun HistoryTopBar(period: HistoryPeriod, onPeriodChange: (HistoryPeriod)
 private fun HistoryContent(
     logs: List<SleepLog>,
     period: HistoryPeriod,
-    showInsights: Boolean,
+    insights: List<PatternInsight>,
+    onDismissInsight: (String) -> Unit,
     onNavigateToLogDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -198,14 +200,12 @@ private fun HistoryContent(
             Spacer(Modifier.height(Spacing.Medium))
             SleepQualityChart(logs = logs, period = period)
         }
-        if (showInsights) {
-            item {
-                Spacer(Modifier.height(Spacing.Medium))
-                PatternInsightCard(
-                    message = "You tend to sleep better mid-week.",
-                    onDismiss = {},
-                )
-            }
+        items(insights) { insight ->
+            Spacer(Modifier.height(Spacing.Medium))
+            PatternInsightCard(
+                message = insight.message,
+                onDismiss = { onDismissInsight(insight.id) },
+            )
         }
         item {
             Spacer(Modifier.height(Spacing.Medium))
