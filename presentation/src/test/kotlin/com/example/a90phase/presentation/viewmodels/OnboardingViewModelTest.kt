@@ -4,6 +4,7 @@ import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.DiscoveryPhase
 import com.example.a90phase.domain.entities.UserOnboardingState
 import com.example.a90phase.domain.entities.UserProfile
+import com.example.a90phase.domain.repositories.NotificationScheduler
 import com.example.a90phase.domain.repositories.OnboardingRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +41,8 @@ class OnboardingViewModelTest {
     private fun viewModel(
         onboardingRepo: FakeOnboardingRepository = FakeOnboardingRepository(),
         prefsRepo: FakeOnboardingPrefsRepository = FakeOnboardingPrefsRepository(),
-    ) = OnboardingViewModel(onboardingRepo, prefsRepo)
+        notificationScheduler: NotificationScheduler = NoOpNotificationScheduler(),
+    ) = OnboardingViewModel(onboardingRepo, prefsRepo, notificationScheduler)
 
     // ── Initial state ─────────────────────────────────────────────────────────
 

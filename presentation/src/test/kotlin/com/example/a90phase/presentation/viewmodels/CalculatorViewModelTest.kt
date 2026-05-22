@@ -9,6 +9,7 @@ import com.example.a90phase.domain.entities.DiscoveryPhase
 import com.example.a90phase.domain.entities.SystemAlarm
 import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.AlarmRepository
+import com.example.a90phase.domain.repositories.NotificationScheduler
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,7 +45,8 @@ class CalculatorViewModelTest {
     private fun viewModel(
         userPrefsRepo: UserPreferencesRepository = FakeUserPreferencesRepository(),
         alarmRepo: AlarmRepository = FakeAlarmRepository(),
-    ) = CalculatorViewModel(userPrefsRepo, alarmRepo)
+        notificationScheduler: NotificationScheduler = NoOpNotificationScheduler(),
+    ) = CalculatorViewModel(userPrefsRepo, alarmRepo, notificationScheduler)
 
     // ── Initial state ─────────────────────────────────────────────────────────
 
@@ -218,7 +220,7 @@ private class FakeUserPreferencesRepository(
     override suspend fun setDailyCheckInEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = emptyFlow()
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
-    override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
+    override fun observeBedtimeReminderEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -250,7 +252,7 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun setDailyCheckInEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = emptyFlow()
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
-    override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
+    override fun observeBedtimeReminderEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -289,7 +291,7 @@ private class CapturingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun setDailyCheckInEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = emptyFlow()
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
-    override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
+    override fun observeBedtimeReminderEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setSelectedBedtime(hour: Int, minute: Int, cycleCount: Int, durationMinutes: Int): Result<Unit> {
         savedHour = hour
         savedMinute = minute
