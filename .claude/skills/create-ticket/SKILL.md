@@ -23,6 +23,63 @@ The request is: `$ARGUMENTS`
 
 ---
 
+## Step 1b — Check if the work already exists
+
+Before creating anything, verify the implementation does not already exist in the codebase or in a closed ticket.
+
+### 1. Extract symbols from the description
+
+Read `$ARGUMENTS` and identify the key identifiers — class names, use case names, file names, method names. Look for:
+- CamelCase nouns (e.g. `StartDiscoveryPhaseUseCase`, `SettingsViewModel`, `SleepLogDao`)
+- Screen or feature names that map to files (e.g. "calculator screen" → `CalculatorScreen`)
+- Repository or entity names
+
+### 2. Grep the codebase for each symbol
+
+For each identified symbol run:
+
+```bash
+grep -rn "<Symbol>" app/ domain/ data/ presentation/ --include="*.kt" | head -10
+```
+
+If **any symbol is found**:
+- Show the file and line number where it exists
+- Run `git log --oneline --all -- <file>` to find which commit/PR introduced it
+- Print a clear warning:
+
+```
+⚠️  DUPLICATE RISK
+"<Symbol>" already exists in <file:line>
+Introduced in: <commit hash> <commit message>
+
+Options:
+  A) Stop — this is already implemented. Close or don't create the ticket.
+  B) Proceed — this ticket is a refinement or extension of existing code (state what's new).
+  C) Link — the new ticket should reference the existing file as a starting point.
+```
+
+Stop and ask the developer which option to take. Do not continue to Step 2 until they confirm.
+
+If **no symbols are found** — continue to Step 2 silently.
+
+### 3. Check closed tickets for overlap
+
+```bash
+gh issue list --repo PatNoO/90phase --state closed --json number,title --limit 200 | \
+  python3 -c "
+import sys, json
+issues = json.load(sys.stdin)
+query = '$ARGUMENTS'.lower()
+for i in issues:
+    if any(word in i['title'].lower() for word in query.split() if len(word) > 4):
+        print(f'#{i[\"number\"]}: {i[\"title\"]}')
+"
+```
+
+If matching closed tickets are found, show them and ask the developer to confirm there is no overlap before continuing.
+
+---
+
 ## Step 2 — Determine the next PH number
 
 Every issue title is prefixed with `PH-<N>`.
