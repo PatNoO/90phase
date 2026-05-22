@@ -216,6 +216,15 @@ EOF
 )"
 ```
 
+Then check off all completed Acceptance Criteria and Definition of Done checkboxes directly on the issue body:
+
+```bash
+gh issue edit <number> --repo PatNoO/90phase --body "$(cat <<'EOF'
+<full issue body with - [ ] changed to - [x] for every completed item>
+EOF
+)"
+```
+
 Then ask the developer whether to close the issue now or leave it open until the PR is merged:
 
 - Close now:
@@ -250,4 +259,5 @@ gh issue close <number> --repo PatNoO/90phase
 - [ ] `./gradlew build` succeeds
 - [ ] Commits follow `(MODEL_NAME) <type> [PH-<N>]` format, staged per-file
 - [ ] Implementation comment posted to GitHub issue
+- [ ] AC and DoD checkboxes checked off on the issue body via `gh issue edit`
 - [ ] Issue closed or `closes #N` in commit for auto-close on merge

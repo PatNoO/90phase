@@ -3,6 +3,7 @@ package com.example.a90phase.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.a90phase.domain.entities.UserOnboardingState
+import com.example.a90phase.domain.repositories.NotificationScheduler
 import com.example.a90phase.domain.repositories.OnboardingRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import com.example.a90phase.domain.usecases.GetOnboardingStateUseCase
@@ -12,6 +13,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -21,6 +23,7 @@ private const val ONBOARDING_SCREEN_COUNT = 8
 class OnboardingViewModel @Inject constructor(
     onboardingRepository: OnboardingRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
+    private val notificationScheduler: NotificationScheduler,
 ) : ViewModel() {
 
     private val getOnboardingStateUseCase = GetOnboardingStateUseCase(onboardingRepository)
@@ -71,6 +74,12 @@ class OnboardingViewModel @Inject constructor(
                 OnboardingFeature.DailyCheckIn -> {
                     userPreferencesRepository.setDailyCheckInEnabled(enabled)
                     _uiState.update { it.copy(dailyCheckInEnabled = enabled) }
+                    if (enabled) {
+                        val reminderTime = userPreferencesRepository.observeUserProfile().first().reminderTime
+                        notificationScheduler.scheduleDailyCheckIn(reminderTime)
+                    } else {
+                        notificationScheduler.cancelDailyCheckIn()
+                    }
                 }
                 OnboardingFeature.BedtimeReminder -> {
                     userPreferencesRepository.setBedtimeReminderEnabled(enabled)

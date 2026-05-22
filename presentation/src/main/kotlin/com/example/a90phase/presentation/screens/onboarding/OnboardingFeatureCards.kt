@@ -186,13 +186,13 @@ internal fun OnboardingMorningCheckInCard(
         SleepToggle(
             label = "How did you sleep? (1–5)",
             checked = morningRatingEnabled,
-            onCheckedChange = onMorningRatingToggle, // TODO: wire to ViewModel
+            onCheckedChange = onMorningRatingToggle,
         )
         Spacer(modifier = Modifier.height(Spacing.Small))
         SleepToggle(
             label = "What time did you go to bed?",
             checked = morningBedtimeLogEnabled,
-            onCheckedChange = onMorningBedtimeLogToggle, // TODO: wire to ViewModel
+            onCheckedChange = onMorningBedtimeLogToggle,
         )
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
         PrimaryButton(text = "Continue", onClick = onContinue)

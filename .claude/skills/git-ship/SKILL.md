@@ -154,3 +154,4 @@ After PR is created, display the PR URL to the user.
 - [ ] Push succeeded
 - [ ] PR created targeting `main` with template filled
 - [ ] PR URL displayed to user
+- [ ] AC and DoD checkboxes checked off on the GitHub issue body

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.BedtimeRecommendation
 import com.example.a90phase.domain.repositories.AlarmRepository
+import com.example.a90phase.domain.repositories.NotificationScheduler
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import com.example.a90phase.domain.usecases.CalculateOptimalBedtimeUseCase
 import com.example.a90phase.domain.usecases.FetchSystemAlarmsUseCase
@@ -14,12 +15,14 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class CalculatorViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     alarmRepository: AlarmRepository,
+    private val notificationScheduler: NotificationScheduler,
 ) : ViewModel() {
 
     private val calculateOptimalBedtimeUseCase = CalculateOptimalBedtimeUseCase(userPreferencesRepository)
@@ -65,6 +68,9 @@ class CalculatorViewModel @Inject constructor(
                 cycleCount = recommendation.cycleCount,
                 durationMinutes = recommendation.durationMinutes,
             )
+            if (userPreferencesRepository.observeBedtimeReminderEnabled().first()) {
+                notificationScheduler.scheduleBedtimeReminder(recommendation.bedtime)
+            }
         }
     }
 }

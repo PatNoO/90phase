@@ -9,6 +9,7 @@ import com.example.a90phase.domain.entities.SystemAlarm
 import com.example.a90phase.domain.entities.UserOnboardingState
 import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.AlarmRepository
+import com.example.a90phase.domain.repositories.NotificationScheduler
 import com.example.a90phase.domain.repositories.OnboardingRepository
 import com.example.a90phase.domain.repositories.PatternInsightsRepository
 import com.example.a90phase.domain.repositories.SleepRepository
@@ -52,8 +53,8 @@ class UserFlowTest {
     @Test
     fun `flow 1 onboarding wake time is saved and calculator shows recommendations for it`() = runTest {
         val sharedPrefs = CapturingFlowPrefsRepository()
-        val onboardingVm = OnboardingViewModel(SimpleFlowOnboardingRepository(), sharedPrefs)
-        val calculatorVm = CalculatorViewModel(sharedPrefs, NoOpAlarmRepository())
+        val onboardingVm = OnboardingViewModel(SimpleFlowOnboardingRepository(), sharedPrefs, NoOpNotificationScheduler())
+        val calculatorVm = CalculatorViewModel(sharedPrefs, NoOpAlarmRepository(), NoOpNotificationScheduler())
         testDispatcher.scheduler.advanceUntilIdle()
 
         onboardingVm.onWakeTimeSelected(8, 30)
@@ -76,7 +77,7 @@ class UserFlowTest {
 
     @Test
     fun `flow 2 changing wake time recalculates recommendations`() = runTest {
-        val vm = CalculatorViewModel(CapturingFlowPrefsRepository(), NoOpAlarmRepository())
+        val vm = CalculatorViewModel(CapturingFlowPrefsRepository(), NoOpAlarmRepository(), NoOpNotificationScheduler())
         testDispatcher.scheduler.advanceUntilIdle()
 
         val initial = vm.uiState.value as SleepCalculatorUiState.Success
@@ -97,7 +98,7 @@ class UserFlowTest {
     @Test
     fun `flow 3 selecting bedtime persists it to repository for reminder scheduling`() = runTest {
         val prefs = CapturingFlowPrefsRepository()
-        val vm = CalculatorViewModel(prefs, NoOpAlarmRepository())
+        val vm = CalculatorViewModel(prefs, NoOpAlarmRepository(), NoOpNotificationScheduler())
         testDispatcher.scheduler.advanceUntilIdle()
 
         val state = vm.uiState.value as SleepCalculatorUiState.Success
@@ -156,6 +157,13 @@ private fun flowTestProfile() = UserProfile(
 )
 
 // ── Test doubles ──────────────────────────────────────────────────────────────
+
+internal class NoOpNotificationScheduler : NotificationScheduler {
+    override fun scheduleBedtimeReminder(bedtime: java.time.LocalTime) = Unit
+    override fun cancelBedtimeReminder() = Unit
+    override fun scheduleDailyCheckIn(timeString: String) = Unit
+    override fun cancelDailyCheckIn() = Unit
+}
 
 private class CapturingFlowPrefsRepository : UserPreferencesRepository {
     var savedWakeHour: Int? = null
