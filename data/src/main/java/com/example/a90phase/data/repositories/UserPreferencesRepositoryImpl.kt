@@ -11,9 +11,11 @@ import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.DiscoveryPhase
 import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
+import java.time.LocalTime
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 @Suppress("TooManyFunctions")
@@ -166,6 +168,11 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             dataStore.setSelectedWakeTime(hour, minute)
             Result.Success(Unit)
         }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
+
+    override fun observeSelectedWakeTime(): Flow<LocalTime> =
+        combine(dataStore.observeSelectedWakeHour(), dataStore.observeSelectedWakeMinute()) { h, m ->
+            LocalTime.of(h, m)
+        }
 
     override fun observeUserProfile(): Flow<UserProfile> =
         userProfileDao.getUserProfileFlow().map { it?.toDomain() ?: defaultProfile() }

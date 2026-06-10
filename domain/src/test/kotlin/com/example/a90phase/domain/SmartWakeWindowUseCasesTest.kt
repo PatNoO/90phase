@@ -13,6 +13,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -147,6 +148,8 @@ private class FakeSmartWakeRepository(
         minute: Int,
     ): Result<Unit> = Result.Success(Unit)
 
+    override fun observeSelectedWakeTime(): Flow<java.time.LocalTime> = emptyFlow()
+
     override fun observeUserProfile(): Flow<UserProfile> = MutableStateFlow(UserProfile("test")).asStateFlow()
 }
 
@@ -206,6 +209,8 @@ private class FailingSmartWakeRepository : UserPreferencesRepository {
         hour: Int,
         minute: Int,
     ): Result<Unit> = error
+
+    override fun observeSelectedWakeTime(): Flow<java.time.LocalTime> = emptyFlow()
 
     override fun observeUserProfile(): Flow<UserProfile> = MutableStateFlow(UserProfile("test")).asStateFlow()
 }
