@@ -9,6 +9,7 @@ import javax.inject.Singleton
 class NotificationSchedulerImpl @Inject constructor(
     private val bedtimeReminderScheduler: BedtimeReminderScheduler,
     private val dailyCheckInScheduler: DailyCheckInScheduler,
+    private val morningFeedbackScheduler: MorningFeedbackScheduler,
 ) : NotificationScheduler {
 
     override fun scheduleBedtimeReminder(bedtime: LocalTime) = bedtimeReminderScheduler.schedule(bedtime)
@@ -18,4 +19,8 @@ class NotificationSchedulerImpl @Inject constructor(
     override fun scheduleDailyCheckIn(timeString: String) = dailyCheckInScheduler.schedule(timeString)
 
     override fun cancelDailyCheckIn() = dailyCheckInScheduler.cancel()
+
+    override fun scheduleMorningFeedback(wakeTime: LocalTime) = morningFeedbackScheduler.schedule(wakeTime)
+
+    override fun cancelMorningFeedback() = morningFeedbackScheduler.cancel()
 }

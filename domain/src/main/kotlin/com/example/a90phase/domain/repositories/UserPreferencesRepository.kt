@@ -4,6 +4,7 @@ import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.DiscoveryPhase
 import com.example.a90phase.domain.entities.UserProfile
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalTime
 
 @Suppress("TooManyFunctions")
 interface UserPreferencesRepository {
@@ -66,6 +67,8 @@ interface UserPreferencesRepository {
         hour: Int,
         minute: Int,
     ): Result<Unit>
+
+    fun observeSelectedWakeTime(): Flow<LocalTime>
 
     // Reactive
     fun observeUserProfile(): Flow<UserProfile>

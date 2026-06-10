@@ -200,6 +200,8 @@ internal class FakePreferencesRepository(
         minute: Int,
     ): Result<Unit> = Result.Success(Unit)
 
+    override fun observeSelectedWakeTime(): Flow<java.time.LocalTime> = emptyFlow()
+
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }
 
@@ -259,6 +261,8 @@ internal class FailingPreferencesRepository : UserPreferencesRepository {
         hour: Int,
         minute: Int,
     ): Result<Unit> = error
+
+    override fun observeSelectedWakeTime(): Flow<java.time.LocalTime> = emptyFlow()
 
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }

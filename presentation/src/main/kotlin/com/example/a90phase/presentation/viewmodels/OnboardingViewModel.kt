@@ -88,6 +88,9 @@ class OnboardingViewModel @Inject constructor(
                 OnboardingFeature.MorningRating -> {
                     userPreferencesRepository.setMorningRatingEnabled(enabled)
                     _uiState.update { it.copy(morningRatingEnabled = enabled) }
+                    val wakeTime = userPreferencesRepository.observeSelectedWakeTime().first()
+                    if (enabled) notificationScheduler.scheduleMorningFeedback(wakeTime)
+                    else notificationScheduler.cancelMorningFeedback()
                 }
                 OnboardingFeature.MorningBedtimeLog -> {
                     userPreferencesRepository.setMorningBedtimeLogEnabled(enabled)

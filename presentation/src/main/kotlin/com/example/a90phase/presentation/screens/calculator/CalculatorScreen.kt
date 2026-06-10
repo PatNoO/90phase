@@ -24,6 +24,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -35,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,6 +50,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.BedtimeRecommendation
 import com.example.a90phase.domain.entities.SystemAlarm
@@ -74,11 +78,13 @@ private data class CalculatorScreenState(
     val selectedBedtimeIndex: Int,
     val bedtimes: List<BedtimeRecommendation>,
     val nextSystemAlarm: SystemAlarm? = null,
+    val isSaving: Boolean = false,
 )
 
 private fun BedtimeRecommendation.toDurationLabel(): String =
     if (quality == BedtimeQuality.PASSED) "Passed" else "${durationMinutes / 60}h ${durationMinutes % 60}min sleep"
 
+@Suppress("LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorScreen(
@@ -91,6 +97,16 @@ fun CalculatorScreen(
     var isDailyReminderActive by rememberSaveable { mutableStateOf(true) }
     val hapticFeedback = LocalHapticFeedback.current
     val vmState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.saveResult.collect { success ->
+            scope.launch {
+                if (success) snackbarHostState.showSnackbar("Inloggat!") else snackbarHostState.showSnackbar("Kunde inte spara")
+            }
+        }
+    }
 
     when (val state = vmState) {
         is SleepCalculatorUiState.Loading -> {
@@ -113,7 +129,9 @@ fun CalculatorScreen(
                     selectedBedtimeIndex = state.selectedBedtimeIndex,
                     bedtimes = state.bedtimes,
                     nextSystemAlarm = state.nextSystemAlarm,
+                    isSaving = state.isSaving,
                 ),
+                snackbarHostState = snackbarHostState,
                 onNavigateToSettings = onNavigateToSettings,
                 onWakeTimeClick = { showTimePicker = true },
                 onAlarmToggle = { isAlarmActive = it },
@@ -122,6 +140,7 @@ fun CalculatorScreen(
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                     viewModel.onBedtimeSelected(state.bedtimes[index], index)
                 },
+                onSaveClicked = viewModel::onSaveClicked,
             )
             if (showTimePicker) {
                 WakeTimePickerDialog(
@@ -158,21 +177,25 @@ private fun CalculatorErrorState(message: String, onRetry: () -> Unit) {
     }
 }
 
+@Suppress("LongParameterList")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CalculatorScaffold(
     state: CalculatorScreenState,
+    snackbarHostState: SnackbarHostState,
     onNavigateToSettings: () -> Unit,
     onWakeTimeClick: () -> Unit,
     onAlarmToggle: (Boolean) -> Unit,
     onReminderToggle: (Boolean) -> Unit,
     onBedtimeSelect: (Int) -> Unit,
+    onSaveClicked: () -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         StarFieldBackground()
         Scaffold(
             containerColor = Color.Transparent,
             topBar = { CalculatorTopBar(onNavigateToSettings = onNavigateToSettings) },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
@@ -206,6 +229,19 @@ private fun CalculatorScaffold(
                         isSelected = state.selectedBedtimeIndex == index,
                         onSelect = { onBedtimeSelect(index) },
                     )
+                }
+                if (state.selectedBedtimeIndex >= 0) {
+                    item {
+                        Spacer(modifier = Modifier.height(Spacing.Medium))
+                        com.example.a90phase.presentation.components.PrimaryButton(
+                            text = if (state.isSaving) "Sparar..." else "Spara",
+                            onClick = onSaveClicked,
+                            enabled = !state.isSaving,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = Spacing.Medium),
+                        )
+                    }
                 }
             }
         }

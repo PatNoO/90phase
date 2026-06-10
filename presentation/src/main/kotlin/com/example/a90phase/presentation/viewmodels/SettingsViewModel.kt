@@ -3,6 +3,7 @@ package com.example.a90phase.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.a90phase.domain.common.Result
+import com.example.a90phase.domain.repositories.NotificationScheduler
 import com.example.a90phase.domain.repositories.PatternInsightsRepository
 import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -25,6 +27,7 @@ class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     sleepRepository: SleepRepository,
     private val patternInsightsRepository: PatternInsightsRepository,
+    private val notificationScheduler: NotificationScheduler,
 ) : ViewModel() {
 
     private val startDiscoveryPhaseUseCase =
@@ -145,7 +148,12 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onMorningRatingToggled(enabled: Boolean) {
-        viewModelScope.launch { userPreferencesRepository.setMorningRatingEnabled(enabled) }
+        viewModelScope.launch {
+            userPreferencesRepository.setMorningRatingEnabled(enabled)
+            val wakeTime = userPreferencesRepository.observeSelectedWakeTime().first()
+            if (enabled) notificationScheduler.scheduleMorningFeedback(wakeTime)
+            else notificationScheduler.cancelMorningFeedback()
+        }
     }
 
     fun onMorningBedtimeLogToggled(enabled: Boolean) {

@@ -10,4 +10,8 @@ interface NotificationScheduler {
     fun scheduleDailyCheckIn(timeString: String)
 
     fun cancelDailyCheckIn()
+
+    fun scheduleMorningFeedback(wakeTime: LocalTime)
+
+    fun cancelMorningFeedback()
 }
