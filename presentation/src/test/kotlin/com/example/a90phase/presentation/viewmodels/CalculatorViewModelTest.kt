@@ -6,10 +6,13 @@ import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.BedtimeRecommendation
 import com.example.a90phase.domain.entities.DiscoveryPhase
+import com.example.a90phase.domain.entities.SleepLog
+import com.example.a90phase.domain.entities.SyncStatus
 import com.example.a90phase.domain.entities.SystemAlarm
 import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.AlarmRepository
 import com.example.a90phase.domain.repositories.NotificationScheduler
+import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,6 +28,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,7 +50,8 @@ class CalculatorViewModelTest {
         userPrefsRepo: UserPreferencesRepository = FakeUserPreferencesRepository(),
         alarmRepo: AlarmRepository = FakeAlarmRepository(),
         notificationScheduler: NotificationScheduler = NoOpNotificationScheduler(),
-    ) = CalculatorViewModel(userPrefsRepo, alarmRepo, notificationScheduler)
+        sleepRepo: SleepRepository = NoOpSleepRepository(),
+    ) = CalculatorViewModel(userPrefsRepo, alarmRepo, notificationScheduler, sleepRepo)
 
     // ── Initial state ─────────────────────────────────────────────────────────
 
@@ -71,11 +76,11 @@ class CalculatorViewModelTest {
     }
 
     @Test
-    fun `initial state has 3 bedtime recommendations`() = runTest {
+    fun `initial state has 5 bedtime recommendations`() = runTest {
         val vm = viewModel()
         testDispatcher.scheduler.advanceUntilIdle()
         val state = vm.uiState.value as SleepCalculatorUiState.Success
-        assertEquals(3, state.bedtimes.size)
+        assertEquals(5, state.bedtimes.size)
     }
 
     @Test
@@ -200,6 +205,21 @@ private class FakeAlarmRepository(
 ) : AlarmRepository {
     override suspend fun getNextAlarm(): Result<SystemAlarm?> = Result.Success(alarms.firstOrNull())
     override suspend fun getAllAlarms(): Result<List<SystemAlarm>> = Result.Success(alarms)
+    override suspend fun setAlarm(wakeTime: LocalTime): Result<Unit> = Result.Success(Unit)
+    override suspend fun dismissAlarm(): Result<Unit> = Result.Success(Unit)
+}
+
+private class NoOpSleepRepository : SleepRepository {
+    override suspend fun saveSleepLog(log: SleepLog): Result<Unit> = Result.Success(Unit)
+    override fun getAllSleepLogs(): Flow<List<SleepLog>> = emptyFlow()
+    override fun getSleepLog(id: String): Flow<SleepLog?> = emptyFlow()
+    override fun getSleepLogsByDateRange(startDate: LocalDate, endDate: LocalDate): Flow<List<SleepLog>> = emptyFlow()
+    override suspend fun updateSleepLog(log: SleepLog): Result<Unit> = Result.Success(Unit)
+    override suspend fun updateSyncStatus(id: String, status: SyncStatus): Result<Unit> = Result.Success(Unit)
+    override suspend fun deleteSleepLog(id: String): Result<Unit> = Result.Success(Unit)
+    override suspend fun getPendingUploadLogs(): Result<List<SleepLog>> = Result.Success(emptyList())
+    override suspend fun getLastSyncTimestamp(): Result<Instant> = Result.Success(Instant.EPOCH)
+    override suspend fun updateLastSyncTimestamp(timestamp: Instant): Result<Unit> = Result.Success(Unit)
 }
 
 private class FakeUserPreferencesRepository(
@@ -218,7 +238,7 @@ private class FakeUserPreferencesRepository(
     override suspend fun setSmartWakeWindowEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeSmartWakeWindowEnabled(): Flow<Boolean> = emptyFlow()
     override suspend fun setDailyCheckInEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
-    override fun observeDailyCheckInEnabled(): Flow<Boolean> = emptyFlow()
+    override fun observeDailyCheckInEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(true)
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setSelectedBedtime(
@@ -237,6 +257,7 @@ private class FakeUserPreferencesRepository(
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun endDiscoveryPhase(): Result<Unit> = Result.Success(Unit)
     override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
+    override fun observeSelectedWakeTime(): Flow<LocalTime> = emptyFlow()
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }
 
@@ -250,7 +271,7 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun setSmartWakeWindowEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeSmartWakeWindowEnabled(): Flow<Boolean> = emptyFlow()
     override suspend fun setDailyCheckInEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
-    override fun observeDailyCheckInEnabled(): Flow<Boolean> = emptyFlow()
+    override fun observeDailyCheckInEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(true)
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setSelectedBedtime(
@@ -269,6 +290,7 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun endDiscoveryPhase(): Result<Unit> = Result.Success(Unit)
     override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
+    override fun observeSelectedWakeTime(): Flow<LocalTime> = emptyFlow()
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }
 
@@ -289,7 +311,7 @@ private class CapturingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun setSmartWakeWindowEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeSmartWakeWindowEnabled(): Flow<Boolean> = emptyFlow()
     override suspend fun setDailyCheckInEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
-    override fun observeDailyCheckInEnabled(): Flow<Boolean> = emptyFlow()
+    override fun observeDailyCheckInEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(true)
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setSelectedBedtime(hour: Int, minute: Int, cycleCount: Int, durationMinutes: Int): Result<Unit> {
@@ -309,5 +331,6 @@ private class CapturingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun endDiscoveryPhase(): Result<Unit> = Result.Success(Unit)
     override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
+    override fun observeSelectedWakeTime(): Flow<LocalTime> = emptyFlow()
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }

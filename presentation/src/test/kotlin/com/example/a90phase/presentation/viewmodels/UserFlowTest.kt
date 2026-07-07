@@ -54,7 +54,8 @@ class UserFlowTest {
     fun `flow 1 onboarding wake time is saved and calculator shows recommendations for it`() = runTest {
         val sharedPrefs = CapturingFlowPrefsRepository()
         val onboardingVm = OnboardingViewModel(SimpleFlowOnboardingRepository(), sharedPrefs, NoOpNotificationScheduler())
-        val calculatorVm = CalculatorViewModel(sharedPrefs, NoOpAlarmRepository(), NoOpNotificationScheduler())
+        val calculatorVm =
+            CalculatorViewModel(sharedPrefs, NoOpAlarmRepository(), NoOpNotificationScheduler(), MutableFlowSleepRepository())
         testDispatcher.scheduler.advanceUntilIdle()
 
         onboardingVm.onWakeTimeSelected(8, 30)
@@ -77,7 +78,13 @@ class UserFlowTest {
 
     @Test
     fun `flow 2 changing wake time recalculates recommendations`() = runTest {
-        val vm = CalculatorViewModel(CapturingFlowPrefsRepository(), NoOpAlarmRepository(), NoOpNotificationScheduler())
+        val vm =
+            CalculatorViewModel(
+                CapturingFlowPrefsRepository(),
+                NoOpAlarmRepository(),
+                NoOpNotificationScheduler(),
+                MutableFlowSleepRepository(),
+            )
         testDispatcher.scheduler.advanceUntilIdle()
 
         val initial = vm.uiState.value as SleepCalculatorUiState.Success
@@ -98,7 +105,7 @@ class UserFlowTest {
     @Test
     fun `flow 3 selecting bedtime persists it to repository for reminder scheduling`() = runTest {
         val prefs = CapturingFlowPrefsRepository()
-        val vm = CalculatorViewModel(prefs, NoOpAlarmRepository(), NoOpNotificationScheduler())
+        val vm = CalculatorViewModel(prefs, NoOpAlarmRepository(), NoOpNotificationScheduler(), MutableFlowSleepRepository())
         testDispatcher.scheduler.advanceUntilIdle()
 
         val state = vm.uiState.value as SleepCalculatorUiState.Success
@@ -163,6 +170,8 @@ internal class NoOpNotificationScheduler : NotificationScheduler {
     override fun cancelBedtimeReminder() = Unit
     override fun scheduleDailyCheckIn(timeString: String) = Unit
     override fun cancelDailyCheckIn() = Unit
+    override fun scheduleMorningFeedback(wakeTime: java.time.LocalTime) = Unit
+    override fun cancelMorningFeedback() = Unit
 }
 
 private class CapturingFlowPrefsRepository : UserPreferencesRepository {
@@ -209,12 +218,15 @@ private class CapturingFlowPrefsRepository : UserPreferencesRepository {
         savedWakeMinute = minute
         return Result.Success(Unit)
     }
+    override fun observeSelectedWakeTime(): Flow<LocalTime> = flowOf(LocalTime.of(7, 0))
     override fun observeUserProfile(): Flow<UserProfile> = flowOf(flowTestProfile())
 }
 
 private class NoOpAlarmRepository : AlarmRepository {
     override suspend fun getNextAlarm(): Result<SystemAlarm?> = Result.Success(null)
     override suspend fun getAllAlarms(): Result<List<SystemAlarm>> = Result.Success(emptyList())
+    override suspend fun setAlarm(wakeTime: LocalTime): Result<Unit> = Result.Success(Unit)
+    override suspend fun dismissAlarm(): Result<Unit> = Result.Success(Unit)
 }
 
 private class NoOpPatternInsightsRepository : PatternInsightsRepository {

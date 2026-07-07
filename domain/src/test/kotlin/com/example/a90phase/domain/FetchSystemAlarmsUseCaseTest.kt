@@ -68,16 +68,28 @@ private class FakeAlarmRepository(
     override suspend fun getNextAlarm(): Result<SystemAlarm?> = Result.Success(alarms.firstOrNull())
 
     override suspend fun getAllAlarms(): Result<List<SystemAlarm>> = Result.Success(alarms)
+
+    override suspend fun setAlarm(wakeTime: java.time.LocalTime): Result<Unit> = Result.Success(Unit)
+
+    override suspend fun dismissAlarm(): Result<Unit> = Result.Success(Unit)
 }
 
 private class PermissionDeniedAlarmRepository : AlarmRepository {
     override suspend fun getNextAlarm(): Result<SystemAlarm?> = Result.Error(DomainError.PermissionDenied("READ_ALARM"))
 
     override suspend fun getAllAlarms(): Result<List<SystemAlarm>> = Result.Error(DomainError.PermissionDenied("READ_ALARM"))
+
+    override suspend fun setAlarm(wakeTime: java.time.LocalTime): Result<Unit> = Result.Success(Unit)
+
+    override suspend fun dismissAlarm(): Result<Unit> = Result.Success(Unit)
 }
 
 private class FailingAlarmRepository : AlarmRepository {
     override suspend fun getNextAlarm(): Result<SystemAlarm?> = Result.Error(DomainError.DatabaseError("DB unavailable"))
 
     override suspend fun getAllAlarms(): Result<List<SystemAlarm>> = Result.Error(DomainError.DatabaseError("DB unavailable"))
+
+    override suspend fun setAlarm(wakeTime: java.time.LocalTime): Result<Unit> = Result.Success(Unit)
+
+    override suspend fun dismissAlarm(): Result<Unit> = Result.Success(Unit)
 }

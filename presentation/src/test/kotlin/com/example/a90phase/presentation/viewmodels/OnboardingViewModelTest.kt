@@ -308,5 +308,6 @@ private class FakeOnboardingPrefsRepository : UserPreferencesRepository {
         savedWakeMinute = minute
         return Result.Success(Unit)
     }
+    override fun observeSelectedWakeTime(): Flow<java.time.LocalTime> = flowOf(java.time.LocalTime.of(7, 0))
     override fun observeUserProfile(): Flow<UserProfile> = flowOf(UserProfile(userId = "test"))
 }
