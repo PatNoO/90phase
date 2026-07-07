@@ -13,6 +13,8 @@ sealed class SleepCalculatorUiState {
         val selectedBedtimeIndex: Int = -1,
         val nextSystemAlarm: SystemAlarm? = null,
         val isSaving: Boolean = false,
+        val dailyCheckInEnabled: Boolean = true,
+        val alarmActive: Boolean = false,
     ) : SleepCalculatorUiState()
 
     data class Error(val message: String) : SleepCalculatorUiState()

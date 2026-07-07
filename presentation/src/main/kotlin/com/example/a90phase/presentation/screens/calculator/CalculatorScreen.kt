@@ -93,8 +93,6 @@ fun CalculatorScreen(
 ) {
     var isWakeTimeActive by rememberSaveable { mutableStateOf(true) }
     var showTimePicker by remember { mutableStateOf(false) }
-    var isAlarmActive by rememberSaveable { mutableStateOf(false) }
-    var isDailyReminderActive by rememberSaveable { mutableStateOf(true) }
     val hapticFeedback = LocalHapticFeedback.current
     val vmState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -124,8 +122,8 @@ fun CalculatorScreen(
                 state = CalculatorScreenState(
                     wakeTime = state.wakeTime,
                     isWakeTimeActive = isWakeTimeActive,
-                    isAlarmActive = isAlarmActive,
-                    isDailyReminderActive = isDailyReminderActive,
+                    isAlarmActive = state.alarmActive,
+                    isDailyReminderActive = state.dailyCheckInEnabled,
                     selectedBedtimeIndex = state.selectedBedtimeIndex,
                     bedtimes = state.bedtimes,
                     nextSystemAlarm = state.nextSystemAlarm,
@@ -134,8 +132,8 @@ fun CalculatorScreen(
                 snackbarHostState = snackbarHostState,
                 onNavigateToSettings = onNavigateToSettings,
                 onWakeTimeClick = { showTimePicker = true },
-                onAlarmToggle = { isAlarmActive = it },
-                onReminderToggle = { isDailyReminderActive = it },
+                onAlarmToggle = { viewModel.onAlarmActiveToggled(it) },
+                onReminderToggle = { viewModel.onDailyCheckInToggled(it) },
                 onBedtimeSelect = { index ->
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                     viewModel.onBedtimeSelected(state.bedtimes[index], index)
