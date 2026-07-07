@@ -29,19 +29,25 @@ class CalculateOptimalBedtimeUseCase(
         val cycleDuration = activeShift?.getCycleDuration() ?: profile.optimalCycleMinutes
         val sleepLatency = activeShift?.getSleepLatency() ?: profile.sleepLatencyMinutes
 
+        // Anchor everything to real date-times so bedtimes that cross midnight are not
+        // mistaken for past times. The wake-up is the next occurrence of wakeUpTime at or
+        // after "now"; each bedtime is that wake instant minus the sleep duration.
+        val now = today.atTime(currentTime)
+        val wakeDateTime = today.atTime(wakeUpTime).let { if (it.isAfter(now)) it else it.plusDays(1) }
+
         val recommendations =
             CYCLE_COUNTS.map { cycles ->
                 val totalMinutes = (cycles * cycleDuration) + sleepLatency
-                val bedtime = wakeUpTime.minusMinutes(totalMinutes.toLong())
+                val bedtimeDateTime = wakeDateTime.minusMinutes(totalMinutes.toLong())
                 val quality =
                     when {
-                        isPassed(bedtime, currentTime) -> BedtimeQuality.PASSED
-                        cycles == 6 -> BedtimeQuality.OPTIMAL
+                        bedtimeDateTime.isBefore(now) -> BedtimeQuality.PASSED
+                        cycles >= 6 -> BedtimeQuality.OPTIMAL
                         cycles == 5 -> BedtimeQuality.GOOD
                         else -> BedtimeQuality.MINIMAL
                     }
                 BedtimeRecommendation(
-                    bedtime = bedtime,
+                    bedtime = bedtimeDateTime.toLocalTime(),
                     cycleCount = cycles,
                     quality = quality,
                     durationMinutes = totalMinutes,
@@ -51,19 +57,9 @@ class CalculateOptimalBedtimeUseCase(
         return Result.Success(recommendations)
     }
 
-    // A bedtime is "passed" only if it is within the last 12 hours behind currentTime.
-    // Bedtimes more than 12 hours "before" are actually future times crossing midnight
-    // (e.g. 00:45 when current time is 22:00 is tonight's future bedtime, not yesterday's).
-    private fun isPassed(
-        bedtime: LocalTime,
-        currentTime: LocalTime,
-    ): Boolean {
-        val diffSeconds = currentTime.toSecondOfDay() - bedtime.toSecondOfDay()
-        return diffSeconds in 1..TWELVE_HOURS_SECONDS
-    }
-
     companion object {
-        val CYCLE_COUNTS = listOf(6, 5, 4)
-        private const val TWELVE_HOURS_SECONDS = 43_200
+        // Full cycles offered, longest first. Shorter options (3, 2) keep late-night or
+        // poor-sleep users aligned to a cycle boundary instead of waking mid-cycle.
+        val CYCLE_COUNTS = listOf(6, 5, 4, 3, 2)
     }
 }
