@@ -282,6 +282,8 @@ private class FakeOnboardingPrefsRepository : UserPreferencesRepository {
         return Result.Success(Unit)
     }
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = flowOf(false)
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = flowOf(false)
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,

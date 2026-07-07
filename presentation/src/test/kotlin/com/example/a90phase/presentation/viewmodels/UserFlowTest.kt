@@ -172,6 +172,8 @@ internal class NoOpNotificationScheduler : NotificationScheduler {
     override fun cancelDailyCheckIn() = Unit
     override fun scheduleMorningFeedback(wakeTime: java.time.LocalTime) = Unit
     override fun cancelMorningFeedback() = Unit
+    override fun scheduleWakeAlarm(wakeTime: java.time.LocalTime) = Unit
+    override fun cancelWakeAlarm() = Unit
 }
 
 private class CapturingFlowPrefsRepository : UserPreferencesRepository {
@@ -193,6 +195,8 @@ private class CapturingFlowPrefsRepository : UserPreferencesRepository {
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = flowOf(false)
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = flowOf(false)
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = flowOf(false)
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -225,8 +229,6 @@ private class CapturingFlowPrefsRepository : UserPreferencesRepository {
 private class NoOpAlarmRepository : AlarmRepository {
     override suspend fun getNextAlarm(): Result<SystemAlarm?> = Result.Success(null)
     override suspend fun getAllAlarms(): Result<List<SystemAlarm>> = Result.Success(emptyList())
-    override suspend fun setAlarm(wakeTime: LocalTime): Result<Unit> = Result.Success(Unit)
-    override suspend fun dismissAlarm(): Result<Unit> = Result.Success(Unit)
 }
 
 private class NoOpPatternInsightsRepository : PatternInsightsRepository {

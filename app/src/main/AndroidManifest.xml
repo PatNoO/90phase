@@ -8,8 +8,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Required to reschedule alarms after device restart -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- Required to set/dismiss a real alarm in the device's clock app -->
-    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <!-- Required to show the ringing screen over the lock screen -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Required to vibrate when the alarm rings -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name=".NinetyPhaseApplication"
@@ -65,6 +67,20 @@
             android:name=".MorningBedtimeLogActivity"
             android:exported="false"
             android:theme="@style/Theme._90phase.Transparent" />
+
+        <activity
+            android:name=".AlarmRingActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:showOnLockScreen="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme._90phase" />
+
+        <receiver
+            android:name=".notifications.WakeAlarmReceiver"
+            android:exported="false" />
 
         <receiver
             android:name=".notifications.BootReceiver"

@@ -274,6 +274,8 @@ private class FakeSettingsPrefsRepository(
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = MutableStateFlow(true)
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = MutableStateFlow(true)
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = MutableStateFlow(true)
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,

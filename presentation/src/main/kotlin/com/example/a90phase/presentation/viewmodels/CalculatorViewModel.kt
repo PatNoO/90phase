@@ -52,14 +52,15 @@ class CalculatorViewModel @Inject constructor(
 
     fun onWakeTimeChanged(wakeTime: LocalTime) {
         val previousWakeTime = lastWakeTime
-        val wasAlarmActive = (_uiState.value as? SleepCalculatorUiState.Success)?.alarmActive ?: false
+        val stateAlarmActive = (_uiState.value as? SleepCalculatorUiState.Success)?.alarmActive
         lastWakeTime = wakeTime
         viewModelScope.launch {
             _uiState.value = SleepCalculatorUiState.Loading
-            // Keep an active alarm in sync: replace the old one with a new one at the new time.
-            if (wasAlarmActive && previousWakeTime != wakeTime) {
-                alarmRepository.dismissAlarm()
-                alarmRepository.setAlarm(wakeTime)
+            // Reflect the persisted alarm state on first load; keep an active alarm in sync
+            // with the new wake time (setAlarmClock replaces the existing one).
+            val alarmActive = stateAlarmActive ?: userPreferencesRepository.observeWakeAlarmEnabled().first()
+            if (alarmActive && previousWakeTime != wakeTime) {
+                notificationScheduler.scheduleWakeAlarm(wakeTime)
             }
             val nextAlarm = fetchSystemAlarmsUseCase().getOrNull()?.firstOrNull()
             val dailyCheckInEnabled = userPreferencesRepository.observeDailyCheckInEnabled().first()
@@ -69,7 +70,7 @@ class CalculatorViewModel @Inject constructor(
                     bedtimes = result.data,
                     nextSystemAlarm = nextAlarm,
                     dailyCheckInEnabled = dailyCheckInEnabled,
-                    alarmActive = wasAlarmActive,
+                    alarmActive = alarmActive,
                 )
                 is Result.Error -> _uiState.value = SleepCalculatorUiState.Error(
                     message = result.error.toSwedishMessage(),
@@ -107,12 +108,13 @@ class CalculatorViewModel @Inject constructor(
         val current = _uiState.value as? SleepCalculatorUiState.Success ?: return
         _uiState.value = current.copy(alarmActive = enabled)
         viewModelScope.launch {
+            userPreferencesRepository.setWakeAlarmEnabled(enabled)
             if (enabled) {
-                alarmRepository.setAlarm(current.wakeTime)
+                notificationScheduler.scheduleWakeAlarm(current.wakeTime)
             } else {
-                alarmRepository.dismissAlarm()
+                notificationScheduler.cancelWakeAlarm()
             }
-            // Refresh the "Din alarm" banner so it reflects the new system-alarm state.
+            // Refresh the "Din alarm" banner so it reflects the new alarm state.
             val nextAlarm = fetchSystemAlarmsUseCase().getOrNull()?.firstOrNull()
             val refreshed = _uiState.value as? SleepCalculatorUiState.Success ?: return@launch
             _uiState.value = refreshed.copy(nextSystemAlarm = nextAlarm)

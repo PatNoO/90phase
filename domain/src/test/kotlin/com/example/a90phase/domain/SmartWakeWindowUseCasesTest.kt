@@ -118,6 +118,10 @@ private class FakeSmartWakeRepository(
 
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = MutableStateFlow(false).asStateFlow()
 
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = MutableStateFlow(false).asStateFlow()
+
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -179,6 +183,10 @@ private class FailingSmartWakeRepository : UserPreferencesRepository {
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = error
 
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = MutableStateFlow(false).asStateFlow()
+
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = MutableStateFlow(false).asStateFlow()
 
     override suspend fun setSelectedBedtime(
         hour: Int,

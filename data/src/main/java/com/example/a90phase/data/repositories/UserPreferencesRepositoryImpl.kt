@@ -125,6 +125,15 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> =
         dataStore.observeBedtimeReminderEnabled()
 
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> =
+        runCatching {
+            dataStore.setWakeAlarmEnabled(enabled)
+            Result.Success(Unit)
+        }.getOrElse { Result.Error(DomainError.DatabaseError(it.message)) }
+
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> =
+        dataStore.observeWakeAlarmEnabled()
+
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,

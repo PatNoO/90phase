@@ -20,6 +20,7 @@ class BootReceiver : BroadcastReceiver() {
     @Inject lateinit var dailyCheckInScheduler: DailyCheckInScheduler
     @Inject lateinit var bedtimeReminderScheduler: BedtimeReminderScheduler
     @Inject lateinit var morningFeedbackScheduler: MorningFeedbackScheduler
+    @Inject lateinit var wakeAlarmScheduler: WakeAlarmScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
@@ -29,6 +30,7 @@ class BootReceiver : BroadcastReceiver() {
                 rescheduleDailyCheckIn()
                 rescheduleBedtimeReminder()
                 rescheduleMorningFeedback()
+                rescheduleWakeAlarm()
             } finally {
                 pendingResult.finish()
             }
@@ -56,5 +58,13 @@ class BootReceiver : BroadcastReceiver() {
         val hour = userPreferencesDataStore.observeSelectedWakeHour().first()
         val minute = userPreferencesDataStore.observeSelectedWakeMinute().first()
         morningFeedbackScheduler.schedule(LocalTime.of(hour, minute))
+    }
+
+    private suspend fun rescheduleWakeAlarm() {
+        val enabled = userPreferencesDataStore.observeWakeAlarmEnabled().first()
+        if (!enabled) return
+        val hour = userPreferencesDataStore.observeSelectedWakeHour().first()
+        val minute = userPreferencesDataStore.observeSelectedWakeMinute().first()
+        wakeAlarmScheduler.schedule(LocalTime.of(hour, minute))
     }
 }

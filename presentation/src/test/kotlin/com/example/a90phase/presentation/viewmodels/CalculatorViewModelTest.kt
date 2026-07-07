@@ -205,8 +205,6 @@ private class FakeAlarmRepository(
 ) : AlarmRepository {
     override suspend fun getNextAlarm(): Result<SystemAlarm?> = Result.Success(alarms.firstOrNull())
     override suspend fun getAllAlarms(): Result<List<SystemAlarm>> = Result.Success(alarms)
-    override suspend fun setAlarm(wakeTime: LocalTime): Result<Unit> = Result.Success(Unit)
-    override suspend fun dismissAlarm(): Result<Unit> = Result.Success(Unit)
 }
 
 private class NoOpSleepRepository : SleepRepository {
@@ -241,6 +239,8 @@ private class FakeUserPreferencesRepository(
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(true)
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -274,6 +274,8 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(true)
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -314,6 +316,8 @@ private class CapturingUserPreferencesRepository : UserPreferencesRepository {
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(true)
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setSelectedBedtime(hour: Int, minute: Int, cycleCount: Int, durationMinutes: Int): Result<Unit> {
         savedHour = hour
         savedMinute = minute
