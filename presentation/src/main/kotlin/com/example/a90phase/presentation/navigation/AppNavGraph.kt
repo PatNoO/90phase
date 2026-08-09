@@ -115,11 +115,9 @@ private fun NavGraphBuilder.mainRoutes(navController: NavHostController) {
     }
     composable(Route.History.path) {
         ScreenFadeIn {
-            HistoryScreen(
-                onNavigateToLogDetail = { logId ->
-                    navController.navigate(Route.LogDetail.build(logId))
-                },
-            )
+            // Log-row navigation is disabled until the detail screen is built
+            // (see docs/tickets/PH-88-sleep-log-detail-screen.md).
+            HistoryScreen()
         }
     }
     composable(Route.Settings.path) {
