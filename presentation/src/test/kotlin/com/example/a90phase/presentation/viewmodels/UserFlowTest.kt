@@ -55,7 +55,7 @@ class UserFlowTest {
         val sharedPrefs = CapturingFlowPrefsRepository()
         val onboardingVm = OnboardingViewModel(SimpleFlowOnboardingRepository(), sharedPrefs, NoOpNotificationScheduler())
         val calculatorVm =
-            CalculatorViewModel(sharedPrefs, NoOpAlarmRepository(), NoOpNotificationScheduler(), MutableFlowSleepRepository())
+            CalculatorViewModel(sharedPrefs, NoOpAlarmRepository(), NoOpNotificationScheduler())
         testDispatcher.scheduler.advanceUntilIdle()
 
         onboardingVm.onWakeTimeSelected(8, 30)
@@ -83,7 +83,6 @@ class UserFlowTest {
                 CapturingFlowPrefsRepository(),
                 NoOpAlarmRepository(),
                 NoOpNotificationScheduler(),
-                MutableFlowSleepRepository(),
             )
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -105,7 +104,7 @@ class UserFlowTest {
     @Test
     fun `flow 3 selecting bedtime persists it to repository for reminder scheduling`() = runTest {
         val prefs = CapturingFlowPrefsRepository()
-        val vm = CalculatorViewModel(prefs, NoOpAlarmRepository(), NoOpNotificationScheduler(), MutableFlowSleepRepository())
+        val vm = CalculatorViewModel(prefs, NoOpAlarmRepository(), NoOpNotificationScheduler())
         testDispatcher.scheduler.advanceUntilIdle()
 
         val state = vm.uiState.value as SleepCalculatorUiState.Success

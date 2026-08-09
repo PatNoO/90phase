@@ -6,16 +6,11 @@ import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.BedtimeRecommendation
 import com.example.a90phase.domain.repositories.AlarmRepository
 import com.example.a90phase.domain.repositories.NotificationScheduler
-import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import com.example.a90phase.domain.usecases.CalculateOptimalBedtimeUseCase
 import com.example.a90phase.domain.usecases.FetchSystemAlarmsUseCase
-import com.example.a90phase.domain.usecases.LogSleepSessionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.Duration
-import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,12 +26,10 @@ class CalculatorViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val alarmRepository: AlarmRepository,
     private val notificationScheduler: NotificationScheduler,
-    sleepRepository: SleepRepository,
 ) : ViewModel() {
 
     private val calculateOptimalBedtimeUseCase = CalculateOptimalBedtimeUseCase(userPreferencesRepository)
     private val fetchSystemAlarmsUseCase = FetchSystemAlarmsUseCase(alarmRepository)
-    private val logSleepSessionUseCase = LogSleepSessionUseCase(sleepRepository)
 
     private val _uiState = MutableStateFlow<SleepCalculatorUiState>(SleepCalculatorUiState.Loading)
     val uiState: StateFlow<SleepCalculatorUiState> = _uiState.asStateFlow()
@@ -47,40 +40,52 @@ class CalculatorViewModel @Inject constructor(
     private var lastWakeTime: LocalTime = LocalTime.of(7, 0)
 
     init {
-        onWakeTimeChanged(lastWakeTime)
+        // Load the wake time the user last chose so it survives app restarts.
+        viewModelScope.launch {
+            val savedWakeTime = userPreferencesRepository.observeSelectedWakeTime().first()
+            lastWakeTime = savedWakeTime
+            recalculate(savedWakeTime)
+        }
     }
 
     fun onWakeTimeChanged(wakeTime: LocalTime) {
         val previousWakeTime = lastWakeTime
-        val stateAlarmActive = (_uiState.value as? SleepCalculatorUiState.Success)?.alarmActive
         lastWakeTime = wakeTime
         viewModelScope.launch {
-            _uiState.value = SleepCalculatorUiState.Loading
-            // Reflect the persisted alarm state on first load; keep an active alarm in sync
-            // with the new wake time (setAlarmClock replaces the existing one).
-            val alarmActive = stateAlarmActive ?: userPreferencesRepository.observeWakeAlarmEnabled().first()
+            // Persist so the wake time is remembered across app restarts.
+            userPreferencesRepository.setSelectedWakeTime(wakeTime.hour, wakeTime.minute)
+            // Keep an active alarm in sync with the new wake time (setAlarmClock replaces it).
+            val alarmActive = userPreferencesRepository.observeWakeAlarmEnabled().first()
             if (alarmActive && previousWakeTime != wakeTime) {
                 notificationScheduler.scheduleWakeAlarm(wakeTime)
             }
-            val nextAlarm = fetchSystemAlarmsUseCase().getOrNull()?.firstOrNull()
-            val dailyCheckInEnabled = userPreferencesRepository.observeDailyCheckInEnabled().first()
-            when (val result = calculateOptimalBedtimeUseCase(wakeTime)) {
-                is Result.Success -> _uiState.value = SleepCalculatorUiState.Success(
-                    wakeTime = wakeTime,
-                    bedtimes = result.data,
-                    nextSystemAlarm = nextAlarm,
-                    dailyCheckInEnabled = dailyCheckInEnabled,
-                    alarmActive = alarmActive,
-                )
-                is Result.Error -> _uiState.value = SleepCalculatorUiState.Error(
-                    message = result.error.toSwedishMessage(),
-                )
-                is Result.Loading -> Unit
-            }
+            recalculate(wakeTime)
         }
     }
 
-    fun retry() = onWakeTimeChanged(lastWakeTime)
+    fun retry() {
+        viewModelScope.launch { recalculate(lastWakeTime) }
+    }
+
+    private suspend fun recalculate(wakeTime: LocalTime) {
+        _uiState.value = SleepCalculatorUiState.Loading
+        val nextAlarm = fetchSystemAlarmsUseCase().getOrNull()?.firstOrNull()
+        val dailyCheckInEnabled = userPreferencesRepository.observeDailyCheckInEnabled().first()
+        val alarmActive = userPreferencesRepository.observeWakeAlarmEnabled().first()
+        when (val result = calculateOptimalBedtimeUseCase(wakeTime)) {
+            is Result.Success -> _uiState.value = SleepCalculatorUiState.Success(
+                wakeTime = wakeTime,
+                bedtimes = result.data,
+                nextSystemAlarm = nextAlarm,
+                dailyCheckInEnabled = dailyCheckInEnabled,
+                alarmActive = alarmActive,
+            )
+            is Result.Error -> _uiState.value = SleepCalculatorUiState.Error(
+                message = result.error.toSwedishMessage(),
+            )
+            is Result.Loading -> Unit
+        }
+    }
 
     fun onBedtimeSelected(recommendation: BedtimeRecommendation, index: Int) {
         val current = _uiState.value as? SleepCalculatorUiState.Success ?: return
@@ -141,21 +146,18 @@ class CalculatorViewModel @Inject constructor(
         val recommendation = current.bedtimes[current.selectedBedtimeIndex]
         _uiState.value = current.copy(isSaving = true)
         viewModelScope.launch {
-            val profile = userPreferencesRepository.observeUserProfile().first()
-            val today = LocalDate.now()
-            val wakeInstant = today.atTime(current.wakeTime).atZone(ZoneId.systemDefault()).toInstant()
-            // Derive bedtime from the wake instant minus the recommended sleep length so the
-            // pair is always exactly durationMinutes apart and lands on the correct calendar
-            // day, even when the bedtime crosses midnight (e.g. a 2-cycle 03:45 bedtime).
-            val bedtimeInstant = wakeInstant.minus(Duration.ofMinutes(recommendation.durationMinutes.toLong()))
-            val result = logSleepSessionUseCase.createLog(
-                date = today,
-                wakeTime = wakeInstant,
-                bedtime = bedtimeInstant,
+            // Save tonight's plan — persist the chosen bedtime and schedule its wind-down
+            // reminder. This does NOT create a sleep-history entry; the actual log is recorded
+            // the next morning via the rating flow.
+            val result = userPreferencesRepository.setSelectedBedtime(
+                hour = recommendation.bedtime.hour,
+                minute = recommendation.bedtime.minute,
                 cycleCount = recommendation.cycleCount,
-                cycleDuration = profile.optimalCycleMinutes,
-                sleepLatency = profile.sleepLatencyMinutes,
+                durationMinutes = recommendation.durationMinutes,
             )
+            if (userPreferencesRepository.observeBedtimeReminderEnabled().first()) {
+                notificationScheduler.scheduleBedtimeReminder(recommendation.bedtime)
+            }
             val refreshed = _uiState.value as? SleepCalculatorUiState.Success ?: return@launch
             _uiState.value = refreshed.copy(isSaving = false)
             _saveResult.emit(result is Result.Success)

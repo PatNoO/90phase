@@ -6,13 +6,10 @@ import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.BedtimeRecommendation
 import com.example.a90phase.domain.entities.DiscoveryPhase
-import com.example.a90phase.domain.entities.SleepLog
-import com.example.a90phase.domain.entities.SyncStatus
 import com.example.a90phase.domain.entities.SystemAlarm
 import com.example.a90phase.domain.entities.UserProfile
 import com.example.a90phase.domain.repositories.AlarmRepository
 import com.example.a90phase.domain.repositories.NotificationScheduler
-import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,7 +25,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -50,8 +46,7 @@ class CalculatorViewModelTest {
         userPrefsRepo: UserPreferencesRepository = FakeUserPreferencesRepository(),
         alarmRepo: AlarmRepository = FakeAlarmRepository(),
         notificationScheduler: NotificationScheduler = NoOpNotificationScheduler(),
-        sleepRepo: SleepRepository = NoOpSleepRepository(),
-    ) = CalculatorViewModel(userPrefsRepo, alarmRepo, notificationScheduler, sleepRepo)
+    ) = CalculatorViewModel(userPrefsRepo, alarmRepo, notificationScheduler)
 
     // ── Initial state ─────────────────────────────────────────────────────────
 
@@ -207,19 +202,6 @@ private class FakeAlarmRepository(
     override suspend fun getAllAlarms(): Result<List<SystemAlarm>> = Result.Success(alarms)
 }
 
-private class NoOpSleepRepository : SleepRepository {
-    override suspend fun saveSleepLog(log: SleepLog): Result<Unit> = Result.Success(Unit)
-    override fun getAllSleepLogs(): Flow<List<SleepLog>> = emptyFlow()
-    override fun getSleepLog(id: String): Flow<SleepLog?> = emptyFlow()
-    override fun getSleepLogsByDateRange(startDate: LocalDate, endDate: LocalDate): Flow<List<SleepLog>> = emptyFlow()
-    override suspend fun updateSleepLog(log: SleepLog): Result<Unit> = Result.Success(Unit)
-    override suspend fun updateSyncStatus(id: String, status: SyncStatus): Result<Unit> = Result.Success(Unit)
-    override suspend fun deleteSleepLog(id: String): Result<Unit> = Result.Success(Unit)
-    override suspend fun getPendingUploadLogs(): Result<List<SleepLog>> = Result.Success(emptyList())
-    override suspend fun getLastSyncTimestamp(): Result<Instant> = Result.Success(Instant.EPOCH)
-    override suspend fun updateLastSyncTimestamp(timestamp: Instant): Result<Unit> = Result.Success(Unit)
-}
-
 private class FakeUserPreferencesRepository(
     private val profile: UserProfile = UserProfile(
         userId = "test",
@@ -257,7 +239,7 @@ private class FakeUserPreferencesRepository(
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun endDiscoveryPhase(): Result<Unit> = Result.Success(Unit)
     override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
-    override fun observeSelectedWakeTime(): Flow<LocalTime> = emptyFlow()
+    override fun observeSelectedWakeTime(): Flow<LocalTime> = kotlinx.coroutines.flow.flowOf(LocalTime.of(7, 0))
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }
 
@@ -292,7 +274,7 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun endDiscoveryPhase(): Result<Unit> = Result.Success(Unit)
     override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
-    override fun observeSelectedWakeTime(): Flow<LocalTime> = emptyFlow()
+    override fun observeSelectedWakeTime(): Flow<LocalTime> = kotlinx.coroutines.flow.flowOf(LocalTime.of(7, 0))
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }
 
@@ -335,6 +317,6 @@ private class CapturingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun endDiscoveryPhase(): Result<Unit> = Result.Success(Unit)
     override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
-    override fun observeSelectedWakeTime(): Flow<LocalTime> = emptyFlow()
+    override fun observeSelectedWakeTime(): Flow<LocalTime> = kotlinx.coroutines.flow.flowOf(LocalTime.of(7, 0))
     override fun observeUserProfile(): Flow<UserProfile> = emptyFlow()
 }
