@@ -68,6 +68,13 @@ class UserPreferencesDataStore @Inject constructor(
     fun observeBedtimeReminderEnabled(): Flow<Boolean> =
         dataStore.data.map { it[Keys.BEDTIME_REMINDER_ENABLED] ?: false }
 
+    suspend fun setWakeAlarmEnabled(enabled: Boolean) {
+        dataStore.edit { it[Keys.WAKE_ALARM_ENABLED] = enabled }
+    }
+
+    fun observeWakeAlarmEnabled(): Flow<Boolean> =
+        dataStore.data.map { it[Keys.WAKE_ALARM_ENABLED] ?: false }
+
     suspend fun setSelectedBedtime(hour: Int, minute: Int, cycleCount: Int, durationMinutes: Int) {
         dataStore.edit {
             it[Keys.SELECTED_BEDTIME_HOUR] = hour
@@ -141,6 +148,7 @@ class UserPreferencesDataStore @Inject constructor(
         val ONBOARDING_STATE_JSON = stringPreferencesKey("onboarding_state_json")
         val DAILY_CHECKIN_ENABLED = booleanPreferencesKey("daily_checkin_enabled")
         val BEDTIME_REMINDER_ENABLED = booleanPreferencesKey("bedtime_reminder_enabled")
+        val WAKE_ALARM_ENABLED = booleanPreferencesKey("wake_alarm_enabled")
         val SELECTED_BEDTIME_HOUR = intPreferencesKey("selected_bedtime_hour")
         val SELECTED_BEDTIME_MINUTE = intPreferencesKey("selected_bedtime_minute")
         val SELECTED_BEDTIME_CYCLES = intPreferencesKey("selected_bedtime_cycles")

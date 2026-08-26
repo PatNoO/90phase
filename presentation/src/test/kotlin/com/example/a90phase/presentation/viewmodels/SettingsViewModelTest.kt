@@ -7,6 +7,7 @@ import com.example.a90phase.domain.entities.ShiftType
 import com.example.a90phase.domain.entities.SleepLog
 import com.example.a90phase.domain.entities.SyncStatus
 import com.example.a90phase.domain.entities.UserProfile
+import com.example.a90phase.domain.repositories.NotificationScheduler
 import com.example.a90phase.domain.repositories.PatternInsightsRepository
 import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
@@ -28,6 +29,7 @@ import org.junit.Before
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -48,7 +50,8 @@ class SettingsViewModelTest {
         prefsRepo: FakeSettingsPrefsRepository = FakeSettingsPrefsRepository(),
         sleepRepo: FakeSettingsSleepRepository = FakeSettingsSleepRepository(),
         insightsRepo: FakeSettingsPatternInsightsRepository = FakeSettingsPatternInsightsRepository(),
-    ) = SettingsViewModel(prefsRepo, sleepRepo, insightsRepo)
+        notificationScheduler: NotificationScheduler = NoOpNotificationScheduler(),
+    ) = SettingsViewModel(prefsRepo, sleepRepo, insightsRepo, notificationScheduler)
 
     // ── Initial state ─────────────────────────────────────────────────────────
 
@@ -271,6 +274,8 @@ private class FakeSettingsPrefsRepository(
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = MutableStateFlow(true)
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = MutableStateFlow(true)
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = MutableStateFlow(true)
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -287,6 +292,7 @@ private class FakeSettingsPrefsRepository(
     }
     override suspend fun updateDiscoveryPhase(phase: DiscoveryPhase): Result<Unit> = Result.Success(Unit)
     override suspend fun setSelectedWakeTime(hour: Int, minute: Int): Result<Unit> = Result.Success(Unit)
+    override fun observeSelectedWakeTime(): Flow<LocalTime> = MutableStateFlow(LocalTime.of(7, 0))
 }
 
 private class FakeSettingsPatternInsightsRepository : PatternInsightsRepository {

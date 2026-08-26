@@ -53,7 +53,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.BedtimeRecommendation
-import com.example.a90phase.domain.entities.SystemAlarm
 import com.example.a90phase.presentation.components.BedtimeResultCard
 import com.example.a90phase.presentation.components.SectionHeader
 import com.example.a90phase.presentation.components.SleepToggle
@@ -67,7 +66,6 @@ import com.example.a90phase.presentation.viewmodels.CalculatorViewModel
 import com.example.a90phase.presentation.viewmodels.SleepCalculatorUiState
 import kotlinx.coroutines.delay
 import java.time.LocalTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private data class CalculatorScreenState(
@@ -77,7 +75,6 @@ private data class CalculatorScreenState(
     val isDailyReminderActive: Boolean,
     val selectedBedtimeIndex: Int,
     val bedtimes: List<BedtimeRecommendation>,
-    val nextSystemAlarm: SystemAlarm? = null,
     val isSaving: Boolean = false,
 )
 
@@ -93,8 +90,6 @@ fun CalculatorScreen(
 ) {
     var isWakeTimeActive by rememberSaveable { mutableStateOf(true) }
     var showTimePicker by remember { mutableStateOf(false) }
-    var isAlarmActive by rememberSaveable { mutableStateOf(false) }
-    var isDailyReminderActive by rememberSaveable { mutableStateOf(true) }
     val hapticFeedback = LocalHapticFeedback.current
     val vmState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -103,7 +98,7 @@ fun CalculatorScreen(
     LaunchedEffect(Unit) {
         viewModel.saveResult.collect { success ->
             scope.launch {
-                if (success) snackbarHostState.showSnackbar("Inloggat!") else snackbarHostState.showSnackbar("Kunde inte spara")
+                if (success) snackbarHostState.showSnackbar("Läggdags sparad") else snackbarHostState.showSnackbar("Kunde inte spara")
             }
         }
     }
@@ -124,18 +119,17 @@ fun CalculatorScreen(
                 state = CalculatorScreenState(
                     wakeTime = state.wakeTime,
                     isWakeTimeActive = isWakeTimeActive,
-                    isAlarmActive = isAlarmActive,
-                    isDailyReminderActive = isDailyReminderActive,
+                    isAlarmActive = state.alarmActive,
+                    isDailyReminderActive = state.dailyCheckInEnabled,
                     selectedBedtimeIndex = state.selectedBedtimeIndex,
                     bedtimes = state.bedtimes,
-                    nextSystemAlarm = state.nextSystemAlarm,
                     isSaving = state.isSaving,
                 ),
                 snackbarHostState = snackbarHostState,
                 onNavigateToSettings = onNavigateToSettings,
                 onWakeTimeClick = { showTimePicker = true },
-                onAlarmToggle = { isAlarmActive = it },
-                onReminderToggle = { isDailyReminderActive = it },
+                onAlarmToggle = { viewModel.onAlarmActiveToggled(it) },
+                onReminderToggle = { viewModel.onDailyCheckInToggled(it) },
                 onBedtimeSelect = { index ->
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                     viewModel.onBedtimeSelected(state.bedtimes[index], index)
@@ -215,7 +209,7 @@ private fun CalculatorScaffold(
                     )
                 }
                 item {
-                    AlarmSuggestionBanner(alarm = state.nextSystemAlarm)
+                    AlarmSuggestionBanner(wakeTime = state.wakeTime, isActive = state.isAlarmActive)
                 }
                 item {
                     Spacer(modifier = Modifier.height(Spacing.Large))
@@ -249,10 +243,10 @@ private fun CalculatorScaffold(
 }
 
 @Composable
-private fun AlarmSuggestionBanner(alarm: SystemAlarm?) {
-    if (alarm == null) return
-    val localTime = alarm.time.atZone(ZoneId.systemDefault()).toLocalTime()
-    val formatted = localTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+private fun AlarmSuggestionBanner(wakeTime: LocalTime, isActive: Boolean) {
+    // Only shown when the app's own wake alarm is active; reflects the wake time.
+    if (!isActive) return
+    val formatted = wakeTime.format(DateTimeFormatter.ofPattern("HH:mm"))
     Spacer(modifier = Modifier.height(Spacing.Medium))
     Card(
         modifier = Modifier
@@ -269,21 +263,11 @@ private fun AlarmSuggestionBanner(alarm: SystemAlarm?) {
         ) {
             Text(text = "⏰", style = SleepTypography.HeadlineMedium)
             Spacer(modifier = Modifier.width(Spacing.Small))
-            Column {
-                Text(
-                    text = "Din alarm: $formatted",
-                    style = SleepTypography.BodyMedium,
-                    color = SleepColors.CyanGlow,
-                )
-                val label = alarm.label
-                if (!label.isNullOrBlank()) {
-                    Text(
-                        text = label,
-                        style = SleepTypography.LabelMedium,
-                        color = SleepColors.Silver,
-                    )
-                }
-            }
+            Text(
+                text = "Your alarm: $formatted",
+                style = SleepTypography.BodyMedium,
+                color = SleepColors.CyanGlow,
+            )
         }
     }
 }

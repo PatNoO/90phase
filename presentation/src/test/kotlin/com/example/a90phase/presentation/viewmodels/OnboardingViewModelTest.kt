@@ -282,6 +282,8 @@ private class FakeOnboardingPrefsRepository : UserPreferencesRepository {
         return Result.Success(Unit)
     }
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = flowOf(false)
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = flowOf(false)
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -308,5 +310,6 @@ private class FakeOnboardingPrefsRepository : UserPreferencesRepository {
         savedWakeMinute = minute
         return Result.Success(Unit)
     }
+    override fun observeSelectedWakeTime(): Flow<java.time.LocalTime> = flowOf(java.time.LocalTime.of(7, 0))
     override fun observeUserProfile(): Flow<UserProfile> = flowOf(UserProfile(userId = "test"))
 }

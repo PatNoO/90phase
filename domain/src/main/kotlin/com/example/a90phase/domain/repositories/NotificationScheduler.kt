@@ -14,4 +14,8 @@ interface NotificationScheduler {
     fun scheduleMorningFeedback(wakeTime: LocalTime)
 
     fun cancelMorningFeedback()
+
+    fun scheduleWakeAlarm(wakeTime: LocalTime)
+
+    fun cancelWakeAlarm()
 }

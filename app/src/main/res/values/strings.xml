@@ -13,6 +13,10 @@
     <string name="notification_bedtime_body">%1$d cykler · %2$s sömn</string>
     <string name="notification_set_alarm">Ställ alarm</string>
 
+    <!-- Wake alarm -->
+    <string name="alarm_notification_title">⏰ Dags att vakna</string>
+    <string name="alarm_notification_body">Tryck för att stänga alarmet</string>
+
     <!-- Morning feedback notification -->
     <string name="notification_morning_title">☀️ God morgon!</string>
     <string name="notification_morning_body">Hur kändes sömnen i natt?</string>

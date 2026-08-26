@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import com.example.a90phase.R
 import com.example.a90phase.data.local.datastore.UserPreferencesDataStore
 import dagger.hilt.android.AndroidEntryPoint
+import java.time.LocalTime
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,11 +22,18 @@ import kotlinx.coroutines.launch
 class MorningFeedbackReceiver : BroadcastReceiver() {
 
     @Inject lateinit var userPreferencesDataStore: UserPreferencesDataStore
+    @Inject lateinit var morningFeedbackScheduler: MorningFeedbackScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
         val pendingResult = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
+                // Re-arm for tomorrow first — this alarm is one-shot, so without
+                // rescheduling it would only ever fire once.
+                val hour = userPreferencesDataStore.observeSelectedWakeHour().first()
+                val minute = userPreferencesDataStore.observeSelectedWakeMinute().first()
+                morningFeedbackScheduler.schedule(LocalTime.of(hour, minute))
+
                 val enabled = userPreferencesDataStore.observeMorningRatingEnabled().first()
                 if (!enabled) return@launch
                 postNotification(context)

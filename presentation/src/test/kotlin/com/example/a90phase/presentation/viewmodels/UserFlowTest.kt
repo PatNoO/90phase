@@ -54,7 +54,8 @@ class UserFlowTest {
     fun `flow 1 onboarding wake time is saved and calculator shows recommendations for it`() = runTest {
         val sharedPrefs = CapturingFlowPrefsRepository()
         val onboardingVm = OnboardingViewModel(SimpleFlowOnboardingRepository(), sharedPrefs, NoOpNotificationScheduler())
-        val calculatorVm = CalculatorViewModel(sharedPrefs, NoOpAlarmRepository(), NoOpNotificationScheduler())
+        val calculatorVm =
+            CalculatorViewModel(sharedPrefs, NoOpAlarmRepository(), NoOpNotificationScheduler())
         testDispatcher.scheduler.advanceUntilIdle()
 
         onboardingVm.onWakeTimeSelected(8, 30)
@@ -77,7 +78,12 @@ class UserFlowTest {
 
     @Test
     fun `flow 2 changing wake time recalculates recommendations`() = runTest {
-        val vm = CalculatorViewModel(CapturingFlowPrefsRepository(), NoOpAlarmRepository(), NoOpNotificationScheduler())
+        val vm =
+            CalculatorViewModel(
+                CapturingFlowPrefsRepository(),
+                NoOpAlarmRepository(),
+                NoOpNotificationScheduler(),
+            )
         testDispatcher.scheduler.advanceUntilIdle()
 
         val initial = vm.uiState.value as SleepCalculatorUiState.Success
@@ -163,6 +169,10 @@ internal class NoOpNotificationScheduler : NotificationScheduler {
     override fun cancelBedtimeReminder() = Unit
     override fun scheduleDailyCheckIn(timeString: String) = Unit
     override fun cancelDailyCheckIn() = Unit
+    override fun scheduleMorningFeedback(wakeTime: java.time.LocalTime) = Unit
+    override fun cancelMorningFeedback() = Unit
+    override fun scheduleWakeAlarm(wakeTime: java.time.LocalTime) = Unit
+    override fun cancelWakeAlarm() = Unit
 }
 
 private class CapturingFlowPrefsRepository : UserPreferencesRepository {
@@ -184,6 +194,8 @@ private class CapturingFlowPrefsRepository : UserPreferencesRepository {
     override fun observeDailyCheckInEnabled(): Flow<Boolean> = flowOf(false)
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = flowOf(false)
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = flowOf(false)
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -209,6 +221,7 @@ private class CapturingFlowPrefsRepository : UserPreferencesRepository {
         savedWakeMinute = minute
         return Result.Success(Unit)
     }
+    override fun observeSelectedWakeTime(): Flow<LocalTime> = flowOf(LocalTime.of(7, 0))
     override fun observeUserProfile(): Flow<UserProfile> = flowOf(flowTestProfile())
 }
 

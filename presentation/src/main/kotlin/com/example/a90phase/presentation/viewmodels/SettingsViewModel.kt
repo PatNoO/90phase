@@ -140,11 +140,25 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onDailyCheckInToggled(enabled: Boolean) {
-        viewModelScope.launch { userPreferencesRepository.setDailyCheckInEnabled(enabled) }
+        viewModelScope.launch {
+            userPreferencesRepository.setDailyCheckInEnabled(enabled)
+            if (enabled) {
+                val reminderTime = userPreferencesRepository.observeUserProfile().first().reminderTime
+                notificationScheduler.scheduleDailyCheckIn(reminderTime)
+            } else {
+                notificationScheduler.cancelDailyCheckIn()
+            }
+        }
     }
 
     fun onBedtimeReminderToggled(enabled: Boolean) {
-        viewModelScope.launch { userPreferencesRepository.setBedtimeReminderEnabled(enabled) }
+        viewModelScope.launch {
+            userPreferencesRepository.setBedtimeReminderEnabled(enabled)
+            // Enabling only persists the preference — the actual reminder is scheduled on the
+            // Calculator when a bedtime is chosen (a reminder needs a concrete bedtime). Disabling
+            // must cancel any reminder already scheduled from a previous selection.
+            if (!enabled) notificationScheduler.cancelBedtimeReminder()
+        }
     }
 
     fun onMorningRatingToggled(enabled: Boolean) {

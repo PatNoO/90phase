@@ -43,6 +43,10 @@ interface UserPreferencesRepository {
 
     fun observeBedtimeReminderEnabled(): Flow<Boolean>
 
+    suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit>
+
+    fun observeWakeAlarmEnabled(): Flow<Boolean>
+
     suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,

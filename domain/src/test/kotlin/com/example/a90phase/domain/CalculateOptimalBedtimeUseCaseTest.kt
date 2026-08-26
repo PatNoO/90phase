@@ -31,11 +31,43 @@ class CalculateOptimalBedtimeUseCaseTest {
     // ── Happy path ────────────────────────────────────────────────────────────
 
     @Test
-    fun `returns 3 recommendations for 07h00 wake time`() =
+    fun `returns 5 recommendations for 07h00 wake time`() =
         runTest {
             val result = useCase().invoke(LocalTime.of(7, 0), currentTime = LocalTime.of(20, 0))
             val recs = (result as Result.Success).data
-            assertEquals(3, recs.size)
+            assertEquals(5, recs.size)
+        }
+
+    @Test
+    fun `3-cycle and 2-cycle bedtimes are offered and MINIMAL`() =
+        runTest {
+            val recs =
+                (
+                    useCase().invoke(LocalTime.of(7, 0), currentTime = LocalTime.of(20, 0))
+                        as Result.Success
+                ).data
+            // 07:00 - (3×90+15) = 07:00 - 285 min = 02:15
+            assertEquals(LocalTime.of(2, 15), recs[3].bedtime)
+            assertEquals(3, recs[3].cycleCount)
+            assertEquals(BedtimeQuality.MINIMAL, recs[3].quality)
+            // 07:00 - (2×90+15) = 07:00 - 195 min = 03:45
+            assertEquals(LocalTime.of(3, 45), recs[4].bedtime)
+            assertEquals(2, recs[4].cycleCount)
+            assertEquals(BedtimeQuality.MINIMAL, recs[4].quality)
+        }
+
+    @Test
+    fun `00h45 bedtime is not PASSED when opened in the morning before wake time`() =
+        runTest {
+            // Opening at 09:00 targeting a 07:00 wake: tonight's 4-cycle bedtime is 00:45.
+            // 00:45 is numerically before 09:00 but is a future bedtime — must NOT be PASSED.
+            val recs =
+                (
+                    useCase().invoke(LocalTime.of(7, 0), currentTime = LocalTime.of(9, 0))
+                        as Result.Success
+                ).data
+            val fortyFivePastMidnight = recs.find { it.bedtime == LocalTime.of(0, 45) }!!
+            assertEquals(BedtimeQuality.MINIMAL, fortyFivePastMidnight.quality)
         }
 
     @Test
@@ -295,6 +327,10 @@ private class FakeUserPreferencesRepository(
 
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
 
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = emptyFlow()
+
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -354,6 +390,10 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
 
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = emptyFlow()
 
     override suspend fun setSelectedBedtime(
         hour: Int,

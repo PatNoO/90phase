@@ -11,7 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,7 +79,6 @@ private enum class HistoryPeriod { WEEK, MONTH }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
-    onNavigateToLogDetail: (logId: String) -> Unit,
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
     val vmState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -108,7 +106,6 @@ fun HistoryScreen(
                     insights = state.insights,
                     consistencyScore = state.consistencyScore,
                     onDismissInsight = viewModel::onDismissInsight,
-                    onNavigateToLogDetail = onNavigateToLogDetail,
                     modifier = Modifier.padding(innerPadding),
                 )
                 is HistoryUiState.Error -> Box(
@@ -188,7 +185,6 @@ private fun HistoryContent(
     insights: List<PatternInsight>,
     consistencyScore: ConsistencyScore?,
     onDismissInsight: (String) -> Unit,
-    onNavigateToLogDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -215,13 +211,9 @@ private fun HistoryContent(
             SectionHeader(title = "Sleep Log")
         }
         items(logs) { log ->
-            Box(
-                modifier = Modifier
-                    .semantics(mergeDescendants = true) { }
-                    .clickable { onNavigateToLogDetail(log.id) },
-            ) {
-                SleepLogCard(log = log)
-            }
+            // Log rows are not tappable yet — the detail screen is unimplemented (see
+            // docs/tickets/PH-88-sleep-log-detail-screen.md). Re-enable navigation there.
+            SleepLogCard(log = log)
         }
     }
 }
@@ -488,7 +480,7 @@ private fun ShimmerBox(modifier: Modifier = Modifier) {
 @Composable
 internal fun HistoryScreenPreview() {
     NightSkyTheme {
-        HistoryScreen(onNavigateToLogDetail = {})
+        HistoryScreen()
     }
 }
 
@@ -496,7 +488,7 @@ internal fun HistoryScreenPreview() {
 @Composable
 internal fun HistoryScreenLandscapePreview() {
     NightSkyTheme {
-        HistoryScreen(onNavigateToLogDetail = {})
+        HistoryScreen()
     }
 }
 

@@ -161,6 +161,10 @@ internal class FakePreferencesRepository(
 
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
 
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = emptyFlow()
+
     override suspend fun setSelectedBedtime(
         hour: Int,
         minute: Int,
@@ -231,6 +235,10 @@ internal class FailingPreferencesRepository : UserPreferencesRepository {
     override suspend fun setBedtimeReminderEnabled(enabled: Boolean): Result<Unit> = error
 
     override fun observeBedtimeReminderEnabled(): Flow<Boolean> = emptyFlow()
+
+    override suspend fun setWakeAlarmEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
+
+    override fun observeWakeAlarmEnabled(): Flow<Boolean> = emptyFlow()
 
     override suspend fun setSelectedBedtime(
         hour: Int,

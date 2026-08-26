@@ -10,6 +10,7 @@ class NotificationSchedulerImpl @Inject constructor(
     private val bedtimeReminderScheduler: BedtimeReminderScheduler,
     private val dailyCheckInScheduler: DailyCheckInScheduler,
     private val morningFeedbackScheduler: MorningFeedbackScheduler,
+    private val wakeAlarmScheduler: WakeAlarmScheduler,
 ) : NotificationScheduler {
 
     override fun scheduleBedtimeReminder(bedtime: LocalTime) = bedtimeReminderScheduler.schedule(bedtime)
@@ -23,4 +24,8 @@ class NotificationSchedulerImpl @Inject constructor(
     override fun scheduleMorningFeedback(wakeTime: LocalTime) = morningFeedbackScheduler.schedule(wakeTime)
 
     override fun cancelMorningFeedback() = morningFeedbackScheduler.cancel()
+
+    override fun scheduleWakeAlarm(wakeTime: LocalTime) = wakeAlarmScheduler.schedule(wakeTime)
+
+    override fun cancelWakeAlarm() = wakeAlarmScheduler.cancel()
 }
