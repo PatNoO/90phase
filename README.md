@@ -6,6 +6,12 @@ A native Android app that calculates optimal sleep schedules based on the ~90-mi
 
 90phase helps you wake up refreshed by timing your alarm to the end of a sleep cycle, not the middle of one. Enter your target wake-up time and get 2–3 optimal bedtimes.
 
+## Screenshots
+
+| Calculator | Settings | History |
+|:---:|:---:|:---:|
+| ![Calculator](docs/screenshots/calculator.png) | ![Settings](docs/screenshots/settings.png) | ![History](docs/screenshots/history.png) |
+
 ## Core Features
 
 - **Sleep calculator** — enter wake-up time, get optimal bedtimes
@@ -65,3 +71,14 @@ The following files are intentionally excluded from version control:
 - `*.jks` / `*.keystore` — Signing keystores
 
 Never commit these files.
+
+## License
+
+Released under the [MIT License](LICENSE) — © 2026 Patrik Noordh.
+
+## Development Note
+
+This project was built with an AI-assisted workflow: architecture, tickets, and
+review were human-directed, with implementation pair-programmed using Claude. Each
+commit is prefixed with the model that produced it (e.g. `(claude-opus-4-8)`) for
+full transparency.
