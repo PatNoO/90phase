@@ -15,7 +15,7 @@ A native Android app that calculates optimal sleep schedules based on the ~90-mi
 ## Core Features
 
 - **Sleep calculator** — enter wake-up time, get optimal bedtimes
-- **Daily check-in notification** at 18:00 ("När ska du vakna imorgon?")
+- **Daily check-in notification** at 18:00
 - **Discovery Phase** — personalizes your cycle parameters over 21 days
 - **Sleep log history** with weekly/monthly quality ratings
 - **Offline-first** — works without internet, syncs to Firebase in background
