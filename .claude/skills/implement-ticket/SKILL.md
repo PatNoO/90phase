@@ -90,12 +90,42 @@ Follow all architecture and coding standards from `CLAUDE.md`.
 - **No background work outside WorkManager** — no raw threads, no `GlobalScope`, no `CoroutineScope` in Application class
 - **Notification channels** — registered in `Application` class only, never in Activity
 
-### Material3 / Compose rules
+### Night Sky design system rules
 
-- `MaterialTheme.colorScheme.*` — never hardcoded hex
-- `MaterialTheme.typography.*` — never hardcoded sp values
-- `MaterialTheme.shapes.*` — cards 16.dp, buttons 12.dp
-- Spacing scale: 4, 8, 12, 16, 24, 32 dp — no arbitrary values
+The app has a custom dark-only design system, not stock Material3 theming. Material3 supplies the
+component library; the token objects in `presentation/.../theme/` supply every value.
+See CLAUDE.md § Design System.
+
+- **Colour:** `SleepColors.*` — never a raw `Color(0xFF…)` in a composable. Semantic colours
+  (`OptimalGreen`, `GoodAmber`, `PassedGray`, `ErrorRed`) are used directly, not via M3 slots
+- **Typography:** `SleepTypography.*` — never a raw `.sp` value
+- **Shape:** `SleepShapes.*` — never a raw `RoundedCornerShape(n.dp)`
+- **Spacing:** `Spacing.*` (4/8/12/16/24/32/48/64) — never an arbitrary `.dp`. A deliberate
+  one-off needs a comment explaining why the scale does not fit
+- **`MaterialTheme.colorScheme.*` / `MaterialTheme.typography.*` are NOT used directly** in app
+  composables. `NightSkyTheme` maps the palette onto a `darkColorScheme` so built-in M3
+  components inherit sane defaults — that is the only reason they exist
+- Reuse the component library before writing a new composable: `PrimaryButton`, `SecondaryButton`,
+  `StarRating`, `SleepToggle`, `SectionHeader`, `SleepLogCard`, `Modifier.glassCard()`,
+  `BackgroundGradient`, `StarFieldBackground`
+- Dark mode only — there is no light colour scheme, by design
+
+### String rules
+
+- **No hardcoded user-facing text in composables.** Every string goes in
+  `presentation/src/main/res/values/strings.xml` (English, default) with the Swedish translation
+  in `values-sv/strings.xml`. App-module notification text follows the same rule under
+  `app/src/main/res/values*/`
+- Use `stringResource(R.string.…)`; format with placeholders (`%1$s`, `%1$d`), never string
+  concatenation or interpolation of translated fragments
+- Counts use `<plurals>`, not manual `if` branching
+- Both locales must gain the key — `./gradlew lint` `MissingTranslation` must stay clean
+- Never pad a string resource with leading or trailing whitespace for spacing; AAPT strips it.
+  Space adjacent composables with `Arrangement.spacedBy` or a `Spacer`
+- ViewModels must not hold translated text — expose `@StringRes` ids and resolve in the composable
+- Dates and times format against the app's resolved locale via
+  `presentation/util/DateFormatting.kt` (`rememberDateFormatter`, `DayOfWeek.localizedName()`),
+  never `Locale.ENGLISH` and never `Locale.getDefault()`
 
 ### State coverage
 
@@ -154,18 +184,27 @@ Must succeed with no Kotlin compilation errors.
 
 ---
 
-## Step 6 — Commit
+## Step 6 — Commit in logical steps
 
 Stage specific files only — never `git add .` or `git add -A`.
+
+**Split the work into several small commits, not one large one.** See CLAUDE.md
+§ Commit Rules → One commit per logical change. Group by what changed and why, never by file:
+
+```
+(claude-opus-5) feat [PH-91] Add nextWakeOccurrence and re-arm guard
+(claude-opus-5) feat [PH-91] Re-arm the daily alarm when it fires
+(claude-opus-5) feat [PH-91] Rebuild the ring screen on Night Sky
+(claude-opus-5) test [PH-91] Cover the wake alarm re-arm guard
+```
+
+Order so a reviewer reads the branch top to bottom: domain and data first, then the behaviour
+built on them, then UI, then anything left over. Every commit must build and pass tests on its
+own — run validation before each, and never commit a broken intermediate state.
 
 All commits:
 ```
 (MODEL_NAME) <type> [PH-<N>] imperative description
-```
-
-Example:
-```
-(claude-sonnet-4-6) feat [PH-05] Add sleep calculator screen
 ```
 
 Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
@@ -173,7 +212,8 @@ Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
 Rules:
 - No `[claude]` prefix — format starts with `(MODEL_NAME)`
 - Imperative tense — under 72 characters
-- Never include `Co-Authored-By` footer
+- The ticket id repeats on every commit in the branch
+- Never include `Co-Authored-By` footer or any Claude attribution
 - Never `--no-verify`
 
 ---
@@ -244,7 +284,9 @@ gh issue close <number> --repo PatNoO/90phase
 - [ ] All repository methods and use cases return `Result<T>`
 - [ ] ViewModel exposes `StateFlow`, not `MutableStateFlow`
 - [ ] Loading, error, and empty states handled in every Compose screen
-- [ ] No hardcoded colors, spacing, or typography — Material3 tokens only
+- [ ] No hardcoded colors, spacing, typography, shapes, or user-facing strings in Compose —
+      Night Sky tokens and `stringResource` only
+- [ ] Every new user-facing string added to both `values/strings.xml` and `values-sv/strings.xml`
 - [ ] No `Any` types or unchecked casts in domain/data layers
 - [ ] Presentation-only tickets use typed fake data with `// TODO: wire to ViewModel`
 - [ ] Room schema changes confirmed with developer before implementation
