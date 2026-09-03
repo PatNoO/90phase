@@ -225,9 +225,33 @@ Rules:
 - No `[claude]` prefix — format starts with `(MODEL_NAME)`
 - Imperative tense always
 - Under 72 characters
-- Never include `Co-Authored-By` footer
+- Never include `Co-Authored-By` footer or any Claude attribution — no
+  `Claude-Session:` trailer, no "Generated with Claude Code" line
 - Never `git add .` or `git add -A` — stage specific files only
 - Never `--no-verify`
+
+### One commit per logical change
+
+A branch carries **several small commits, not one large one**. Split by what changed and why,
+never by file. A typical feature branch reads:
+
+```
+(claude-opus-5) feat [PH-91] Add nextWakeOccurrence and re-arm guard
+(claude-opus-5) feat [PH-91] Re-arm the daily alarm when it fires
+(claude-opus-5) feat [PH-91] Rebuild the ring screen on Night Sky
+(claude-opus-5) test [PH-91] Cover the wake alarm re-arm guard
+```
+
+- Every commit builds and passes tests **on its own** — never commit a broken intermediate state
+- Order so a reviewer can read top to bottom: domain and data first, then the behaviour that uses
+  them, then UI, then anything left over
+- The ticket id repeats on every commit in the branch
+- Keep unrelated work out — a drive-by fix belongs on its own branch, not appended here
+
+**Squash-merge caveat.** PRs are squash-merged, so `main` receives one commit per ticket whatever
+the branch looks like. The split exists to make the *PR* readable. It also means the squash
+message must be written by hand — GitHub's default concatenates every commit message into a
+bulleted pile. Use the ticket's subject line and a short body instead.
 
 ---
 
