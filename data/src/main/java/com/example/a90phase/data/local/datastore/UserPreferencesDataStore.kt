@@ -90,6 +90,24 @@ class UserPreferencesDataStore @Inject constructor(
     fun observeSelectedBedtimeDuration(): Flow<Int> =
         dataStore.data.map { it[Keys.SELECTED_BEDTIME_DURATION] ?: 450 }
 
+    /**
+     * The bedtime plan the user actually chose, or `null` when they have never chosen one.
+     *
+     * [observeSelectedBedtimeCycles] and [observeSelectedBedtimeDuration] fall back to defaults,
+     * so on their own they cannot tell "the user picked 5 cycles" from "the user picked nothing".
+     * Callers that must show real data — or nothing — need this distinction.
+     */
+    fun observeSelectedBedtimePlan(): Flow<SelectedBedtimePlan?> =
+        dataStore.data.map { prefs ->
+            val cycles = prefs[Keys.SELECTED_BEDTIME_CYCLES]
+            val duration = prefs[Keys.SELECTED_BEDTIME_DURATION]
+            if (cycles == null || duration == null) {
+                null
+            } else {
+                SelectedBedtimePlan(cycleCount = cycles, durationMinutes = duration)
+            }
+        }
+
     fun observeSelectedBedtimeHour(): Flow<Int> =
         dataStore.data.map { it[Keys.SELECTED_BEDTIME_HOUR] ?: DEFAULT_BEDTIME_HOUR }
 
