@@ -184,18 +184,27 @@ Must succeed with no Kotlin compilation errors.
 
 ---
 
-## Step 6 — Commit
+## Step 6 — Commit in logical steps
 
 Stage specific files only — never `git add .` or `git add -A`.
+
+**Split the work into several small commits, not one large one.** See CLAUDE.md
+§ Commit Rules → One commit per logical change. Group by what changed and why, never by file:
+
+```
+(claude-opus-5) feat [PH-91] Add nextWakeOccurrence and re-arm guard
+(claude-opus-5) feat [PH-91] Re-arm the daily alarm when it fires
+(claude-opus-5) feat [PH-91] Rebuild the ring screen on Night Sky
+(claude-opus-5) test [PH-91] Cover the wake alarm re-arm guard
+```
+
+Order so a reviewer reads the branch top to bottom: domain and data first, then the behaviour
+built on them, then UI, then anything left over. Every commit must build and pass tests on its
+own — run validation before each, and never commit a broken intermediate state.
 
 All commits:
 ```
 (MODEL_NAME) <type> [PH-<N>] imperative description
-```
-
-Example:
-```
-(claude-sonnet-4-6) feat [PH-05] Add sleep calculator screen
 ```
 
 Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
@@ -203,7 +212,8 @@ Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
 Rules:
 - No `[claude]` prefix — format starts with `(MODEL_NAME)`
 - Imperative tense — under 72 characters
-- Never include `Co-Authored-By` footer
+- The ticket id repeats on every commit in the branch
+- Never include `Co-Authored-By` footer or any Claude attribution
 - Never `--no-verify`
 
 ---

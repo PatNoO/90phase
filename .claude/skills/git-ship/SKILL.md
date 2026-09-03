@@ -62,7 +62,9 @@ If rebase has conflicts, **stop and report to developer**. Never auto-resolve co
 1. `git status` and `git diff --stat`
 2. If working tree is clean, skip to Step 5
 3. Stage specific files — never `git add .` or `git add -A`
-4. Commit with correct format:
+4. Split anything uncommitted into logical commits rather than one catch-all — see CLAUDE.md
+   § Commit Rules → One commit per logical change
+5. Commit with correct format:
 
 ```
 (MODEL_NAME) <type> [PH-<N>] imperative description
@@ -72,7 +74,8 @@ Types: `feat` `fix` `style` `refactor` `chore` `docs` `perf` `test`
 
 - No `[claude]` prefix — format starts with `(MODEL_NAME)`
 - Imperative tense, under 72 characters
-- Never include `Co-Authored-By` footer
+- The ticket id repeats on every commit in the branch
+- Never include `Co-Authored-By` footer or any Claude attribution
 - Never `--no-verify`
 
 **If commit fails, stop.**
