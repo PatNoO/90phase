@@ -1,5 +1,6 @@
 package com.example.a90phase.presentation.viewmodels
 
+import androidx.annotation.StringRes
 import com.example.a90phase.domain.entities.ConsistencyScore
 import com.example.a90phase.domain.entities.PatternInsight
 import com.example.a90phase.domain.entities.SleepLog
@@ -20,5 +21,5 @@ sealed class HistoryUiState {
         val consistencyScore: ConsistencyScore? = null,
     ) : HistoryUiState()
 
-    data class Error(val message: String) : HistoryUiState()
+    data class Error(@StringRes val messageRes: Int) : HistoryUiState()
 }

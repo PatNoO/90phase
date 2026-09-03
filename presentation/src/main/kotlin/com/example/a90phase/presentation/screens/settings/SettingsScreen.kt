@@ -44,6 +44,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -52,8 +55,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.a90phase.presentation.R
+import com.example.a90phase.domain.entities.ShiftType
 import com.example.a90phase.presentation.components.SleepToggle
 import com.example.a90phase.presentation.theme.BackgroundGradient
+import com.example.a90phase.presentation.util.displayNameRes
 import com.example.a90phase.presentation.theme.NightSkyTheme
 import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
@@ -115,8 +121,9 @@ fun SettingsScreen(
         onViewDiscoveryResults = onNavigateToDiscoveryResults,
     )
 
+    val resources = LocalResources.current
     LaunchedEffect(Unit) {
-        viewModel.errors.collect { message -> snackbarHostState.showSnackbar(message) }
+        viewModel.errors.collect { messageRes -> snackbarHostState.showSnackbar(resources.getString(messageRes)) }
     }
 
     Box(
@@ -180,10 +187,11 @@ private fun SettingsDialogs(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsTopBar(onNavigateBack: () -> Unit) {
+    val navigateBackDescription = stringResource(R.string.common_navigate_back)
     TopAppBar(
         title = {
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings_title),
                 style = SleepTypography.HeadlineMedium,
                 color = SleepColors.White,
             )
@@ -195,7 +203,7 @@ private fun SettingsTopBar(onNavigateBack: () -> Unit) {
                     style = SleepTypography.HeadlineMedium,
                     color = SleepColors.Silver,
                     modifier = Modifier.clearAndSetSemantics {
-                        contentDescription = "Navigate back"
+                        contentDescription = navigateBackDescription
                     },
                 )
             }
@@ -304,12 +312,13 @@ private fun SettingsSliderRow(
             Text(text = label, style = SleepTypography.BodyLarge, color = SleepColors.White)
             Text(text = valueLabel, style = SleepTypography.BodyLarge, color = SleepColors.CyanGlow)
         }
+        val sliderDescription = stringResource(R.string.settings_slider_description, label, valueLabel)
         Slider(
             value = value,
             onValueChange = onValueChange,
             onValueChangeFinished = onValueChangeFinished,
             valueRange = range,
-            modifier = Modifier.semantics { contentDescription = "$label slider, $valueLabel" },
+            modifier = Modifier.semantics { contentDescription = sliderDescription },
             colors = SliderDefaults.colors(
                 thumbColor = SleepColors.CyanGlow,
                 activeTrackColor = SleepColors.CyanGlow,
@@ -330,10 +339,10 @@ private fun SleepPreferencesSection(
     LaunchedEffect(state.cycleLengthMin) { cycleSlider = state.cycleLengthMin.toFloat() }
     LaunchedEffect(state.sleepLatencyMin) { latencySlider = state.sleepLatencyMin.toFloat() }
 
-    SettingsSection(title = "SLEEP PREFERENCES") {
+    SettingsSection(title = stringResource(R.string.settings_section_sleep_preferences)) {
         SettingsSliderRow(
-            label = "Cycle length",
-            valueLabel = "${cycleSlider.toInt()} min",
+            label = stringResource(R.string.settings_cycle_length),
+            valueLabel = stringResource(R.string.settings_minutes_value, cycleSlider.toInt()),
             value = cycleSlider,
             range = CYCLE_MIN..CYCLE_MAX,
             onValueChange = { cycleSlider = it },
@@ -341,8 +350,8 @@ private fun SleepPreferencesSection(
         )
         SettingsDivider()
         SettingsSliderRow(
-            label = "Sleep latency",
-            valueLabel = "${latencySlider.toInt()} min",
+            label = stringResource(R.string.settings_sleep_latency),
+            valueLabel = stringResource(R.string.settings_minutes_value, latencySlider.toInt()),
             value = latencySlider,
             range = LATENCY_MIN..LATENCY_MAX,
             onValueChange = { latencySlider = it },
@@ -361,21 +370,22 @@ private fun CheckInRow(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SleepToggle(
-            label = "Daily Check-in",
+            label = stringResource(R.string.settings_daily_checkin),
             checked = enabled,
             onCheckedChange = onToggle,
         )
         if (enabled) {
             val timeText = "%02d:%02d".format(hour, minute)
+            val timeDescription = stringResource(R.string.settings_checkin_time_description, timeText)
             Text(
-                text = "Notification at $timeText  →",
+                text = stringResource(R.string.settings_checkin_notification_at, timeText),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.CyanGlow,
                 modifier = Modifier
                     .padding(start = Spacing.XS, top = Spacing.XXS, bottom = Spacing.XXS)
                     .minimumInteractiveComponentSize()
                     .clearAndSetSemantics {
-                        contentDescription = "Check-in time $timeText, tap to change"
+                        contentDescription = timeDescription
                         role = Role.Button
                     }
                     .clickable(onClick = onTapTime),
@@ -393,7 +403,7 @@ private fun NotificationsSection(
     onMorningRatingToggled: (Boolean) -> Unit,
     onMorningBedtimeLogToggled: (Boolean) -> Unit,
 ) {
-    SettingsSection(title = "NOTIFICATIONS") {
+    SettingsSection(title = stringResource(R.string.settings_section_notifications)) {
         CheckInRow(
             enabled = state.dailyCheckInEnabled,
             hour = state.checkInHour,
@@ -403,19 +413,19 @@ private fun NotificationsSection(
         )
         SettingsDivider()
         SleepToggle(
-            label = "Bedtime Reminder",
+            label = stringResource(R.string.settings_bedtime_reminder),
             checked = state.bedtimeReminderEnabled,
             onCheckedChange = onBedtimeReminderToggled,
         )
         SettingsDivider()
         SleepToggle(
-            label = "Morning Rating",
+            label = stringResource(R.string.settings_morning_rating),
             checked = state.morningRatingEnabled,
             onCheckedChange = onMorningRatingToggled,
         )
         SettingsDivider()
         SleepToggle(
-            label = "Morning Bedtime Log",
+            label = stringResource(R.string.settings_morning_bedtime_log),
             checked = state.morningBedtimeLogEnabled,
             onCheckedChange = onMorningBedtimeLogToggled,
         )
@@ -439,7 +449,7 @@ private fun DiscoveryPhaseRow(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Discovery Phase",
+                    text = stringResource(R.string.settings_discovery_phase),
                     style = SleepTypography.BodyLarge,
                     color = if (locked && !state.discoveryPhaseCompleted) SleepColors.White.copy(alpha = 0.4f) else SleepColors.White,
                 )
@@ -451,13 +461,14 @@ private fun DiscoveryPhaseRow(
                     )
                 }
             }
+            val infoDescription = stringResource(R.string.settings_discovery_info_description)
             Text(
                 text = "ℹ",
                 style = SleepTypography.BodyLarge,
                 color = SleepColors.Silver,
                 modifier = Modifier
                     .minimumInteractiveComponentSize()
-                    .clearAndSetSemantics { contentDescription = "Discovery Phase information" }
+                    .clearAndSetSemantics { contentDescription = infoDescription }
                     .clickable(onClick = onShowInfo),
             )
         }
@@ -472,7 +483,7 @@ private fun DiscoveryPhaseRow(
         if (state.discoveryStartError != null) {
             Spacer(modifier = Modifier.height(Spacing.XXS))
             Text(
-                text = state.discoveryStartError,
+                text = stringResource(state.discoveryStartError),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.ErrorRed,
             )
@@ -482,15 +493,20 @@ private fun DiscoveryPhaseRow(
 
 @Composable
 private fun DiscoveryPhaseCompletedStatus(onViewDiscoveryResults: () -> Unit) {
-    Text(text = "Phase complete", style = SleepTypography.BodyMedium, color = SleepColors.IndigoGlow)
-    Spacer(modifier = Modifier.height(Spacing.XS))
     Text(
-        text = "View Results →",
+        text = stringResource(R.string.settings_discovery_complete),
+        style = SleepTypography.BodyMedium,
+        color = SleepColors.IndigoGlow,
+    )
+    Spacer(modifier = Modifier.height(Spacing.XS))
+    val viewResultsDescription = stringResource(R.string.settings_discovery_view_results_description)
+    Text(
+        text = stringResource(R.string.settings_discovery_view_results),
         style = SleepTypography.BodyMedium,
         color = SleepColors.CyanGlow,
         modifier = Modifier
             .minimumInteractiveComponentSize()
-            .clearAndSetSemantics { contentDescription = "View Discovery Phase results" }
+            .clearAndSetSemantics { contentDescription = viewResultsDescription }
             .clickable(onClick = onViewDiscoveryResults),
     )
 }
@@ -507,38 +523,49 @@ private fun DiscoveryPhaseStatus(
         state.discoveryPhaseCompleted -> DiscoveryPhaseCompletedStatus(onViewDiscoveryResults)
         state.discoveryPhaseActive -> {
             Text(
-                text = "Aktiv · Dag ${state.discoveryDayNumber}/21",
+                text = stringResource(R.string.settings_discovery_active, state.discoveryDayNumber),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.IndigoGlow,
             )
             Spacer(modifier = Modifier.height(Spacing.XS))
+            val cancelDescription = stringResource(R.string.settings_discovery_cancel_description)
             Text(
-                text = "Avsluta →",
+                text = stringResource(R.string.settings_discovery_end),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.ErrorRed,
                 modifier = Modifier
                     .minimumInteractiveComponentSize()
-                    .clearAndSetSemantics { contentDescription = "Cancel Discovery Phase" }
+                    .clearAndSetSemantics { contentDescription = cancelDescription }
                     .clickable(onClick = onCancelDiscovery),
             )
         }
         locked -> {
             Text(
-                text = "${state.ratingDaysCount} / $DISCOVERY_LOCK_THRESHOLD days rated",
+                text = pluralStringResource(
+                    R.plurals.settings_discovery_days_rated,
+                    state.ratingDaysCount,
+                    state.ratingDaysCount,
+                    DISCOVERY_LOCK_THRESHOLD,
+                ),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.Silver.copy(alpha = 0.4f),
             )
         }
         else -> {
-            Text(text = "Inaktiv", style = SleepTypography.BodyMedium, color = SleepColors.Silver)
-            Spacer(modifier = Modifier.height(Spacing.XS))
             Text(
-                text = "Starta Discovery Phase →",
+                text = stringResource(R.string.settings_discovery_inactive),
+                style = SleepTypography.BodyMedium,
+                color = SleepColors.Silver,
+            )
+            Spacer(modifier = Modifier.height(Spacing.XS))
+            val startDescription = stringResource(R.string.settings_discovery_start_description)
+            Text(
+                text = stringResource(R.string.settings_discovery_start_prompt),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.IndigoGlow,
                 modifier = Modifier
                     .minimumInteractiveComponentSize()
-                    .clearAndSetSemantics { contentDescription = "Start Discovery Phase" }
+                    .clearAndSetSemantics { contentDescription = startDescription }
                     .clickable(onClick = onStartDiscovery),
             )
         }
@@ -551,7 +578,7 @@ private fun DiscoveryPhaseInfoDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Discovery Phase",
+                text = stringResource(R.string.settings_discovery_dialog_title),
                 style = SleepTypography.HeadlineMedium,
                 color = SleepColors.White,
             )
@@ -559,27 +586,27 @@ private fun DiscoveryPhaseInfoDialog(onDismiss: () -> Unit) {
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Text(
-                    text = "Under 21 dagar testar appen tre varianter av din sömnrutin för att hitta vad som funkar bäst för dig.",
+                    text = stringResource(R.string.settings_discovery_dialog_body),
                     style = SleepTypography.BodyMedium,
                     color = SleepColors.Silver,
                 )
                 Text(
-                    text = "• Vecka 1 — längre insomningstid (30 min)",
+                    text = stringResource(R.string.settings_discovery_dialog_week1),
                     style = SleepTypography.BodyMedium,
                     color = SleepColors.Silver,
                 )
                 Text(
-                    text = "• Vecka 2 — längre cykler (105 min)",
+                    text = stringResource(R.string.settings_discovery_dialog_week2),
                     style = SleepTypography.BodyMedium,
                     color = SleepColors.Silver,
                 )
                 Text(
-                    text = "• Vecka 3 — färre cykler (5 st)",
+                    text = stringResource(R.string.settings_discovery_dialog_week3),
                     style = SleepTypography.BodyMedium,
                     color = SleepColors.Silver,
                 )
                 Text(
-                    text = "Betygsätt din sömn varje dag. Efter 21 dagar väljs den bästa varianten automatiskt.",
+                    text = stringResource(R.string.settings_discovery_dialog_footer),
                     style = SleepTypography.BodyMedium,
                     color = SleepColors.Silver,
                 )
@@ -587,7 +614,7 @@ private fun DiscoveryPhaseInfoDialog(onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = "Stäng", color = SleepColors.CyanGlow)
+                Text(text = stringResource(R.string.settings_discovery_dialog_close), color = SleepColors.CyanGlow)
             }
         },
         containerColor = SleepColors.MidnightBlue,
@@ -597,7 +624,7 @@ private fun DiscoveryPhaseInfoDialog(onDismiss: () -> Unit) {
 @Composable
 private fun DiscoveryProgressSection(state: SettingsUiState) {
     AnimatedVisibility(visible = state.discoveryPhaseActive) {
-        SettingsSection(title = "DISCOVERY PHASE PROGRESS") {
+        SettingsSection(title = stringResource(R.string.settings_section_discovery_progress)) {
             DiscoveryProgressBar(dayNumber = state.discoveryDayNumber)
             Spacer(modifier = Modifier.height(Spacing.XS))
             Row(
@@ -605,20 +632,27 @@ private fun DiscoveryProgressSection(state: SettingsUiState) {
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = "Day ${state.discoveryDayNumber} / 21",
+                    text = stringResource(R.string.settings_discovery_day_progress, state.discoveryDayNumber),
                     style = SleepTypography.BodyMedium,
                     color = SleepColors.IndigoGlow,
                 )
                 Text(
-                    text = "${state.discoveryWeekRatingsCount} ratings this week",
+                    text = pluralStringResource(
+                        R.plurals.settings_discovery_ratings_this_week,
+                        state.discoveryWeekRatingsCount,
+                        state.discoveryWeekRatingsCount,
+                    ),
                     style = SleepTypography.BodyMedium,
                     color = SleepColors.Silver,
                 )
             }
-            if (state.discoveryCurrentShiftName.isNotBlank()) {
+            if (state.discoveryCurrentShift != null) {
                 Spacer(modifier = Modifier.height(Spacing.XXS))
                 Text(
-                    text = "Current shift: ${state.discoveryCurrentShiftName}",
+                    text = stringResource(
+                        R.string.settings_discovery_current_shift,
+                        state.discoveryCurrentShift.displayNameRes(),
+                    ),
                     style = SleepTypography.BodyMedium,
                     color = SleepColors.Silver,
                 )
@@ -649,9 +683,9 @@ private fun FeaturesSection(
     onViewDiscoveryResults: () -> Unit,
 ) {
     var consistencyScoreEnabled by remember { mutableStateOf(false) }
-    SettingsSection(title = "FEATURES") {
+    SettingsSection(title = stringResource(R.string.settings_section_features)) {
         SleepToggle(
-            label = "Smart Wake Window",
+            label = stringResource(R.string.settings_smart_wake),
             checked = state.smartWakeEnabled,
             onCheckedChange = onSmartWakeToggled,
         )
@@ -665,13 +699,13 @@ private fun FeaturesSection(
         )
         SettingsDivider()
         SleepToggle(
-            label = "Pattern Insights in History",
+            label = stringResource(R.string.settings_pattern_insights),
             checked = state.patternInsightsEnabled,
             onCheckedChange = onPatternInsightsToggled,
         )
         SettingsDivider()
         SleepToggle(
-            label = "Consistency Score in History",
+            label = stringResource(R.string.settings_consistency_score),
             checked = consistencyScoreEnabled,
             onCheckedChange = { consistencyScoreEnabled = it },
         )
@@ -700,39 +734,39 @@ private fun DataPrivacySection(
     state: SettingsUiState,
     onFirebaseSyncToggled: (Boolean) -> Unit,
 ) {
-    SettingsSection(title = "DATA & PRIVACY") {
+    SettingsSection(title = stringResource(R.string.settings_section_data_privacy)) {
         Column(modifier = Modifier.fillMaxWidth()) {
             SleepToggle(
-                label = "Firebase Sync",
+                label = stringResource(R.string.settings_firebase_sync),
                 checked = state.firebaseSyncEnabled,
                 onCheckedChange = onFirebaseSyncToggled,
             )
             Text(
-                text = "Last synced: Today",
+                text = stringResource(R.string.settings_last_synced),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.Silver,
                 modifier = Modifier.padding(start = Spacing.XS, bottom = Spacing.XS),
             )
         }
         SettingsDivider()
-        SettingsLinkRow(label = "Export Data", onClick = {})
+        SettingsLinkRow(label = stringResource(R.string.settings_export_data), onClick = {})
     }
 }
 
 @Composable
 private fun AboutSection() {
-    SettingsSection(title = "ABOUT") {
+    SettingsSection(title = stringResource(R.string.settings_section_about)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(text = "Version", style = SleepTypography.BodyLarge, color = SleepColors.White)
+            Text(text = stringResource(R.string.settings_version), style = SleepTypography.BodyLarge, color = SleepColors.White)
             Text(text = APP_VERSION, style = SleepTypography.BodyMedium, color = SleepColors.Silver)
         }
         SettingsDivider()
-        SettingsLinkRow(label = "Privacy Policy", onClick = {})
+        SettingsLinkRow(label = stringResource(R.string.settings_privacy_policy), onClick = {})
         SettingsDivider()
-        SettingsLinkRow(label = "GitHub", onClick = {})
+        SettingsLinkRow(label = stringResource(R.string.settings_github), onClick = {})
     }
 }
 
@@ -753,7 +787,7 @@ private fun CheckInTimePickerDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Check-in Time",
+                text = stringResource(R.string.settings_checkin_time_dialog_title),
                 style = SleepTypography.HeadlineMedium,
                 color = SleepColors.White,
             )
@@ -761,12 +795,12 @@ private fun CheckInTimePickerDialog(
         text = { TimePicker(state = pickerState) },
         confirmButton = {
             TextButton(onClick = { onConfirm(pickerState.hour, pickerState.minute) }) {
-                Text(text = "Confirm", color = SleepColors.CyanGlow)
+                Text(text = stringResource(R.string.common_confirm), color = SleepColors.CyanGlow)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = "Cancel", color = SleepColors.Silver)
+                Text(text = stringResource(R.string.common_cancel), color = SleepColors.Silver)
             }
         },
         containerColor = SleepColors.MidnightBlue,
@@ -790,7 +824,7 @@ internal fun DiscoveryProgressSectionPreview() {
                 isLoading = false,
                 discoveryPhaseActive = true,
                 discoveryDayNumber = 9,
-                discoveryCurrentShiftName = "Longer cycles (105 min)",
+                discoveryCurrentShift = ShiftType.LongerCycles,
                 discoveryWeekRatingsCount = 2,
             ),
         )

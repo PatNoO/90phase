@@ -1,5 +1,8 @@
 package com.example.a90phase.presentation.viewmodels
 
+import androidx.annotation.StringRes
+import com.example.a90phase.domain.entities.ShiftType
+
 data class SettingsUiState(
     val isLoading: Boolean = true,
     val cycleLengthMin: Int = 90,
@@ -16,8 +19,8 @@ data class SettingsUiState(
     val ratingDaysCount: Int = 0,
     val discoveryPhaseActive: Boolean = false,
     val discoveryDayNumber: Int = 0,
-    val discoveryCurrentShiftName: String = "",
+    val discoveryCurrentShift: ShiftType? = null,
     val discoveryWeekRatingsCount: Int = 0,
     val discoveryPhaseCompleted: Boolean = false,
-    val discoveryStartError: String? = null,
+    @StringRes val discoveryStartError: Int? = null,
 )

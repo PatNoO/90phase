@@ -1,11 +1,13 @@
 package com.example.a90phase.presentation.viewmodels
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.a90phase.domain.repositories.SleepRepository
 import com.example.a90phase.domain.usecases.DeleteSleepLogUseCase
 import com.example.a90phase.domain.usecases.GetSleepLogUseCase
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -35,7 +37,7 @@ class LogDetailViewModel @Inject constructor(
 
     val uiState: StateFlow<LogDetailUiState> = getSleepLogUseCase(logId)
         .map { log -> if (log != null) LogDetailUiState.Content(log) else LogDetailUiState.NotFound }
-        .catch { emit(LogDetailUiState.Error("Could not load this sleep log")) }
+        .catch { emit(LogDetailUiState.Error(R.string.error_database)) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -46,7 +48,7 @@ class LogDetailViewModel @Inject constructor(
         viewModelScope.launch {
             deleteSleepLogUseCase(logId)
                 .onSuccess { _events.tryEmit(LogDetailEvent.Deleted) }
-                .onError { _events.tryEmit(LogDetailEvent.DeleteFailed("Could not delete this sleep log")) }
+                .onError { error -> _events.tryEmit(LogDetailEvent.DeleteFailed(error.toMessageRes())) }
         }
     }
 }
@@ -54,5 +56,5 @@ class LogDetailViewModel @Inject constructor(
 sealed class LogDetailEvent {
     data object Deleted : LogDetailEvent()
 
-    data class DeleteFailed(val message: String) : LogDetailEvent()
+    data class DeleteFailed(@StringRes val messageRes: Int) : LogDetailEvent()
 }

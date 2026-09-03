@@ -81,7 +81,7 @@ class CalculatorViewModel @Inject constructor(
                 alarmActive = alarmActive,
             )
             is Result.Error -> _uiState.value = SleepCalculatorUiState.Error(
-                message = result.error.toSwedishMessage(),
+                messageRes = result.error.toMessageRes(),
             )
             is Result.Loading -> Unit
         }

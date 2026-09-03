@@ -30,12 +30,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.a90phase.domain.entities.ShiftType
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.theme.BackgroundGradient
 import com.example.a90phase.presentation.theme.NightSkyTheme
 import com.example.a90phase.presentation.theme.SleepColors
@@ -43,6 +45,7 @@ import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.StarFieldBackground
 import com.example.a90phase.presentation.theme.glassCard
+import com.example.a90phase.presentation.util.displayNameRes
 import com.example.a90phase.presentation.viewmodels.DiscoveryResultsUiState
 import com.example.a90phase.presentation.viewmodels.DiscoveryResultsViewModel
 
@@ -85,7 +88,7 @@ fun DiscoveryResultsScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = state.message,
+                        text = stringResource(state.messageRes),
                         color = SleepColors.ErrorRed,
                         style = SleepTypography.BodyLarge,
                     )
@@ -99,7 +102,7 @@ fun DiscoveryResultsScreen(
                     )
                     if (state.applyError != null) {
                         ApplyErrorDialog(
-                            message = state.applyError,
+                            message = stringResource(state.applyError),
                             onDismiss = onDismiss,
                         )
                     }
@@ -112,10 +115,11 @@ fun DiscoveryResultsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DiscoveryResultsTopBar(onDismiss: () -> Unit) {
+    val dismissDescription = stringResource(R.string.discovery_results_dismiss)
     TopAppBar(
         title = {
             Text(
-                text = "Discovery Phase Complete",
+                text = stringResource(R.string.discovery_results_title),
                 style = SleepTypography.HeadlineMedium,
                 color = SleepColors.White,
             )
@@ -127,7 +131,7 @@ private fun DiscoveryResultsTopBar(onDismiss: () -> Unit) {
                     style = SleepTypography.HeadlineMedium,
                     color = SleepColors.Silver,
                     modifier = Modifier.clearAndSetSemantics {
-                        contentDescription = "Dismiss"
+                        contentDescription = dismissDescription
                     },
                 )
             }
@@ -184,9 +188,9 @@ private fun SectionCard(title: String, content: @Composable () -> Unit) {
 
 @Composable
 private fun WinnerSection(state: DiscoveryResultsUiState.Ready) {
-    SectionCard(title = "WINNING SHIFT") {
+    SectionCard(title = stringResource(R.string.discovery_results_winning_shift_section)) {
         Text(
-            text = state.winningShift.displayName,
+            text = state.winningShift.displayNameRes(),
             style = SleepTypography.HeadlineMedium,
             color = SleepColors.IndigoGlow,
         )
@@ -194,14 +198,14 @@ private fun WinnerSection(state: DiscoveryResultsUiState.Ready) {
         val winnerAvg = state.averageRatings[state.winningShift]
         if (winnerAvg != null) {
             Text(
-                text = "Average rating: ${"%.1f".format(winnerAvg)} / 5.0",
+                text = stringResource(R.string.discovery_results_average_rating, "%.1f".format(winnerAvg)),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.Silver,
             )
         }
         Spacer(modifier = Modifier.height(Spacing.XS))
         Text(
-            text = "This shift produced your best sleep quality over the 21-day programme.",
+            text = stringResource(R.string.discovery_results_winner_description),
             style = SleepTypography.BodyMedium,
             color = SleepColors.Silver,
         )
@@ -210,7 +214,7 @@ private fun WinnerSection(state: DiscoveryResultsUiState.Ready) {
 
 @Composable
 private fun RatingsSection(state: DiscoveryResultsUiState.Ready) {
-    SectionCard(title = "ALL SHIFT RATINGS") {
+    SectionCard(title = stringResource(R.string.discovery_results_all_ratings_section)) {
         val orderedShifts = listOf(ShiftType.LongerLatency, ShiftType.LongerCycles, ShiftType.FewerCycles)
         orderedShifts.forEachIndexed { index, shift ->
             val avg = state.averageRatings[shift]
@@ -238,7 +242,7 @@ private fun ShiftRatingRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = shift.displayName,
+            text = shift.displayNameRes(),
             style = SleepTypography.BodyLarge,
             color = if (isWinner) SleepColors.IndigoGlow else SleepColors.White,
         )
@@ -248,7 +252,7 @@ private fun ShiftRatingRow(
         ) {
             if (average != null) {
                 Text(
-                    text = "${"%.1f".format(average)} ★",
+                    text = stringResource(R.string.discovery_results_rating_value, "%.1f".format(average)),
                     style = SleepTypography.BodyMedium,
                     color = if (isWinner) SleepColors.IndigoGlow else SleepColors.Silver,
                 )
@@ -282,23 +286,23 @@ private fun ParameterRow(label: String, before: String, after: String, changed: 
 
 @Composable
 private fun ParametersSection(state: DiscoveryResultsUiState.Ready) {
-    SectionCard(title = "BEFORE / AFTER") {
+    SectionCard(title = stringResource(R.string.discovery_results_before_after_section)) {
         ParameterRow(
-            label = "Cycle duration",
-            before = "${state.previousCycleDuration} min",
-            after = "${state.newCycleDuration} min",
+            label = stringResource(R.string.discovery_results_cycle_duration),
+            before = stringResource(R.string.discovery_results_minutes_value, state.previousCycleDuration),
+            after = stringResource(R.string.discovery_results_minutes_value, state.newCycleDuration),
             changed = state.previousCycleDuration != state.newCycleDuration,
         )
         Spacer(modifier = Modifier.height(Spacing.XS))
         ParameterRow(
-            label = "Sleep latency",
-            before = "${state.previousSleepLatency} min",
-            after = "${state.newSleepLatency} min",
+            label = stringResource(R.string.discovery_results_sleep_latency),
+            before = stringResource(R.string.discovery_results_minutes_value, state.previousSleepLatency),
+            after = stringResource(R.string.discovery_results_minutes_value, state.newSleepLatency),
             changed = state.previousSleepLatency != state.newSleepLatency,
         )
         Spacer(modifier = Modifier.height(Spacing.XS))
         ParameterRow(
-            label = "Cycle count",
+            label = stringResource(R.string.discovery_results_cycle_count),
             before = "${state.previousCycleCount}",
             after = "${state.newCycleCount}",
             changed = state.previousCycleCount != state.newCycleCount,
@@ -325,7 +329,7 @@ private fun ActionButtons(
                 contentColor = SleepColors.White,
             ),
         ) {
-            Text(text = "Apply Results", style = SleepTypography.BodyLarge)
+            Text(text = stringResource(R.string.discovery_results_apply), style = SleepTypography.BodyLarge)
         }
         OutlinedButton(
             onClick = onDismiss,
@@ -334,10 +338,10 @@ private fun ActionButtons(
                 contentColor = SleepColors.Silver,
             ),
         ) {
-            Text(text = "Dismiss", style = SleepTypography.BodyLarge)
+            Text(text = stringResource(R.string.discovery_results_dismiss_button), style = SleepTypography.BodyLarge)
         }
         Text(
-            text = "You can return to this screen from Settings at any time.",
+            text = stringResource(R.string.discovery_results_footer_note),
             style = SleepTypography.BodyMedium,
             color = SleepColors.Silver,
             modifier = Modifier.padding(top = Spacing.XXS),
@@ -350,14 +354,18 @@ private fun ApplyErrorDialog(message: String, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = "Could Not Apply", style = SleepTypography.HeadlineMedium, color = SleepColors.White)
+            Text(
+                text = stringResource(R.string.discovery_results_apply_error_title),
+                style = SleepTypography.HeadlineMedium,
+                color = SleepColors.White,
+            )
         },
         text = {
             Text(text = message, style = SleepTypography.BodyMedium, color = SleepColors.Silver)
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = "OK", color = SleepColors.CyanGlow)
+                Text(text = stringResource(R.string.common_ok), color = SleepColors.CyanGlow)
             }
         },
         containerColor = SleepColors.MidnightBlue,

@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.theme.NightSkyTheme
 import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
@@ -21,9 +23,10 @@ fun StarRating(
     modifier: Modifier = Modifier,
 ) {
     val displayRating = rating?.coerceIn(0, MAX_STARS) ?: 0
+    val description = stringResource(R.string.star_rating_description, displayRating, MAX_STARS)
     Row(
         modifier = modifier.semantics(mergeDescendants = true) {
-            contentDescription = "$displayRating out of $MAX_STARS stars"
+            contentDescription = description
         },
     ) {
         repeat(MAX_STARS) { index ->

@@ -6,6 +6,7 @@ import com.example.a90phase.domain.common.Result
 import com.example.a90phase.domain.entities.ShiftType
 import com.example.a90phase.domain.repositories.UserPreferencesRepository
 import com.example.a90phase.domain.usecases.AnalyzeDiscoveryPhaseUseCase
+import com.example.a90phase.presentation.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,7 @@ class DiscoveryResultsViewModel @Inject constructor(
             userPreferencesRepository.observeUserProfile().collect { profile ->
                 if (isApplied) return@collect
                 val phase = profile.discoveryPhase ?: run {
-                    _uiState.value = DiscoveryResultsUiState.Error("No discovery phase data available")
+                    _uiState.value = DiscoveryResultsUiState.Error(R.string.discovery_results_no_data)
                     return@collect
                 }
                 val averageByShift = phase.weeklyRatings
@@ -68,7 +69,7 @@ class DiscoveryResultsViewModel @Inject constructor(
                 }
                 is Result.Error -> _uiState.update { state ->
                     if (state is DiscoveryResultsUiState.Ready) {
-                        state.copy(applyError = result.error.message ?: "Failed to apply results")
+                        state.copy(applyError = result.error.toMessageRes())
                     } else {
                         state
                     }

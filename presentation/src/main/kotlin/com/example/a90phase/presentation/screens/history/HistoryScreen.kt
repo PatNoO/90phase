@@ -48,10 +48,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -62,6 +64,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.a90phase.domain.entities.ConsistencyScore
 import com.example.a90phase.domain.entities.PatternInsight
 import com.example.a90phase.domain.entities.SleepLog
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.components.SectionHeader
 import com.example.a90phase.presentation.components.SleepLogCard
 import com.example.a90phase.presentation.theme.NightSkyTheme
@@ -71,6 +74,7 @@ import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.StarFieldBackground
 import com.example.a90phase.presentation.theme.glassCard
+import com.example.a90phase.presentation.util.localizedName
 import com.example.a90phase.presentation.viewmodels.HistoryUiState
 import com.example.a90phase.presentation.viewmodels.HistoryViewModel
 
@@ -85,9 +89,12 @@ fun HistoryScreen(
     val vmState by viewModel.uiState.collectAsStateWithLifecycle()
     var period by remember { mutableStateOf(HistoryPeriod.WEEK) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val resources = LocalResources.current
 
     LaunchedEffect(Unit) {
-        viewModel.errors.collect { message -> snackbarHostState.showSnackbar(message) }
+        viewModel.errors.collect { messageRes ->
+            snackbarHostState.showSnackbar(resources.getString(messageRes))
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -117,7 +124,7 @@ fun HistoryScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "Databasfel — försök igen",
+                        text = stringResource(state.messageRes),
                         color = SleepColors.ErrorRed,
                         style = SleepTypography.BodyLarge,
                     )
@@ -129,6 +136,7 @@ fun HistoryScreen(
 
 @Composable
 private fun HistoryFab(visible: Boolean) {
+    val addLogDescription = stringResource(R.string.history_add_log)
     AnimatedVisibility(
         visible = visible,
         enter = scaleIn(tween(200)) + fadeIn(tween(200)),
@@ -138,7 +146,7 @@ private fun HistoryFab(visible: Boolean) {
             onClick = {},
             containerColor = SleepColors.CyanGlow,
             contentColor = SleepColors.DeepSpace,
-            modifier = Modifier.semantics { contentDescription = "Add sleep log" },
+            modifier = Modifier.semantics { contentDescription = addLogDescription },
         ) {
             Text(text = "+", style = SleepTypography.HeadlineMedium)
         }
@@ -150,12 +158,16 @@ private fun HistoryFab(visible: Boolean) {
 private fun HistoryTopBar(period: HistoryPeriod, onPeriodChange: (HistoryPeriod) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     TopAppBar(
-        title = { Text(text = "Sleep History", style = SleepTypography.HeadlineMedium, color = SleepColors.White) },
+        title = {
+            Text(text = stringResource(R.string.history_title), style = SleepTypography.HeadlineMedium, color = SleepColors.White)
+        },
         actions = {
             Box {
                 TextButton(onClick = { expanded = true }) {
                     Text(
-                        text = if (period == HistoryPeriod.WEEK) "Week ▾" else "Month ▾",
+                        text = stringResource(
+                            if (period == HistoryPeriod.WEEK) R.string.history_period_week else R.string.history_period_month,
+                        ),
                         style = SleepTypography.BodyMedium,
                         color = SleepColors.CyanGlow,
                     )
@@ -166,11 +178,23 @@ private fun HistoryTopBar(period: HistoryPeriod, onPeriodChange: (HistoryPeriod)
                     containerColor = SleepColors.MidnightBlue,
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Week", color = SleepColors.White, style = SleepTypography.BodyMedium) },
+                        text = {
+                            Text(
+                                stringResource(R.string.history_period_week_item),
+                                color = SleepColors.White,
+                                style = SleepTypography.BodyMedium,
+                            )
+                        },
                         onClick = { onPeriodChange(HistoryPeriod.WEEK); expanded = false },
                     )
                     DropdownMenuItem(
-                        text = { Text("Month", color = SleepColors.White, style = SleepTypography.BodyMedium) },
+                        text = {
+                            Text(
+                                stringResource(R.string.history_period_month_item),
+                                color = SleepColors.White,
+                                style = SleepTypography.BodyMedium,
+                            )
+                        },
                         onClick = { onPeriodChange(HistoryPeriod.MONTH); expanded = false },
                     )
                 }
@@ -211,7 +235,7 @@ private fun HistoryContent(
         }
         item {
             Spacer(Modifier.height(Spacing.Medium))
-            SectionHeader(title = "Sleep Log")
+            SectionHeader(title = stringResource(R.string.history_section_title))
         }
         items(logs) { log ->
             SleepLogCard(log = log, onClick = { onLogClick(log.id) })
@@ -222,8 +246,8 @@ private fun HistoryContent(
 @Composable
 private fun WeeklySummaryCard(logs: List<SleepLog>, consistencyScore: ConsistencyScore?) {
     val avgRating = logs.mapNotNull { it.qualityRating }.average().takeIf { !it.isNaN() } ?: 0.0
-    val bestDay = logs.maxByOrNull { it.qualityRating ?: 0 }?.date?.dayOfWeek?.toString()
-        ?.lowercase()?.replaceFirstChar { it.uppercase() }
+    // localizedName(), not DayOfWeek.toString() — the enum name is always English.
+    val bestDay = logs.maxByOrNull { it.qualityRating ?: 0 }?.date?.dayOfWeek?.localizedName()
     val avgMinutes = if (logs.isEmpty()) 0 else logs.map { it.sleepDurationMinutes }.average().toInt()
 
     Box(
@@ -241,13 +265,13 @@ private fun WeeklySummaryCard(logs: List<SleepLog>, consistencyScore: Consistenc
             CircularQualityIndicator(rating = avgRating.toFloat())
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "${avgMinutes / 60}h ${avgMinutes % 60}min avg",
+                    text = stringResource(R.string.history_avg_duration, avgMinutes / 60, avgMinutes % 60),
                     style = SleepTypography.HeadlineMedium,
                     color = SleepColors.White,
                 )
                 Spacer(Modifier.height(Spacing.XXS))
                 Text(
-                    text = "Best: ${bestDay ?: "—"}",
+                    text = stringResource(R.string.history_best_day, bestDay ?: stringResource(R.string.history_best_day_none)),
                     style = SleepTypography.BodyMedium,
                     color = SleepColors.Silver,
                 )
@@ -267,26 +291,30 @@ private fun ConsistencyScoreRow(score: ConsistencyScore) {
         ConsistencyScore.Label.MEDIUM -> SleepColors.GoodAmber
         ConsistencyScore.Label.LOW -> SleepColors.ErrorRed
     }
-    val labelText = when (score.label) {
-        ConsistencyScore.Label.HIGH -> "Hög"
-        ConsistencyScore.Label.MEDIUM -> "Medel"
-        ConsistencyScore.Label.LOW -> "Låg"
-    }
+    val labelText = stringResource(
+        when (score.label) {
+            ConsistencyScore.Label.HIGH -> R.string.history_consistency_high
+            ConsistencyScore.Label.MEDIUM -> R.string.history_consistency_medium
+            ConsistencyScore.Label.LOW -> R.string.history_consistency_low
+        },
+    )
+    val description = stringResource(R.string.history_consistency_description, labelText, score.percentage)
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End,
+        // spacedBy, not a trailing space in the resource — AAPT strips resource whitespace.
+        horizontalArrangement = Arrangement.spacedBy(Spacing.XXS, Alignment.End),
         modifier = Modifier.semantics(mergeDescendants = true) {
-            contentDescription = "Bedtime consistency: $labelText, ${score.percentage} percent"
+            contentDescription = description
         },
     ) {
         Text(
-            text = "Konsekvens: ",
+            text = stringResource(R.string.history_consistency_prefix),
             style = SleepTypography.BodyMedium,
             color = SleepColors.Silver,
             modifier = Modifier.clearAndSetSemantics {},
         )
         Text(
-            text = "$labelText ${score.percentage}%",
+            text = stringResource(R.string.history_consistency_value, labelText, score.percentage),
             style = SleepTypography.BodyMedium,
             color = labelColor,
             modifier = Modifier.clearAndSetSemantics {},
@@ -297,9 +325,10 @@ private fun ConsistencyScoreRow(score: ConsistencyScore) {
 @Composable
 private fun CircularQualityIndicator(rating: Float) {
     val sweepAngle = (rating / 5f).coerceIn(0f, 1f) * 360f
+    val ratingDescription = stringResource(R.string.history_avg_rating_description, "%.1f".format(rating))
     Box(
         modifier = Modifier.size(80.dp).clearAndSetSemantics {
-            contentDescription = "${"%.1f".format(rating)} out of 5 average quality rating"
+            contentDescription = ratingDescription
         },
         contentAlignment = Alignment.Center,
     ) {
@@ -339,12 +368,14 @@ private fun CircularQualityIndicator(rating: Float) {
 @Composable
 private fun SleepQualityChart(logs: List<SleepLog>, period: HistoryPeriod) {
     val displayLogs = logs.take(if (period == HistoryPeriod.WEEK) 7 else 30).reversed()
-    val periodLabel = if (period == HistoryPeriod.WEEK) "past week" else "past month"
+    val periodLabel = stringResource(
+        if (period == HistoryPeriod.WEEK) R.string.history_period_past_week else R.string.history_period_past_month,
+    )
     val avgRating = displayLogs.mapNotNull { it.qualityRating }.average().takeIf { !it.isNaN() }
     val chartDesc = if (avgRating != null) {
-        "Sleep quality chart for $periodLabel, average rating ${"%.1f".format(avgRating)} out of 5"
+        stringResource(R.string.history_quality_chart_description_data, periodLabel, "%.1f".format(avgRating))
     } else {
-        "Sleep quality chart for $periodLabel, no data"
+        stringResource(R.string.history_quality_chart_description_empty, periodLabel)
     }
     Box(
         modifier = Modifier
@@ -355,7 +386,7 @@ private fun SleepQualityChart(logs: List<SleepLog>, period: HistoryPeriod) {
             .padding(Spacing.Medium),
     ) {
         Column {
-            Text("Sleep Quality", style = SleepTypography.LabelMedium, color = SleepColors.Silver)
+            Text(stringResource(R.string.history_quality_chart_title), style = SleepTypography.LabelMedium, color = SleepColors.Silver)
             Spacer(Modifier.height(Spacing.XS))
             QualityDotCanvas(logs = displayLogs, modifier = Modifier.fillMaxWidth().height(100.dp))
         }
@@ -408,12 +439,13 @@ private fun PatternInsightCard(message: String, onDismiss: () -> Unit) {
             color = SleepColors.Silver,
             modifier = Modifier.weight(1f),
         )
+        val dismissDescription = stringResource(R.string.history_dismiss_insight)
         TextButton(onClick = onDismiss) {
             Text(
                 text = "✕",
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.SlateBlue,
-                modifier = Modifier.clearAndSetSemantics { contentDescription = "Dismiss insight" },
+                modifier = Modifier.clearAndSetSemantics { contentDescription = dismissDescription },
             )
         }
     }
@@ -423,10 +455,14 @@ private fun PatternInsightCard(message: String, onDismiss: () -> Unit) {
 private fun HistoryEmptyState(modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("No sleep logs yet", style = SleepTypography.HeadlineMedium, color = SleepColors.Silver)
+            Text(
+                stringResource(R.string.history_no_logs_title),
+                style = SleepTypography.HeadlineMedium,
+                color = SleepColors.Silver,
+            )
             Spacer(Modifier.height(Spacing.XS))
             Text(
-                text = "Your sleep history will appear here",
+                text = stringResource(R.string.history_no_logs_subtitle),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.SlateBlue,
             )

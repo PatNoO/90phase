@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -60,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.components.PrimaryButton
 import com.example.a90phase.presentation.theme.NightSkyTheme
 import com.example.a90phase.presentation.theme.OnboardingBackgroundGradient
@@ -78,12 +80,6 @@ private const val PERMISSIONS_PAGE = 1
 private const val GLOW_RADIUS = 200f
 internal const val FEATURE_GLOW_RADIUS = 160f
 internal const val ICON_SIZE_SP = 72
-private const val WELCOME_TAGLINE =
-    "Wake up at the right moment in your sleep cycle — feeling rested, not groggy."
-private const val WELCOME_NOTE =
-    "Built around 90-minute cycles. Tuned to you over time."
-private const val PERMISSIONS_SUBTITLE =
-    "Grant access to enable check-ins, alarms, and reminders."
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -194,17 +190,29 @@ private fun PermissionRationaleDialog(onConfirm: () -> Unit, onDismiss: () -> Un
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = "Notifications Needed", style = SleepTypography.HeadlineMedium, color = SleepColors.White)
+            Text(
+                text = stringResource(R.string.onboarding_notifications_needed_title),
+                style = SleepTypography.HeadlineMedium,
+                color = SleepColors.White,
+            )
         },
         text = {
             Text(
-                text = "Notifications power daily check-ins and bedtime reminders. Please grant access.",
+                text = stringResource(R.string.onboarding_notifications_needed_body),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.Silver,
             )
         },
-        confirmButton = { TextButton(onClick = onConfirm) { Text(text = "Grant", color = SleepColors.CyanGlow) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(text = "Skip", color = SleepColors.Silver) } },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(text = stringResource(R.string.onboarding_grant), color = SleepColors.CyanGlow)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.common_skip), color = SleepColors.Silver)
+            }
+        },
         containerColor = SleepColors.MidnightBlue,
     )
 }
@@ -217,12 +225,13 @@ private fun OnboardingTopBar(showBack: Boolean, onBack: () -> Unit) {
             .padding(horizontal = Spacing.Small, vertical = Spacing.XS),
     ) {
         if (showBack) {
+            val goBackDescription = stringResource(R.string.onboarding_go_back)
             TextButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
                 Text(
                     text = "←",
                     style = SleepTypography.HeadlineMedium,
                     color = SleepColors.Silver,
-                    modifier = Modifier.clearAndSetSemantics { contentDescription = "Go back" },
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = goBackDescription },
                 )
             }
         }
@@ -289,27 +298,27 @@ private fun OnboardingWelcomePage(onGetStarted: () -> Unit) {
         OnboardingIconGlow(icon = "🌙", iconSize = ICON_SIZE_SP.sp, glowRadius = GLOW_RADIUS)
         Spacer(modifier = Modifier.height(sectionSpacing))
         Text(
-            text = "Sleep Cycle Optimizer",
+            text = stringResource(R.string.onboarding_welcome_title),
             style = SleepTypography.HeadlineLarge,
             color = SleepColors.White,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(Spacing.Medium))
         Text(
-            text = WELCOME_TAGLINE,
+            text = stringResource(R.string.onboarding_welcome_tagline),
             style = SleepTypography.BodyLarge,
             color = SleepColors.Silver,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(Spacing.XS))
         Text(
-            text = WELCOME_NOTE,
+            text = stringResource(R.string.onboarding_welcome_note),
             style = SleepTypography.BodyMedium,
             color = SleepColors.SlateBlue,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
-        PrimaryButton(text = "Get started", onClick = onGetStarted)
+        PrimaryButton(text = stringResource(R.string.onboarding_get_started), onClick = onGetStarted)
     }
 }
 
@@ -329,34 +338,61 @@ private fun OnboardingPermissionsPage(onContinue: () -> Unit) {
     ) {
         OnboardingIconGlow(icon = "🛡", iconSize = ICON_SIZE_SP.sp, glowRadius = GLOW_RADIUS)
         Spacer(modifier = Modifier.height(sectionSpacing))
-        Text(text = "Permissions", style = SleepTypography.HeadlineLarge, color = SleepColors.White)
+        Text(
+            text = stringResource(R.string.onboarding_permissions_title),
+            style = SleepTypography.HeadlineLarge,
+            color = SleepColors.White,
+        )
         Spacer(modifier = Modifier.height(Spacing.Small))
         Text(
-            text = PERMISSIONS_SUBTITLE,
+            text = stringResource(R.string.onboarding_permissions_subtitle),
             style = SleepTypography.BodyLarge,
             color = SleepColors.Silver,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(sectionSpacing))
-        PermissionRow("🔔", "Notifications", "Required for check-ins and reminders", false)
-        Spacer(modifier = Modifier.height(Spacing.Small))
-        PermissionRow("⏰", "Exact Alarms", "Required for precise alarm timing", false)
-        Spacer(modifier = Modifier.height(Spacing.Small))
-        PermissionRow("📅", "Read Alarm", "Detects your existing alarm", true)
+        PermissionRows()
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
-        PrimaryButton(text = "Continue", onClick = {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val alarmManager = context.getSystemService(AlarmManager::class.java)
-                if (!alarmManager.canScheduleExactAlarms()) {
-                    context.startActivity(
-                        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        },
-                    )
-                }
-            }
-            onContinue()
-        })
+        PrimaryButton(
+            text = stringResource(R.string.common_continue),
+            onClick = { requestExactAlarmsIfNeeded(context); onContinue() },
+        )
+    }
+}
+
+@Composable
+private fun PermissionRows() {
+    PermissionRow(
+        "🔔",
+        stringResource(R.string.onboarding_permission_notifications_title),
+        stringResource(R.string.onboarding_permission_notifications_subtitle),
+        false,
+    )
+    Spacer(modifier = Modifier.height(Spacing.Small))
+    PermissionRow(
+        "⏰",
+        stringResource(R.string.onboarding_permission_alarms_title),
+        stringResource(R.string.onboarding_permission_alarms_subtitle),
+        false,
+    )
+    Spacer(modifier = Modifier.height(Spacing.Small))
+    PermissionRow(
+        "📅",
+        stringResource(R.string.onboarding_permission_read_alarm_title),
+        stringResource(R.string.onboarding_permission_read_alarm_subtitle),
+        true,
+    )
+}
+
+private fun requestExactAlarmsIfNeeded(context: android.content.Context) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+    val alarmManager = context.getSystemService(AlarmManager::class.java)
+    if (!alarmManager.canScheduleExactAlarms()) {
+        context.startActivity(
+            Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
+        )
     }
 }
 
@@ -380,13 +416,21 @@ private fun OnboardingWakeTimePage(
     ) {
         OnboardingIconGlow(icon = "⏰", iconSize = ICON_SIZE_SP.sp, glowRadius = GLOW_RADIUS)
         Spacer(modifier = Modifier.height(sectionSpacing))
-        Text(text = "Wake Time", style = SleepTypography.HeadlineLarge, color = SleepColors.White)
+        Text(
+            text = stringResource(R.string.onboarding_wake_time_title),
+            style = SleepTypography.HeadlineLarge,
+            color = SleepColors.White,
+        )
         Spacer(modifier = Modifier.height(Spacing.Small))
-        Text(text = "When do you want to wake up?", style = SleepTypography.BodyLarge, color = SleepColors.Silver)
+        Text(
+            text = stringResource(R.string.onboarding_wake_time_subtitle),
+            style = SleepTypography.BodyLarge,
+            color = SleepColors.Silver,
+        )
         Spacer(modifier = Modifier.height(sectionSpacing))
         WakeTimeDisplay(hour = wakeHour, minute = wakeMinute, onClick = onTapTime)
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
-        PrimaryButton(text = "Continue", onClick = onContinue)
+        PrimaryButton(text = stringResource(R.string.common_continue), onClick = onContinue)
     }
 }
 
@@ -431,7 +475,13 @@ private fun PermissionRow(icon: String, title: String, subtitle: String, isOptio
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = title, style = SleepTypography.BodyLarge, color = SleepColors.White)
                 if (isOptional) {
-                    Text(text = "  (optional)", style = SleepTypography.BodyMedium, color = SleepColors.Silver)
+                    // Explicit Spacer — AAPT strips leading whitespace from string resources.
+                    Spacer(modifier = Modifier.width(Spacing.XXS))
+                    Text(
+                        text = stringResource(R.string.onboarding_permission_optional),
+                        style = SleepTypography.BodyMedium,
+                        color = SleepColors.Silver,
+                    )
                 }
             }
             Text(text = subtitle, style = SleepTypography.BodyMedium, color = SleepColors.Silver)
@@ -442,13 +492,14 @@ private fun PermissionRow(icon: String, title: String, subtitle: String, isOptio
 @Composable
 private fun WakeTimeDisplay(hour: Int, minute: Int, onClick: () -> Unit) {
     val timeText = "%02d:%02d".format(hour, minute)
+    val description = stringResource(R.string.onboarding_wake_time_description, timeText)
     Text(
         text = timeText,
         style = SleepTypography.DisplayLarge,
         color = SleepColors.CyanGlow,
         modifier = Modifier
             .clearAndSetSemantics {
-                contentDescription = "$timeText, wake time, tap to change"
+                contentDescription = description
                 role = Role.Button
             }
             .clickable(onClick = onClick),
@@ -470,15 +521,21 @@ private fun WakeTimePickerDialog(
     )
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Wake Time", style = SleepTypography.HeadlineMedium, color = SleepColors.White) },
+        title = {
+            Text(
+                text = stringResource(R.string.onboarding_wake_time_title),
+                style = SleepTypography.HeadlineMedium,
+                color = SleepColors.White,
+            )
+        },
         text = { TimePicker(state = pickerState) },
         confirmButton = {
             TextButton(onClick = { onConfirm(pickerState.hour, pickerState.minute) }) {
-                Text(text = "Confirm", color = SleepColors.CyanGlow)
+                Text(text = stringResource(R.string.common_confirm), color = SleepColors.CyanGlow)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(text = "Cancel", color = SleepColors.Silver) }
+            TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.common_cancel), color = SleepColors.Silver) }
         },
         containerColor = SleepColors.MidnightBlue,
     )
@@ -490,9 +547,10 @@ private fun PageIndicator(
     currentPage: Int,
     modifier: Modifier = Modifier,
 ) {
+    val description = stringResource(R.string.onboarding_page_indicator_description, currentPage + 1, pageCount)
     Row(
         modifier = modifier.semantics {
-            contentDescription = "Page ${currentPage + 1} of $pageCount"
+            contentDescription = description
         },
         horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
         verticalAlignment = Alignment.CenterVertically,
