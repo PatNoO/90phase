@@ -140,23 +140,42 @@ SLEEP_LATENCY   = 15.minutes  // default, adjustable in Discovery Phase
 
 ---
 
-## Design System
+## Design System — "Night Sky"
 
-Material3 with custom color scheme. Never hardcode color values — always use the theme.
+The app ships a **custom dark-only design system** called Night Sky, defined in
+`presentation/.../theme/`. It is the single source of design truth — Material3 supplies the
+component library, Night Sky supplies every token.
 
-```
-Primary:       Deep indigo / night sky tone
-OnPrimary:     White
-Secondary:     Muted blue-grey
-Surface:       Near-black for dark mode, near-white for light
-Typography:    Material3 defaults — adjust weight/size, never font family
-```
+| Token type | Object | File |
+|------------|--------|------|
+| Colours | `SleepColors` | `theme/SleepColors.kt` |
+| Typography | `SleepTypography` | `theme/Type.kt` |
+| Shapes | `SleepShapes` | `theme/SleepShapes.kt` |
+| Spacing | `Spacing` | `theme/Spacing.kt` |
 
-Compose guidelines:
-- `MaterialTheme.colorScheme.*` — never hardcoded hex
-- `MaterialTheme.typography.*` — never hardcoded sp
-- `MaterialTheme.shapes.*` — cards 16.dp, buttons 12.dp
-- Spacing scale: 4, 8, 12, 16, 24, 32 dp — no arbitrary values
+`NightSkyTheme` (`theme/Theme.kt`) maps the palette onto a Material3 `darkColorScheme` so
+built-in M3 components (`NavigationBar`, `Switch`, `TimePicker`, …) inherit the right colours
+without per-call overrides.
+
+### Compose rules
+
+- **Colour:** `SleepColors.*` — never a raw `Color(0xFF…)` in a composable. Semantic colours
+  (`OptimalGreen`, `GoodAmber`, `PassedGray`, `ErrorRed`) are used directly, not via M3 slots.
+- **Typography:** `SleepTypography.*` — never a raw `.sp` value in a composable.
+- **Shape:** `SleepShapes.*` — never a raw `RoundedCornerShape(n.dp)`.
+- **Spacing:** `Spacing.*` (4/8/12/16/24/32/48/64) — never an arbitrary `.dp`.
+  A deliberate one-off must carry a comment explaining why the scale does not fit.
+- **`MaterialTheme.colorScheme.*` / `MaterialTheme.typography.*` are NOT used directly** in
+  app composables. They exist only so M3 components have sane defaults.
+- Dark mode only — there is no light colour scheme, by design.
+
+### Strings
+
+- **No hardcoded user-facing text in composables.** Every string lives in
+  `presentation/src/main/res/values/strings.xml` (English, default) with the Swedish
+  translation in `values-sv/strings.xml`. App-module notification text follows the same
+  rule in `app/src/main/res/values*/strings.xml`.
+- Use `stringResource(R.string.…)`; format with placeholders, never string concatenation.
 
 ---
 
@@ -291,7 +310,8 @@ google-services.json      # Firebase config — never committed, add to .gitigno
 - `./gradlew test` passes
 - `./gradlew build` succeeds
 - `:domain` has zero Android/Firebase imports
-- No hardcoded colors, spacing, or typography values in Compose
+- No hardcoded colors, spacing, typography, or user-facing strings in Compose
+- New user-facing strings added to both `values/strings.xml` and `values-sv/strings.xml`
 - No `any`-equivalent (`Any`, unchecked casts) in domain/data layers
 - All new repository methods return `Result<T>`
 - StateFlow exposed from ViewModel, not MutableStateFlow

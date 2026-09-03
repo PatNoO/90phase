@@ -156,7 +156,9 @@ Use the template matching the ticket type from Step 1.
 - <What is explicitly not included>
 
 ## Design Reference
-- Follows Material3 theming — `MaterialTheme.colorScheme`, `MaterialTheme.typography`, `MaterialTheme.shapes` only
+- Night Sky design system only — `SleepColors.*`, `SleepTypography.*`, `SleepShapes.*`, `Spacing.*`
+  (see CLAUDE.md § Design System). No raw hex, no raw `.sp`, no arbitrary `.dp`
+- All user-facing strings via `stringResource` — added to both `values/strings.xml` (en) and `values-sv/strings.xml`
 - Relevant screen: <Calculator / History / Settings / Onboarding / Discovery>
 - Dark mode must be verified
 
