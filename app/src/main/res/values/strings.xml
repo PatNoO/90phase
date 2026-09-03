@@ -41,5 +41,11 @@
     <!-- Alarm ring screen -->
     <string name="alarm_ring_message">Time to wake up</string>
     <string name="alarm_ring_dismiss">Dismiss</string>
-    <string name="alarm_ring_snooze">Snooze 9 min</string>
+    <string name="alarm_ring_snooze">Snooze %1$d min</string>
+    <string name="alarm_ring_plan_label">LAST NIGHT</string>
+    <string name="alarm_ring_plan_value">%1$s  ·  %2$s</string>
+    <plurals name="alarm_ring_cycles">
+        <item quantity="one">%1$d cycle</item>
+        <item quantity="other">%1$d cycles</item>
+    </plurals>
 </resources>

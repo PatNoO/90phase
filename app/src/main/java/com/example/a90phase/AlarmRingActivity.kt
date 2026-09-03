@@ -12,35 +12,54 @@ import android.os.VibratorManager
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.a90phase.data.local.datastore.SelectedBedtimePlan
+import com.example.a90phase.data.local.datastore.UserPreferencesDataStore
 import com.example.a90phase.notifications.WakeAlarmReceiver
 import com.example.a90phase.notifications.WakeAlarmScheduler
-import com.example.a90phase.data.local.datastore.UserPreferencesDataStore
+import com.example.a90phase.presentation.components.PrimaryButton
+import com.example.a90phase.presentation.components.SecondaryButton
+import com.example.a90phase.presentation.theme.BackgroundGradient
 import com.example.a90phase.presentation.theme.NightSkyTheme
 import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
+import com.example.a90phase.presentation.theme.StarFieldBackground
+import com.example.a90phase.presentation.theme.glassCard
+import com.example.a90phase.presentation.util.FULL_DATE_PATTERN
+import com.example.a90phase.presentation.util.formatSleepDuration
+import com.example.a90phase.presentation.util.rememberDateFormatter
 import dagger.hilt.android.AndroidEntryPoint
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * Full-screen ringing screen shown over the lock screen when the wake alarm fires.
@@ -50,11 +69,11 @@ import kotlinx.coroutines.launch
 class AlarmRingActivity : ComponentActivity() {
 
     @Inject lateinit var wakeAlarmScheduler: WakeAlarmScheduler
+
     @Inject lateinit var userPreferencesDataStore: UserPreferencesDataStore
 
     private var mediaPlayer: MediaPlayer? = null
     private var vibrator: Vibrator? = null
-    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +82,8 @@ class AlarmRingActivity : ComponentActivity() {
         setContent {
             NightSkyTheme {
                 AlarmRingScreen(
-                    timeText = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")),
+                    planFlow = userPreferencesDataStore.observeSelectedBedtimePlan(),
+                    snoozeMinutes = SNOOZE_MINUTES,
                     onDismiss = ::onDismiss,
                     onSnooze = ::onSnooze,
                 )
@@ -71,8 +91,14 @@ class AlarmRingActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Ends this morning's alarm only — the alarm stays switched on and rings again tomorrow,
+     * the way a phone's own alarm behaves. Tomorrow's alarm was already re-armed by
+     * [WakeAlarmReceiver] when it fired, so all that is left here is to stop the noise and
+     * drop any snooze the user had queued.
+     */
     private fun onDismiss() {
-        ioScope.launch { userPreferencesDataStore.setWakeAlarmEnabled(false) }
+        wakeAlarmScheduler.cancelSnooze()
         stopAndFinish()
     }
 
@@ -148,35 +174,174 @@ class AlarmRingActivity : ComponentActivity() {
     }
 }
 
+private const val CLOCK_PATTERN = "HH:mm"
+private const val MILLIS_PER_MINUTE = 60_000L
+
+/**
+ * The wall clock, re-read on every minute boundary so a long-ringing alarm never shows a
+ * stale time.
+ */
+@Composable
+private fun rememberTickingTime(): State<LocalTime> {
+    val time = remember { mutableStateOf(LocalTime.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            time.value = LocalTime.now()
+            delay(MILLIS_PER_MINUTE - System.currentTimeMillis() % MILLIS_PER_MINUTE)
+        }
+    }
+    return time
+}
+
 @Composable
 private fun AlarmRingScreen(
-    timeText: String,
+    planFlow: Flow<SelectedBedtimePlan?>,
+    snoozeMinutes: Long,
     onDismiss: () -> Unit,
     onSnooze: () -> Unit,
 ) {
-    Column(
+    val now by rememberTickingTime()
+    val plan by planFlow.collectAsState(initial = null)
+    AlarmRingContent(
+        time = now,
+        date = LocalDate.now(),
+        plan = plan,
+        snoozeMinutes = snoozeMinutes,
+        onDismiss = onDismiss,
+        onSnooze = onSnooze,
+    )
+}
+
+@Composable
+private fun AlarmRingContent(
+    time: LocalTime,
+    date: LocalDate,
+    plan: SelectedBedtimePlan?,
+    snoozeMinutes: Long,
+    onDismiss: () -> Unit,
+    onSnooze: () -> Unit,
+) {
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(Spacing.Large),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+            .background(brush = BackgroundGradient),
     ) {
-        Text(text = timeText, style = SleepTypography.DisplayLarge, color = SleepColors.White)
-        Spacer(modifier = Modifier.height(Spacing.Small))
-        Text(text = stringResource(R.string.alarm_ring_message), style = SleepTypography.HeadlineMedium, color = SleepColors.Silver)
-        Spacer(modifier = Modifier.height(Spacing.XL))
-        Button(
-            onClick = onDismiss,
-            modifier = Modifier.fillMaxWidth(),
+        StarFieldBackground()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(Spacing.Large),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            Text(text = stringResource(R.string.alarm_ring_dismiss))
+            Text(
+                text = date.format(rememberDateFormatter(FULL_DATE_PATTERN)),
+                style = SleepTypography.LabelMedium,
+                color = SleepColors.Silver,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(Spacing.Small))
+            Text(
+                text = time.format(DateTimeFormatter.ofPattern(CLOCK_PATTERN)),
+                style = SleepTypography.DisplayLarge,
+                color = SleepColors.White,
+            )
+            Spacer(modifier = Modifier.height(Spacing.XS))
+            Text(
+                text = stringResource(R.string.alarm_ring_message),
+                style = SleepTypography.HeadlineMedium,
+                color = SleepColors.Silver,
+                textAlign = TextAlign.Center,
+            )
+            if (plan != null) {
+                Spacer(modifier = Modifier.height(Spacing.Large))
+                SleepPlanSummary(plan = plan)
+            }
+            Spacer(modifier = Modifier.height(Spacing.XL))
+            PrimaryButton(
+                text = stringResource(R.string.alarm_ring_dismiss),
+                onClick = onDismiss,
+            )
+            Spacer(modifier = Modifier.height(Spacing.Medium))
+            SecondaryButton(
+                text = stringResource(R.string.alarm_ring_snooze, snoozeMinutes.toInt()),
+                onClick = onSnooze,
+            )
         }
-        Spacer(modifier = Modifier.height(Spacing.Medium))
-        OutlinedButton(
-            onClick = onSnooze,
+    }
+}
+
+@Composable
+private fun SleepPlanSummary(plan: SelectedBedtimePlan) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassCard()
+            .padding(Spacing.Medium),
+    ) {
+        Column(
             modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(text = stringResource(R.string.alarm_ring_snooze))
+            Text(
+                text = stringResource(R.string.alarm_ring_plan_label),
+                style = SleepTypography.LabelMedium,
+                color = SleepColors.Silver,
+            )
+            Spacer(modifier = Modifier.height(Spacing.XXS))
+            Text(
+                text = stringResource(
+                    R.string.alarm_ring_plan_value,
+                    pluralStringResource(R.plurals.alarm_ring_cycles, plan.cycleCount, plan.cycleCount),
+                    formatSleepDuration(plan.durationMinutes),
+                ),
+                style = SleepTypography.BodyLarge,
+                color = SleepColors.White,
+                textAlign = TextAlign.Center,
+            )
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0B1120)
+@Composable
+internal fun AlarmRingContentPreview() {
+    NightSkyTheme {
+        AlarmRingContent(
+            time = LocalTime.of(7, 0),
+            date = LocalDate.of(2025, 5, 15),
+            plan = SelectedBedtimePlan(cycleCount = 6, durationMinutes = 555),
+            snoozeMinutes = 9L,
+            onDismiss = {},
+            onSnooze = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0B1120)
+@Composable
+internal fun AlarmRingContentNoPlanPreview() {
+    NightSkyTheme {
+        AlarmRingContent(
+            time = LocalTime.of(5, 30),
+            date = LocalDate.of(2025, 5, 15),
+            plan = null,
+            snoozeMinutes = 9L,
+            onDismiss = {},
+            onSnooze = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0B1120)
+@Composable
+internal fun AlarmRingScreenPreview() {
+    NightSkyTheme {
+        AlarmRingScreen(
+            planFlow = flowOf(SelectedBedtimePlan(cycleCount = 5, durationMinutes = 465)),
+            snoozeMinutes = 9L,
+            onDismiss = {},
+            onSnooze = {},
+        )
     }
 }
