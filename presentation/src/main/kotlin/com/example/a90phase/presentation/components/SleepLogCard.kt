@@ -1,5 +1,6 @@
 package com.example.a90phase.presentation.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.glassCard
+import com.example.a90phase.presentation.util.formatSleepDuration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -37,12 +39,14 @@ private fun Instant.toLocalTime() =
 fun SleepLogCard(
     log: SleepLog,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = Spacing.Medium, vertical = Spacing.XXS)
             .glassCard()
+            .let { if (onClick != null) it.clickable(onClick = onClick) else it }
             .semantics(mergeDescendants = true) { }
             .padding(Spacing.Medium),
     ) {
@@ -66,10 +70,7 @@ fun SleepLogCard(
             style = SleepTypography.BodyMedium,
             color = SleepColors.Silver,
         )
-        val totalMinutes = log.cycleCount * log.cycleDurationUsed
-        val hours = totalMinutes / 60
-        val minutes = totalMinutes % 60
-        val durationText = if (minutes == 0) "${hours}h" else "${hours}h ${minutes}min"
+        val durationText = formatSleepDuration(log.sleepDurationMinutes)
         Text(
             text = "${log.cycleCount} cycles  ·  $durationText",
             style = SleepTypography.BodyMedium,

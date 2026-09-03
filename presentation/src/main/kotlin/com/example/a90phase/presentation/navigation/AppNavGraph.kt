@@ -115,9 +115,9 @@ private fun NavGraphBuilder.mainRoutes(navController: NavHostController) {
     }
     composable(Route.History.path) {
         ScreenFadeIn {
-            // Log-row navigation is disabled until the detail screen is built
-            // (see docs/tickets/PH-88-sleep-log-detail-screen.md).
-            HistoryScreen()
+            HistoryScreen(
+                onNavigateToLogDetail = { logId -> navController.navigate(Route.LogDetail.build(logId)) },
+            )
         }
     }
     composable(Route.Settings.path) {
@@ -141,10 +141,9 @@ private fun NavGraphBuilder.mainRoutes(navController: NavHostController) {
     composable(
         route = Route.LogDetail.path,
         arguments = listOf(navArgument(Route.LogDetail.ARG_LOG_ID) { type = NavType.StringType }),
-    ) { backStackEntry ->
-        val logId = backStackEntry.arguments?.getString(Route.LogDetail.ARG_LOG_ID).orEmpty()
+    ) {
         ScreenFadeIn {
-            LogDetailScreen(logId = logId, onNavigateBack = { navController.popBackStack() })
+            LogDetailScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }
