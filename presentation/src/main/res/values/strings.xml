@@ -1,0 +1,232 @@
+<resources>
+
+    <!-- BCP-47 tag of this resource set. Keeps date formatting in step with the
+         language Android actually resolved, not the raw device locale. -->
+    <string name="locale_tag" translatable="false">en</string>
+    <!-- Common -->
+    <string name="common_ok">OK</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_continue">Continue</string>
+    <string name="common_skip">Skip</string>
+    <string name="common_navigate_back">Navigate back</string>
+
+    <!-- Errors (DomainError mapping) -->
+    <string name="error_database">Database error — try again</string>
+    <string name="error_calculation_failed">Calculation failed — check your settings</string>
+    <string name="error_sync">Sync error — data saved locally</string>
+    <string name="error_not_found">Data not found</string>
+    <string name="error_insufficient_data">Not enough data</string>
+    <string name="error_validation">Invalid value — check your input</string>
+    <string name="error_discovery_already_active">Discovery Phase is already active</string>
+    <string name="error_permission_denied">Permission denied</string>
+    <string name="error_auth_failed">Sign-in failed</string>
+
+    <!-- Navigation -->
+    <string name="nav_calculator">Calculator</string>
+    <string name="nav_history">History</string>
+
+    <!-- Calculator -->
+    <string name="calculator_title">Sleep Cycle Optimizer</string>
+    <string name="calculator_open_settings">Open settings</string>
+    <string name="calculator_bedtime_saved">Bedtime saved</string>
+    <string name="calculator_save_failed">Could not save</string>
+    <string name="calculator_try_again">Try again</string>
+    <string name="calculator_alarm_banner">Your alarm: %1$s</string>
+    <string name="calculator_alarm_active">Alarm Active</string>
+    <string name="calculator_daily_checkin_toggle">Daily Check-in (18:00)</string>
+    <string name="calculator_recommended_bedtimes">Recommended Bedtimes</string>
+    <string name="calculator_save">Save</string>
+    <string name="calculator_saving">Saving…</string>
+    <string name="calculator_select_wake_time">Select Wake Time</string>
+    <string name="calculator_duration_passed">Passed</string>
+    <string name="calculator_duration_sleep">%1$dh %2$dmin sleep</string>
+
+    <!-- Bedtime result card -->
+    <string name="bedtime_card_description">Bedtime %1$s, %2$s, %3$s, %4$s</string>
+    <string name="bedtime_card_state_passed">Passed</string>
+    <string name="bedtime_card_state_selected">Selected</string>
+    <string name="bedtime_quality_optimal">OPTIMAL</string>
+    <string name="bedtime_quality_good">GOOD</string>
+    <string name="bedtime_quality_minimal">MINIMAL</string>
+    <string name="bedtime_quality_passed">PASSED</string>
+    <plurals name="cycles_count">
+        <item quantity="one">%1$d cycle</item>
+        <item quantity="other">%1$d cycles</item>
+    </plurals>
+
+    <!-- Wake time card -->
+    <string name="wake_time_card_description">Wake time %1$s, tap to change</string>
+    <string name="wake_time_card_label">WAKE TIME  ·  TAP TO CHANGE</string>
+
+    <!-- Star rating -->
+    <string name="star_rating_description">%1$d out of %2$d stars</string>
+
+    <!-- History -->
+    <string name="history_title">Sleep History</string>
+    <string name="history_period_week">Week ▾</string>
+    <string name="history_period_month">Month ▾</string>
+    <string name="history_period_week_item">Week</string>
+    <string name="history_period_month_item">Month</string>
+    <string name="history_add_log">Add sleep log</string>
+    <string name="history_dismiss_insight">Dismiss insight</string>
+    <string name="history_section_title">Sleep Log</string>
+    <string name="history_no_logs_title">No sleep logs yet</string>
+    <string name="history_no_logs_subtitle">Your sleep history will appear here</string>
+    <string name="history_best_day">Best: %1$s</string>
+    <string name="history_best_day_none">—</string>
+    <string name="history_avg_duration">%1$dh %2$dmin avg</string>
+    <string name="history_consistency_prefix">Consistency:</string>
+    <string name="history_consistency_value">%1$s %2$d%%</string>
+    <string name="history_consistency_high">High</string>
+    <string name="history_consistency_medium">Medium</string>
+    <string name="history_consistency_low">Low</string>
+    <string name="history_consistency_description">Bedtime consistency: %1$s, %2$d percent</string>
+    <string name="history_avg_rating_description">%1$s out of 5 average quality rating</string>
+    <string name="history_quality_chart_title">Sleep Quality</string>
+    <string name="history_quality_chart_description_data">Sleep quality chart for %1$s, average rating %2$s out of 5</string>
+    <string name="history_quality_chart_description_empty">Sleep quality chart for %1$s, no data</string>
+    <string name="history_period_past_week">past week</string>
+    <string name="history_period_past_month">past month</string>
+
+    <!-- Sleep log card -->
+    <string name="sleep_log_slept_woke">Slept %1$s  →  Woke up %2$s</string>
+    <string name="sleep_log_summary">%1$s  ·  %2$s</string>
+    <string name="sleep_log_no_bedtime">--:--</string>
+
+    <!-- Log detail -->
+    <string name="log_detail_title">Sleep Log</string>
+    <string name="log_detail_delete">Delete sleep log</string>
+    <string name="log_detail_not_found">Sleep log not found</string>
+    <string name="log_detail_rating_label">Rating</string>
+    <string name="log_detail_unrated">Unrated</string>
+    <string name="log_detail_bedtime_label">Bedtime</string>
+    <string name="log_detail_wake_time_label">Wake time</string>
+    <string name="log_detail_cycles_label">Cycles</string>
+    <string name="log_detail_duration_label">Total duration</string>
+    <string name="log_detail_no_time">—</string>
+    <string name="log_detail_delete_title">Delete Sleep Log</string>
+    <string name="log_detail_delete_message">This cannot be undone. Are you sure you want to delete this log?</string>
+    <string name="log_detail_delete_confirm">Delete</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_sleep_preferences">SLEEP PREFERENCES</string>
+    <string name="settings_section_notifications">NOTIFICATIONS</string>
+    <string name="settings_section_features">FEATURES</string>
+    <string name="settings_section_discovery_progress">DISCOVERY PHASE PROGRESS</string>
+    <string name="settings_section_data_privacy">DATA &amp; PRIVACY</string>
+    <string name="settings_section_about">ABOUT</string>
+    <string name="settings_cycle_length">Cycle length</string>
+    <string name="settings_minutes_value">%1$d min</string>
+    <string name="settings_sleep_latency">Sleep latency</string>
+    <string name="settings_slider_description">%1$s slider, %2$s</string>
+    <string name="settings_daily_checkin">Daily Check-in</string>
+    <string name="settings_checkin_notification_at">Notification at %1$s  →</string>
+    <string name="settings_checkin_time_description">Check-in time %1$s, tap to change</string>
+    <string name="settings_bedtime_reminder">Bedtime Reminder</string>
+    <string name="settings_morning_rating">Morning Rating</string>
+    <string name="settings_morning_bedtime_log">Morning Bedtime Log</string>
+    <string name="settings_discovery_phase">Discovery Phase</string>
+    <string name="settings_discovery_info_description">Discovery Phase information</string>
+    <string name="settings_discovery_view_results_description">View Discovery Phase results</string>
+    <string name="settings_discovery_cancel_description">Cancel Discovery Phase</string>
+    <string name="settings_discovery_start_description">Start Discovery Phase</string>
+    <string name="settings_discovery_complete">Phase complete</string>
+    <string name="settings_discovery_view_results">View Results →</string>
+    <string name="settings_discovery_active">Active · Day %1$d/21</string>
+    <string name="settings_discovery_end">End →</string>
+    <plurals name="settings_discovery_days_rated">
+        <item quantity="one">%1$d / %2$d day rated</item>
+        <item quantity="other">%1$d / %2$d days rated</item>
+    </plurals>
+    <string name="settings_discovery_inactive">Inactive</string>
+    <string name="settings_discovery_start_prompt">Start Discovery Phase →</string>
+    <string name="settings_discovery_dialog_title">Discovery Phase</string>
+    <string name="settings_discovery_dialog_body">Over 21 days, the app tests three variants of your sleep routine to find what works best for you.</string>
+    <string name="settings_discovery_dialog_week1">• Week 1 — longer sleep onset (30 min)</string>
+    <string name="settings_discovery_dialog_week2">• Week 2 — longer cycles (105 min)</string>
+    <string name="settings_discovery_dialog_week3">• Week 3 — fewer cycles (5)</string>
+    <string name="settings_discovery_dialog_footer">Rate your sleep every day. After 21 days, the best variant is chosen automatically.</string>
+    <string name="settings_discovery_dialog_close">Close</string>
+    <string name="settings_discovery_day_progress">Day %1$d / 21</string>
+    <plurals name="settings_discovery_ratings_this_week">
+        <item quantity="one">%1$d rating this week</item>
+        <item quantity="other">%1$d ratings this week</item>
+    </plurals>
+    <string name="settings_discovery_current_shift">Current shift: %1$s</string>
+    <string name="settings_smart_wake">Smart Wake Window</string>
+    <string name="settings_pattern_insights">Pattern Insights in History</string>
+    <string name="settings_consistency_score">Consistency Score in History</string>
+    <string name="settings_firebase_sync">Firebase Sync</string>
+    <string name="settings_last_synced">Last synced: Today</string>
+    <string name="settings_export_data">Export Data</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
+    <string name="settings_github">GitHub</string>
+    <string name="settings_checkin_time_dialog_title">Check-in Time</string>
+
+    <!-- Discovery results -->
+    <string name="discovery_results_title">Discovery Phase Complete</string>
+    <string name="discovery_results_dismiss">Dismiss</string>
+    <string name="discovery_results_winning_shift_section">WINNING SHIFT</string>
+    <string name="discovery_results_average_rating">Average rating: %1$s / 5.0</string>
+    <string name="discovery_results_winner_description">This shift produced your best sleep quality over the 21-day programme.</string>
+    <string name="discovery_results_all_ratings_section">ALL SHIFT RATINGS</string>
+    <string name="discovery_results_rating_value">%1$s ★</string>
+    <string name="discovery_results_before_after_section">BEFORE / AFTER</string>
+    <string name="discovery_results_cycle_duration">Cycle duration</string>
+    <string name="discovery_results_sleep_latency">Sleep latency</string>
+    <string name="discovery_results_cycle_count">Cycle count</string>
+    <string name="discovery_results_minutes_value">%1$d min</string>
+    <string name="discovery_results_apply">Apply Results</string>
+    <string name="discovery_results_dismiss_button">Dismiss</string>
+    <string name="discovery_results_footer_note">You can return to this screen from Settings at any time.</string>
+    <string name="discovery_results_apply_error_title">Could Not Apply</string>
+    <string name="discovery_results_no_data">No discovery phase data available</string>
+    <string name="discovery_results_apply_failed">Failed to apply results</string>
+
+    <!-- Shift type display names (kept in presentation — domain stays text-free) -->
+    <string name="shift_longer_latency">Longer sleep onset (30 min)</string>
+    <string name="shift_longer_cycles">Longer cycles (105 min)</string>
+    <string name="shift_fewer_cycles">Fewer cycles (5)</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_go_back">Go back</string>
+    <string name="onboarding_notifications_needed_title">Notifications Needed</string>
+    <string name="onboarding_notifications_needed_body">Notifications power daily check-ins and bedtime reminders. Please grant access.</string>
+    <string name="onboarding_grant">Grant</string>
+    <string name="onboarding_welcome_title">Sleep Cycle Optimizer</string>
+    <string name="onboarding_welcome_tagline">Wake up at the right moment in your sleep cycle — feeling rested, not groggy.</string>
+    <string name="onboarding_welcome_note">Built around 90-minute cycles. Tuned to you over time.</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_permissions_title">Permissions</string>
+    <string name="onboarding_permissions_subtitle">Grant access to enable check-ins, alarms, and reminders.</string>
+    <string name="onboarding_permission_notifications_title">Notifications</string>
+    <string name="onboarding_permission_notifications_subtitle">Required for check-ins and reminders</string>
+    <string name="onboarding_permission_alarms_title">Exact Alarms</string>
+    <string name="onboarding_permission_alarms_subtitle">Required for precise alarm timing</string>
+    <string name="onboarding_permission_read_alarm_title">Read Alarm</string>
+    <string name="onboarding_permission_read_alarm_subtitle">Detects your existing alarm</string>
+    <string name="onboarding_permission_optional">(optional)</string>
+    <string name="onboarding_wake_time_title">Wake Time</string>
+    <string name="onboarding_wake_time_subtitle">When do you want to wake up?</string>
+    <string name="onboarding_wake_time_description">%1$s, wake time, tap to change</string>
+    <string name="onboarding_page_indicator_description">Page %1$d of %2$d</string>
+    <string name="onboarding_daily_checkin_title">Daily Check-in</string>
+    <string name="onboarding_daily_checkin_body">Every evening at 18:00 we ask: when do you need to wake up tomorrow?</string>
+    <string name="onboarding_daily_checkin_note">Change the time or turn off in Settings.</string>
+    <string name="onboarding_bedtime_reminder_title">Bedtime Reminder</string>
+    <string name="onboarding_bedtime_reminder_body">We\'ll nudge you 15 minutes before your calculated bedtime so you can wind down.</string>
+    <string name="onboarding_bedtime_reminder_note">Only fires on nights you\'ve set a bedtime.</string>
+    <string name="onboarding_morning_checkin_title">Morning Check-in</string>
+    <string name="onboarding_morning_checkin_body">A quick check-in after you wake helps build your personal sleep profile.</string>
+    <string name="onboarding_morning_rating_toggle">How did you sleep? (1–5)</string>
+    <string name="onboarding_morning_bedtime_toggle">What time did you go to bed?</string>
+    <string name="onboarding_smart_wake_title">Smart Wake</string>
+    <string name="onboarding_smart_wake_body">Your phone detects movement to wake you at a lighter moment within a window you set. No microphone. No uploads. Completely local.</string>
+    <string name="onboarding_smart_wake_warning">⚠ Phone must be on your bed to work. If you charge it away from bed — skip this, it won\'t help you.</string>
+    <string name="onboarding_discovery_title">Discovery Phase</string>
+    <string name="onboarding_discovery_body">After 21 nights, 90phase learns your real sleep latency and cycle length — so bedtime recommendations get sharper over time.</string>
+    <string name="onboarding_got_it">Got it</string>
+</resources>

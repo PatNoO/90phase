@@ -68,7 +68,7 @@
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="Hoppa"
+            android:text="@string/notification_morning_skip"
             android:textSize="11sp" />
 
     </LinearLayout>
@@ -78,7 +78,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="Stäng av dessa påminnelser"
+        android:text="@string/notification_morning_turn_off"
         android:textSize="11sp"
         android:textColor="#888888" />
 

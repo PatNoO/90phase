@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -35,6 +36,7 @@ import com.example.a90phase.presentation.screens.history.LogDetailScreen
 import com.example.a90phase.presentation.screens.onboarding.OnboardingScreen
 import com.example.a90phase.presentation.screens.settings.SettingsScreen
 import com.example.a90phase.presentation.screens.splash.SplashScreen
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 
@@ -171,7 +173,7 @@ private fun SleepBottomNav(currentRoute: String?, onNavigate: (String) -> Unit) 
             selected = currentRoute == Route.Calculator.path,
             onClick = { onNavigate(Route.Calculator.path) },
             icon = { Text(text = "◎", style = SleepTypography.HeadlineMedium) },
-            label = { Text(text = "Calculator", style = SleepTypography.LabelMedium) },
+            label = { Text(text = stringResource(R.string.nav_calculator), style = SleepTypography.LabelMedium) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = SleepColors.CyanGlow,
                 selectedTextColor = SleepColors.CyanGlow,
@@ -184,7 +186,7 @@ private fun SleepBottomNav(currentRoute: String?, onNavigate: (String) -> Unit) 
             selected = currentRoute == Route.History.path,
             onClick = { onNavigate(Route.History.path) },
             icon = { Text(text = "◈", style = SleepTypography.HeadlineMedium) },
-            label = { Text(text = "History", style = SleepTypography.LabelMedium) },
+            label = { Text(text = stringResource(R.string.nav_history), style = SleepTypography.LabelMedium) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = SleepColors.CyanGlow,
                 selectedTextColor = SleepColors.CyanGlow,

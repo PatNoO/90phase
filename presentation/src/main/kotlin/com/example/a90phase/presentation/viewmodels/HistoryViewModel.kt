@@ -10,6 +10,7 @@ import com.example.a90phase.domain.usecases.CalculateConsistencyScoreUseCase
 import com.example.a90phase.domain.usecases.DismissPatternInsightUseCase
 import com.example.a90phase.domain.usecases.GeneratePatternInsightsUseCase
 import com.example.a90phase.domain.usecases.GetSleepHistoryUseCase
+import com.example.a90phase.presentation.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -33,8 +34,8 @@ class HistoryViewModel @Inject constructor(
     private val dismissPatternInsightUseCase = DismissPatternInsightUseCase(patternInsightsRepository)
     private val calculateConsistencyScoreUseCase = CalculateConsistencyScoreUseCase()
 
-    private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 1)
-    val errors: SharedFlow<String> = _errors.asSharedFlow()
+    private val _errors = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+    val errors: SharedFlow<Int> = _errors.asSharedFlow()
 
     val uiState: StateFlow<HistoryUiState> = combine(
         getSleepHistoryUseCase.allLogs(),
@@ -43,7 +44,7 @@ class HistoryViewModel @Inject constructor(
     ) { logs, dismissedIds, insightsEnabled ->
         toUiState(logs, dismissedIds, insightsEnabled)
     }
-        .catch { _errors.tryEmit("Databasfel — försök igen") }
+        .catch { _errors.tryEmit(R.string.error_database) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

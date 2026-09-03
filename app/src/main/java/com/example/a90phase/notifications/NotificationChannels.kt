@@ -3,6 +3,7 @@ package com.example.a90phase.notifications
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import com.example.a90phase.R
 
 object NotificationChannels {
 
@@ -16,35 +17,35 @@ object NotificationChannels {
 
         val dailyCheckin = NotificationChannel(
             DAILY_CHECKIN_CHANNEL_ID,
-            "Daglig påminnelse",
+            context.getString(R.string.channel_daily_checkin_name),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = "Påminner dig att ange morgondagens väckningstid"
+            description = context.getString(R.string.channel_daily_checkin_description)
         }
 
         val bedtimeReminder = NotificationChannel(
             BEDTIME_REMINDER_CHANNEL_ID,
-            "Läggdagspåminnelse",
+            context.getString(R.string.channel_bedtime_reminder_name),
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description = "Påminner dig om optimal läggdags baserat på din väckningstid"
+            description = context.getString(R.string.channel_bedtime_reminder_description)
         }
 
         val morningFeedback = NotificationChannel(
             MORNING_FEEDBACK_CHANNEL_ID,
-            "Morgonfeedback",
+            context.getString(R.string.channel_morning_feedback_name),
             NotificationManager.IMPORTANCE_LOW,
         ).apply {
-            description = "Ber om din sömnkvalitetsbedömning efter att du vaknat"
+            description = context.getString(R.string.channel_morning_feedback_description)
             setSound(null, null)
         }
 
         val wakeAlarm = NotificationChannel(
             WAKE_ALARM_CHANNEL_ID,
-            "Väckarklocka",
+            context.getString(R.string.channel_wake_alarm_name),
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description = "Ringer vid din väckningstid"
+            description = context.getString(R.string.channel_wake_alarm_description)
             // The ringing screen owns the sound/vibration, so keep the channel itself silent
             // to avoid a double sound.
             setSound(null, null)

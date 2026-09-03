@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -38,6 +40,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.a90phase.domain.entities.BedtimeQuality
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.theme.NightSkyTheme
 import com.example.a90phase.presentation.theme.OptimalCardGradient
 import com.example.a90phase.presentation.theme.SleepColors
@@ -74,7 +77,11 @@ fun BedtimeResultCard(
     )
 
     val timeFormatted = time.format(DateTimeFormatter.ofPattern("HH:mm"))
-    val qualityLabel = quality.name.lowercase().replaceFirstChar { it.uppercase() }
+    val qualityLabel = qualityLabel(quality)
+    val cyclesLabel = pluralStringResource(R.plurals.cycles_count, cycleCount, cycleCount)
+    val description = stringResource(R.string.bedtime_card_description, timeFormatted, cyclesLabel, qualityLabel, durationLabel)
+    val passedState = stringResource(R.string.bedtime_card_state_passed)
+    val selectedState = stringResource(R.string.bedtime_card_state_selected)
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -82,10 +89,10 @@ fun BedtimeResultCard(
             .glassCard(cornerRadius = 16.dp)
             .background(cardBackground, SleepShapes.Large)
             .semantics {
-                contentDescription = "Bedtime $timeFormatted, $cycleCount cycles, $qualityLabel, $durationLabel"
+                contentDescription = description
                 stateDescription = when {
-                    isPassed -> "Passed"
-                    isSelected -> "Selected"
+                    isPassed -> passedState
+                    isSelected -> selectedState
                     else -> ""
                 }
                 role = Role.Button
@@ -125,7 +132,11 @@ private fun BedtimeCardTopRow(time: LocalTime, cycleCount: Int, isPassed: Boolea
             if (checkmarkProgress > 0f) {
                 CheckmarkCanvas(progress = checkmarkProgress)
             }
-            Text(text = "$cycleCount cycles", style = SleepTypography.BodyMedium, color = SleepColors.Silver)
+            Text(
+                text = pluralStringResource(R.plurals.cycles_count, cycleCount, cycleCount),
+                style = SleepTypography.BodyMedium,
+                color = SleepColors.Silver,
+            )
         }
     }
 }
@@ -170,16 +181,27 @@ private fun CheckmarkCanvas(progress: Float, modifier: Modifier = Modifier) {
 }
 
 @Composable
+private fun qualityLabel(quality: BedtimeQuality): String = stringResource(
+    when (quality) {
+        BedtimeQuality.OPTIMAL -> R.string.bedtime_quality_optimal
+        BedtimeQuality.GOOD -> R.string.bedtime_quality_good
+        BedtimeQuality.MINIMAL -> R.string.bedtime_quality_minimal
+        BedtimeQuality.PASSED -> R.string.bedtime_quality_passed
+    },
+)
+
+@Composable
 fun QualityBadge(
     quality: BedtimeQuality,
     modifier: Modifier = Modifier,
 ) {
-    val (color, label) = when (quality) {
-        BedtimeQuality.OPTIMAL -> SleepColors.OptimalGreen to "OPTIMAL"
-        BedtimeQuality.GOOD -> SleepColors.GoodAmber to "GOOD"
-        BedtimeQuality.MINIMAL -> SleepColors.MinimalSlate to "MINIMAL"
-        BedtimeQuality.PASSED -> SleepColors.PassedGray to "PASSED"
+    val color = when (quality) {
+        BedtimeQuality.OPTIMAL -> SleepColors.OptimalGreen
+        BedtimeQuality.GOOD -> SleepColors.GoodAmber
+        BedtimeQuality.MINIMAL -> SleepColors.MinimalSlate
+        BedtimeQuality.PASSED -> SleepColors.PassedGray
     }
+    val label = qualityLabel(quality)
     Box(
         modifier = modifier
             .background(color.copy(alpha = 0.15f), SleepShapes.Pill)

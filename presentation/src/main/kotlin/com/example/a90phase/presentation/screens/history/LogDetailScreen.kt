@@ -30,6 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,6 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.a90phase.domain.entities.SleepLog
 import com.example.a90phase.domain.entities.SyncStatus
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.components.StarRating
 import com.example.a90phase.presentation.theme.BackgroundGradient
 import com.example.a90phase.presentation.theme.NightSkyTheme
@@ -44,7 +47,9 @@ import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.glassCard
+import com.example.a90phase.presentation.util.FULL_DATE_PATTERN
 import com.example.a90phase.presentation.util.formatSleepDuration
+import com.example.a90phase.presentation.util.rememberDateFormatter
 import com.example.a90phase.presentation.viewmodels.LogDetailEvent
 import com.example.a90phase.presentation.viewmodels.LogDetailUiState
 import com.example.a90phase.presentation.viewmodels.LogDetailViewModel
@@ -53,9 +58,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
-private val DetailDateFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", Locale.ENGLISH)
 private val DetailTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 private val DetailZone = ZoneId.systemDefault()
 
@@ -70,12 +73,14 @@ fun LogDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val resources = LocalResources.current
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is LogDetailEvent.Deleted -> onNavigateBack()
-                is LogDetailEvent.DeleteFailed -> snackbarHostState.showSnackbar(event.message)
+                is LogDetailEvent.DeleteFailed ->
+                    snackbarHostState.showSnackbar(resources.getString(event.messageRes))
             }
         }
     }
@@ -103,11 +108,11 @@ fun LogDetailScreen(
                     modifier = Modifier.padding(innerPadding),
                 )
                 is LogDetailUiState.NotFound -> LogDetailMessageState(
-                    message = "Sleep log not found",
+                    message = stringResource(R.string.log_detail_not_found),
                     modifier = Modifier.padding(innerPadding),
                 )
                 is LogDetailUiState.Error -> LogDetailMessageState(
-                    message = state.message,
+                    message = stringResource(state.messageRes),
                     modifier = Modifier.padding(innerPadding),
                 )
             }
@@ -132,10 +137,12 @@ private fun LogDetailTopBar(
     onDeleteClick: () -> Unit,
     showDeleteAction: Boolean,
 ) {
+    val navigateBackDescription = stringResource(R.string.common_navigate_back)
+    val deleteDescription = stringResource(R.string.log_detail_delete)
     TopAppBar(
         title = {
             Text(
-                text = "Sleep Log",
+                text = stringResource(R.string.log_detail_title),
                 style = SleepTypography.HeadlineMedium,
                 color = SleepColors.White,
             )
@@ -146,7 +153,7 @@ private fun LogDetailTopBar(
                     text = "←",
                     style = SleepTypography.HeadlineMedium,
                     color = SleepColors.Silver,
-                    modifier = Modifier.clearAndSetSemantics { contentDescription = "Navigate back" },
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = navigateBackDescription },
                 )
             }
         },
@@ -157,7 +164,7 @@ private fun LogDetailTopBar(
                         text = "🗑",
                         style = SleepTypography.HeadlineMedium,
                         color = SleepColors.ErrorRed,
-                        modifier = Modifier.clearAndSetSemantics { contentDescription = "Delete sleep log" },
+                        modifier = Modifier.clearAndSetSemantics { contentDescription = deleteDescription },
                     )
                 }
             }
@@ -172,7 +179,7 @@ private fun LogDetailContent(log: SleepLog, modifier: Modifier = Modifier) {
         Box(modifier = Modifier.fillMaxWidth().glassCard().padding(Spacing.Medium)) {
             Column {
                 Text(
-                    text = log.date.format(DetailDateFormatter),
+                    text = log.date.format(rememberDateFormatter(FULL_DATE_PATTERN)),
                     style = SleepTypography.HeadlineMedium,
                     color = SleepColors.White,
                 )
@@ -182,11 +189,19 @@ private fun LogDetailContent(log: SleepLog, modifier: Modifier = Modifier) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(text = "Rating", style = SleepTypography.BodyMedium, color = SleepColors.Silver)
+                    Text(
+                        text = stringResource(R.string.log_detail_rating_label),
+                        style = SleepTypography.BodyMedium,
+                        color = SleepColors.Silver,
+                    )
                     if (log.hasBeenRated()) {
                         StarRating(rating = log.qualityRating)
                     } else {
-                        Text(text = "Unrated", style = SleepTypography.BodyMedium, color = SleepColors.SlateBlue)
+                        Text(
+                            text = stringResource(R.string.log_detail_unrated),
+                            style = SleepTypography.BodyMedium,
+                            color = SleepColors.SlateBlue,
+                        )
                     }
                 }
             }
@@ -195,15 +210,22 @@ private fun LogDetailContent(log: SleepLog, modifier: Modifier = Modifier) {
         Box(modifier = Modifier.fillMaxWidth().glassCard().padding(Spacing.Medium)) {
             Column {
                 DetailRow(
-                    label = "Bedtime",
-                    value = log.bedtime?.toDetailTime()?.format(DetailTimeFormatter) ?: "—",
+                    label = stringResource(R.string.log_detail_bedtime_label),
+                    value = log.bedtime?.toDetailTime()?.format(DetailTimeFormatter)
+                        ?: stringResource(R.string.log_detail_no_time),
                 )
                 Spacer(Modifier.height(Spacing.Small))
-                DetailRow(label = "Wake time", value = log.wakeTime.toDetailTime().format(DetailTimeFormatter))
+                DetailRow(
+                    label = stringResource(R.string.log_detail_wake_time_label),
+                    value = log.wakeTime.toDetailTime().format(DetailTimeFormatter),
+                )
                 Spacer(Modifier.height(Spacing.Small))
-                DetailRow(label = "Cycles", value = "${log.cycleCount}")
+                DetailRow(label = stringResource(R.string.log_detail_cycles_label), value = "${log.cycleCount}")
                 Spacer(Modifier.height(Spacing.Small))
-                DetailRow(label = "Total duration", value = formatSleepDuration(log.sleepDurationMinutes))
+                DetailRow(
+                    label = stringResource(R.string.log_detail_duration_label),
+                    value = formatSleepDuration(log.sleepDurationMinutes),
+                )
             }
         }
     }
@@ -225,23 +247,27 @@ private fun DeleteLogConfirmationDialog(onConfirm: () -> Unit, onDismiss: () -> 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = "Delete Sleep Log", style = SleepTypography.HeadlineMedium, color = SleepColors.White)
+            Text(
+                text = stringResource(R.string.log_detail_delete_title),
+                style = SleepTypography.HeadlineMedium,
+                color = SleepColors.White,
+            )
         },
         text = {
             Text(
-                text = "This cannot be undone. Are you sure you want to delete this log?",
+                text = stringResource(R.string.log_detail_delete_message),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.Silver,
             )
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(text = "Delete", color = SleepColors.ErrorRed)
+                Text(text = stringResource(R.string.log_detail_delete_confirm), color = SleepColors.ErrorRed)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = "Cancel", color = SleepColors.Silver)
+                Text(text = stringResource(R.string.common_cancel), color = SleepColors.Silver)
             }
         },
         containerColor = SleepColors.MidnightBlue,
@@ -302,6 +328,6 @@ internal fun LogDetailLoadingPreview() {
 @Composable
 internal fun LogDetailNotFoundPreview() {
     NightSkyTheme {
-        LogDetailMessageState(message = "Sleep log not found")
+        LogDetailMessageState(message = stringResource(R.string.log_detail_not_found))
     }
 }

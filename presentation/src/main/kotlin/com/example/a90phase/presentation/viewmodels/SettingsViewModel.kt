@@ -36,8 +36,8 @@ class SettingsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 1)
-    val errors: SharedFlow<String> = _errors.asSharedFlow()
+    private val _errors = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+    val errors: SharedFlow<Int> = _errors.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -63,7 +63,7 @@ class SettingsViewModel @Inject constructor(
                         discoveryPhaseActive = discovery != null,
                         discoveryPhaseCompleted = profile.discoveryPhase?.isCompleted == true,
                         discoveryDayNumber = dayNumber,
-                        discoveryCurrentShiftName = discovery?.getCurrentShift()?.displayName ?: "",
+                        discoveryCurrentShift = discovery?.getCurrentShift(),
                         discoveryWeekRatingsCount = weekRatings,
                     )
                 }
@@ -115,7 +115,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val result = userPreferencesRepository.setCycleDuration(minutes)
             if (result is Result.Error) {
-                _errors.tryEmit(result.error.toSwedishMessage())
+                _errors.tryEmit(result.error.toMessageRes())
             }
         }
     }
@@ -124,7 +124,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val result = userPreferencesRepository.setSleepLatency(minutes)
             if (result is Result.Error) {
-                _errors.tryEmit(result.error.toSwedishMessage())
+                _errors.tryEmit(result.error.toMessageRes())
             }
         }
     }
@@ -134,7 +134,7 @@ class SettingsViewModel @Inject constructor(
             val time = "%02d:%02d".format(hour, minute)
             val result = userPreferencesRepository.setReminderTime(time)
             if (result is Result.Error) {
-                _errors.tryEmit(result.error.toSwedishMessage())
+                _errors.tryEmit(result.error.toMessageRes())
             }
         }
     }
@@ -192,7 +192,7 @@ class SettingsViewModel @Inject constructor(
             when (val result = startDiscoveryPhaseUseCase()) {
                 is Result.Success -> Unit
                 is Result.Error -> _uiState.update {
-                    it.copy(discoveryStartError = result.error.toSwedishMessage())
+                    it.copy(discoveryStartError = result.error.toMessageRes())
                 }
                 is Result.Loading -> Unit
             }

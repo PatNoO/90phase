@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.example.a90phase.notifications.WakeAlarmReceiver
 import com.example.a90phase.notifications.WakeAlarmScheduler
 import com.example.a90phase.data.local.datastore.UserPreferencesDataStore
@@ -162,20 +163,20 @@ private fun AlarmRingScreen(
     ) {
         Text(text = timeText, style = SleepTypography.DisplayLarge, color = SleepColors.White)
         Spacer(modifier = Modifier.height(Spacing.Small))
-        Text(text = "Dags att vakna", style = SleepTypography.HeadlineMedium, color = SleepColors.Silver)
+        Text(text = stringResource(R.string.alarm_ring_message), style = SleepTypography.HeadlineMedium, color = SleepColors.Silver)
         Spacer(modifier = Modifier.height(Spacing.XL))
         Button(
             onClick = onDismiss,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(text = "Stäng")
+            Text(text = stringResource(R.string.alarm_ring_dismiss))
         }
         Spacer(modifier = Modifier.height(Spacing.Medium))
         OutlinedButton(
             onClick = onSnooze,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(text = "Snooza 9 min")
+            Text(text = stringResource(R.string.alarm_ring_snooze))
         }
     }
 }

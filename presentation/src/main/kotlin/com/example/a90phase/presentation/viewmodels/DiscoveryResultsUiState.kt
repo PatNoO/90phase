@@ -1,11 +1,12 @@
 package com.example.a90phase.presentation.viewmodels
 
+import androidx.annotation.StringRes
 import com.example.a90phase.domain.entities.ShiftType
 
 sealed class DiscoveryResultsUiState {
     data object Loading : DiscoveryResultsUiState()
 
-    data class Error(val message: String) : DiscoveryResultsUiState()
+    data class Error(@StringRes val messageRes: Int) : DiscoveryResultsUiState()
 
     data class Ready(
         val winningShift: ShiftType,
@@ -17,6 +18,6 @@ sealed class DiscoveryResultsUiState {
         val newSleepLatency: Int,
         val newCycleCount: Int,
         val isApplied: Boolean = false,
-        val applyError: String? = null,
+        @StringRes val applyError: Int? = null,
     ) : DiscoveryResultsUiState()
 }

@@ -1,0 +1,232 @@
+<resources>
+
+    <!-- BCP-47 tag of this resource set. Keeps date formatting in step with the
+         language Android actually resolved, not the raw device locale. -->
+    <string name="locale_tag" translatable="false">sv</string>
+    <!-- Common -->
+    <string name="common_ok">OK</string>
+    <string name="common_cancel">Avbryt</string>
+    <string name="common_confirm">Bekräfta</string>
+    <string name="common_continue">Fortsätt</string>
+    <string name="common_skip">Hoppa över</string>
+    <string name="common_navigate_back">Navigera tillbaka</string>
+
+    <!-- Errors (DomainError mapping) -->
+    <string name="error_database">Databasfel — försök igen</string>
+    <string name="error_calculation_failed">Beräkningen misslyckades — kontrollera inställningarna</string>
+    <string name="error_sync">Synkfel — data sparas lokalt</string>
+    <string name="error_not_found">Data hittades inte</string>
+    <string name="error_insufficient_data">Inte tillräckligt med data</string>
+    <string name="error_validation">Ogiltigt värde — kontrollera inmatningen</string>
+    <string name="error_discovery_already_active">Utforskningsfasen är redan aktiv</string>
+    <string name="error_permission_denied">Behörighet nekad</string>
+    <string name="error_auth_failed">Inloggning misslyckades</string>
+
+    <!-- Navigation -->
+    <string name="nav_calculator">Kalkylator</string>
+    <string name="nav_history">Historik</string>
+
+    <!-- Calculator -->
+    <string name="calculator_title">Sömncykelkalkylator</string>
+    <string name="calculator_open_settings">Öppna inställningar</string>
+    <string name="calculator_bedtime_saved">Läggdags sparad</string>
+    <string name="calculator_save_failed">Kunde inte spara</string>
+    <string name="calculator_try_again">Försök igen</string>
+    <string name="calculator_alarm_banner">Ditt alarm: %1$s</string>
+    <string name="calculator_alarm_active">Alarm aktivt</string>
+    <string name="calculator_daily_checkin_toggle">Daglig incheckning (18:00)</string>
+    <string name="calculator_recommended_bedtimes">Rekommenderade läggdags</string>
+    <string name="calculator_save">Spara</string>
+    <string name="calculator_saving">Sparar…</string>
+    <string name="calculator_select_wake_time">Välj väckningstid</string>
+    <string name="calculator_duration_passed">Passerad</string>
+    <string name="calculator_duration_sleep">%1$dh %2$dmin sömn</string>
+
+    <!-- Bedtime result card -->
+    <string name="bedtime_card_description">Läggdags %1$s, %2$s, %3$s, %4$s</string>
+    <string name="bedtime_card_state_passed">Passerad</string>
+    <string name="bedtime_card_state_selected">Vald</string>
+    <string name="bedtime_quality_optimal">OPTIMAL</string>
+    <string name="bedtime_quality_good">BRA</string>
+    <string name="bedtime_quality_minimal">MINIMAL</string>
+    <string name="bedtime_quality_passed">PASSERAD</string>
+    <plurals name="cycles_count">
+        <item quantity="one">%1$d cykel</item>
+        <item quantity="other">%1$d cykler</item>
+    </plurals>
+
+    <!-- Wake time card -->
+    <string name="wake_time_card_description">Väckningstid %1$s, tryck för att ändra</string>
+    <string name="wake_time_card_label">VÄCKNINGSTID  ·  TRYCK FÖR ATT ÄNDRA</string>
+
+    <!-- Star rating -->
+    <string name="star_rating_description">%1$d av %2$d stjärnor</string>
+
+    <!-- History -->
+    <string name="history_title">Sömnhistorik</string>
+    <string name="history_period_week">Vecka ▾</string>
+    <string name="history_period_month">Månad ▾</string>
+    <string name="history_period_week_item">Vecka</string>
+    <string name="history_period_month_item">Månad</string>
+    <string name="history_add_log">Lägg till sömnlogg</string>
+    <string name="history_dismiss_insight">Stäng insikt</string>
+    <string name="history_section_title">Sömnlogg</string>
+    <string name="history_no_logs_title">Inga sömnloggar än</string>
+    <string name="history_no_logs_subtitle">Din sömnhistorik visas här</string>
+    <string name="history_best_day">Bäst: %1$s</string>
+    <string name="history_best_day_none">—</string>
+    <string name="history_avg_duration">%1$dh %2$dmin snitt</string>
+    <string name="history_consistency_prefix">Konsekvens:</string>
+    <string name="history_consistency_value">%1$s %2$d%%</string>
+    <string name="history_consistency_high">Hög</string>
+    <string name="history_consistency_medium">Medel</string>
+    <string name="history_consistency_low">Låg</string>
+    <string name="history_consistency_description">Läggdagskonsekvens: %1$s, %2$d procent</string>
+    <string name="history_avg_rating_description">%1$s av 5 i genomsnittligt betyg</string>
+    <string name="history_quality_chart_title">Sömnkvalitet</string>
+    <string name="history_quality_chart_description_data">Sömnkvalitetsdiagram för %1$s, genomsnittligt betyg %2$s av 5</string>
+    <string name="history_quality_chart_description_empty">Sömnkvalitetsdiagram för %1$s, ingen data</string>
+    <string name="history_period_past_week">senaste veckan</string>
+    <string name="history_period_past_month">senaste månaden</string>
+
+    <!-- Sleep log card -->
+    <string name="sleep_log_slept_woke">Sov %1$s  →  Vaknade %2$s</string>
+    <string name="sleep_log_summary">%1$s  ·  %2$s</string>
+    <string name="sleep_log_no_bedtime">--:--</string>
+
+    <!-- Log detail -->
+    <string name="log_detail_title">Sömnlogg</string>
+    <string name="log_detail_delete">Ta bort sömnlogg</string>
+    <string name="log_detail_not_found">Sömnloggen kunde inte hittas</string>
+    <string name="log_detail_rating_label">Betyg</string>
+    <string name="log_detail_unrated">Obetygsatt</string>
+    <string name="log_detail_bedtime_label">Läggdags</string>
+    <string name="log_detail_wake_time_label">Väckningstid</string>
+    <string name="log_detail_cycles_label">Cykler</string>
+    <string name="log_detail_duration_label">Total varaktighet</string>
+    <string name="log_detail_no_time">—</string>
+    <string name="log_detail_delete_title">Ta bort sömnlogg</string>
+    <string name="log_detail_delete_message">Detta kan inte ångras. Är du säker på att du vill ta bort den här loggen?</string>
+    <string name="log_detail_delete_confirm">Ta bort</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Inställningar</string>
+    <string name="settings_section_sleep_preferences">SÖMNINSTÄLLNINGAR</string>
+    <string name="settings_section_notifications">AVISERINGAR</string>
+    <string name="settings_section_features">FUNKTIONER</string>
+    <string name="settings_section_discovery_progress">FÖRLOPP FÖR UTFORSKNINGSFAS</string>
+    <string name="settings_section_data_privacy">DATA &amp; INTEGRITET</string>
+    <string name="settings_section_about">OM</string>
+    <string name="settings_cycle_length">Cykellängd</string>
+    <string name="settings_minutes_value">%1$d min</string>
+    <string name="settings_sleep_latency">Insomningstid</string>
+    <string name="settings_slider_description">%1$s-reglage, %2$s</string>
+    <string name="settings_daily_checkin">Daglig incheckning</string>
+    <string name="settings_checkin_notification_at">Avisering kl. %1$s  →</string>
+    <string name="settings_checkin_time_description">Incheckningstid %1$s, tryck för att ändra</string>
+    <string name="settings_bedtime_reminder">Läggdagspåminnelse</string>
+    <string name="settings_morning_rating">Morgonbetyg</string>
+    <string name="settings_morning_bedtime_log">Morgonens läggdagslogg</string>
+    <string name="settings_discovery_phase">Utforskningsfas</string>
+    <string name="settings_discovery_info_description">Information om utforskningsfasen</string>
+    <string name="settings_discovery_view_results_description">Visa resultat för utforskningsfasen</string>
+    <string name="settings_discovery_cancel_description">Avbryt utforskningsfasen</string>
+    <string name="settings_discovery_start_description">Starta utforskningsfasen</string>
+    <string name="settings_discovery_complete">Fasen är klar</string>
+    <string name="settings_discovery_view_results">Visa resultat →</string>
+    <string name="settings_discovery_active">Aktiv · Dag %1$d/21</string>
+    <string name="settings_discovery_end">Avsluta →</string>
+    <plurals name="settings_discovery_days_rated">
+        <item quantity="one">%1$d / %2$d dag betygsatt</item>
+        <item quantity="other">%1$d / %2$d dagar betygsatta</item>
+    </plurals>
+    <string name="settings_discovery_inactive">Inaktiv</string>
+    <string name="settings_discovery_start_prompt">Starta Discovery Phase →</string>
+    <string name="settings_discovery_dialog_title">Discovery Phase</string>
+    <string name="settings_discovery_dialog_body">Under 21 dagar testar appen tre varianter av din sömnrutin för att hitta vad som funkar bäst för dig.</string>
+    <string name="settings_discovery_dialog_week1">• Vecka 1 — längre insomningstid (30 min)</string>
+    <string name="settings_discovery_dialog_week2">• Vecka 2 — längre cykler (105 min)</string>
+    <string name="settings_discovery_dialog_week3">• Vecka 3 — färre cykler (5 st)</string>
+    <string name="settings_discovery_dialog_footer">Betygsätt din sömn varje dag. Efter 21 dagar väljs den bästa varianten automatiskt.</string>
+    <string name="settings_discovery_dialog_close">Stäng</string>
+    <string name="settings_discovery_day_progress">Dag %1$d / 21</string>
+    <plurals name="settings_discovery_ratings_this_week">
+        <item quantity="one">%1$d betyg denna vecka</item>
+        <item quantity="other">%1$d betyg denna vecka</item>
+    </plurals>
+    <string name="settings_discovery_current_shift">Nuvarande variant: %1$s</string>
+    <string name="settings_smart_wake">Smart väckningsfönster</string>
+    <string name="settings_pattern_insights">Mönsterinsikter i historik</string>
+    <string name="settings_consistency_score">Konsekvenspoäng i historik</string>
+    <string name="settings_firebase_sync">Firebase-synk</string>
+    <string name="settings_last_synced">Senast synkad: Idag</string>
+    <string name="settings_export_data">Exportera data</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_privacy_policy">Integritetspolicy</string>
+    <string name="settings_github">GitHub</string>
+    <string name="settings_checkin_time_dialog_title">Incheckningstid</string>
+
+    <!-- Discovery results -->
+    <string name="discovery_results_title">Utforskningsfasen är klar</string>
+    <string name="discovery_results_dismiss">Stäng</string>
+    <string name="discovery_results_winning_shift_section">VINNANDE VARIANT</string>
+    <string name="discovery_results_average_rating">Genomsnittligt betyg: %1$s / 5.0</string>
+    <string name="discovery_results_winner_description">Den här varianten gav din bästa sömnkvalitet under det 21 dagar långa programmet.</string>
+    <string name="discovery_results_all_ratings_section">ALLA VARIANTERS BETYG</string>
+    <string name="discovery_results_rating_value">%1$s ★</string>
+    <string name="discovery_results_before_after_section">FÖRE / EFTER</string>
+    <string name="discovery_results_cycle_duration">Cykellängd</string>
+    <string name="discovery_results_sleep_latency">Insomningstid</string>
+    <string name="discovery_results_cycle_count">Antal cykler</string>
+    <string name="discovery_results_minutes_value">%1$d min</string>
+    <string name="discovery_results_apply">Använd resultat</string>
+    <string name="discovery_results_dismiss_button">Stäng</string>
+    <string name="discovery_results_footer_note">Du kan återkomma till den här skärmen från Inställningar när som helst.</string>
+    <string name="discovery_results_apply_error_title">Kunde inte tillämpa</string>
+    <string name="discovery_results_no_data">Ingen data för utforskningsfasen tillgänglig</string>
+    <string name="discovery_results_apply_failed">Det gick inte att tillämpa resultatet</string>
+
+    <!-- Shift type display names (kept in presentation — domain stays text-free) -->
+    <string name="shift_longer_latency">Längre insomningstid (30 min)</string>
+    <string name="shift_longer_cycles">Längre cykler (105 min)</string>
+    <string name="shift_fewer_cycles">Färre cykler (5)</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_go_back">Gå tillbaka</string>
+    <string name="onboarding_notifications_needed_title">Aviseringar behövs</string>
+    <string name="onboarding_notifications_needed_body">Aviseringar driver dagliga incheckningar och läggdagspåminnelser. Ge appen åtkomst.</string>
+    <string name="onboarding_grant">Tillåt</string>
+    <string name="onboarding_welcome_title">Sömncykelkalkylator</string>
+    <string name="onboarding_welcome_tagline">Vakna vid rätt tillfälle i din sömncykel — känn dig utvilad, inte groggy.</string>
+    <string name="onboarding_welcome_note">Byggd kring 90-minuters cykler. Anpassas till dig över tid.</string>
+    <string name="onboarding_get_started">Kom igång</string>
+    <string name="onboarding_permissions_title">Behörigheter</string>
+    <string name="onboarding_permissions_subtitle">Ge åtkomst för att aktivera incheckningar, alarm och påminnelser.</string>
+    <string name="onboarding_permission_notifications_title">Aviseringar</string>
+    <string name="onboarding_permission_notifications_subtitle">Krävs för incheckningar och påminnelser</string>
+    <string name="onboarding_permission_alarms_title">Exakta alarm</string>
+    <string name="onboarding_permission_alarms_subtitle">Krävs för exakt alarmtidpunkt</string>
+    <string name="onboarding_permission_read_alarm_title">Läs alarm</string>
+    <string name="onboarding_permission_read_alarm_subtitle">Upptäcker ditt befintliga alarm</string>
+    <string name="onboarding_permission_optional">(valfritt)</string>
+    <string name="onboarding_wake_time_title">Väckningstid</string>
+    <string name="onboarding_wake_time_subtitle">När vill du vakna?</string>
+    <string name="onboarding_wake_time_description">%1$s, väckningstid, tryck för att ändra</string>
+    <string name="onboarding_page_indicator_description">Sida %1$d av %2$d</string>
+    <string name="onboarding_daily_checkin_title">Daglig incheckning</string>
+    <string name="onboarding_daily_checkin_body">Varje kväll klockan 18:00 frågar vi: när behöver du vakna imorgon?</string>
+    <string name="onboarding_daily_checkin_note">Ändra tiden eller stäng av i Inställningar.</string>
+    <string name="onboarding_bedtime_reminder_title">Läggdagspåminnelse</string>
+    <string name="onboarding_bedtime_reminder_body">Vi påminner dig 15 minuter innan din beräknade läggdags så att du hinner varva ner.</string>
+    <string name="onboarding_bedtime_reminder_note">Utlöses bara de kvällar du har satt en läggdags.</string>
+    <string name="onboarding_morning_checkin_title">Morgonincheckning</string>
+    <string name="onboarding_morning_checkin_body">En snabb incheckning efter att du vaknat hjälper till att bygga din personliga sömnprofil.</string>
+    <string name="onboarding_morning_rating_toggle">Hur sov du? (1–5)</string>
+    <string name="onboarding_morning_bedtime_toggle">Vilken tid gick du och la dig?</string>
+    <string name="onboarding_smart_wake_title">Smart väckning</string>
+    <string name="onboarding_smart_wake_body">Din telefon känner av rörelse för att väcka dig i ett lättare ögonblick inom ett fönster du ställer in. Ingen mikrofon. Inga uppladdningar. Helt lokalt.</string>
+    <string name="onboarding_smart_wake_warning">⚠ Telefonen måste ligga i sängen för att fungera. Om du laddar den någon annanstans — hoppa över det här, det hjälper dig inte.</string>
+    <string name="onboarding_discovery_title">Utforskningsfas</string>
+    <string name="onboarding_discovery_body">Efter 21 nätter lär sig 90phase din verkliga insomningstid och cykellängd — så att läggdagsrekommendationerna blir skarpare över tid.</string>
+    <string name="onboarding_got_it">Uppfattat</string>
+</resources>

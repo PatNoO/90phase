@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.BedtimeRecommendation
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.components.BedtimeResultCard
 import com.example.a90phase.presentation.components.SectionHeader
 import com.example.a90phase.presentation.components.SleepToggle
@@ -78,8 +80,13 @@ private data class CalculatorScreenState(
     val isSaving: Boolean = false,
 )
 
+@Composable
 private fun BedtimeRecommendation.toDurationLabel(): String =
-    if (quality == BedtimeQuality.PASSED) "Passed" else "${durationMinutes / 60}h ${durationMinutes % 60}min sleep"
+    if (quality == BedtimeQuality.PASSED) {
+        stringResource(R.string.calculator_duration_passed)
+    } else {
+        stringResource(R.string.calculator_duration_sleep, durationMinutes / 60, durationMinutes % 60)
+    }
 
 @Suppress("LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,11 +101,13 @@ fun CalculatorScreen(
     val vmState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val bedtimeSavedMessage = stringResource(R.string.calculator_bedtime_saved)
+    val saveFailedMessage = stringResource(R.string.calculator_save_failed)
 
     LaunchedEffect(Unit) {
         viewModel.saveResult.collect { success ->
             scope.launch {
-                if (success) snackbarHostState.showSnackbar("Läggdags sparad") else snackbarHostState.showSnackbar("Kunde inte spara")
+                snackbarHostState.showSnackbar(if (success) bedtimeSavedMessage else saveFailedMessage)
             }
         }
     }
@@ -111,7 +120,7 @@ fun CalculatorScreen(
             }
         }
         is SleepCalculatorUiState.Error -> CalculatorErrorState(
-            message = state.message,
+            message = stringResource(state.messageRes),
             onRetry = viewModel::retry,
         )
         is SleepCalculatorUiState.Success -> {
@@ -166,7 +175,10 @@ private fun CalculatorErrorState(message: String, onRetry: () -> Unit) {
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(Spacing.Medium))
-            com.example.a90phase.presentation.components.PrimaryButton(text = "Försök igen", onClick = onRetry)
+            com.example.a90phase.presentation.components.PrimaryButton(
+                text = stringResource(R.string.calculator_try_again),
+                onClick = onRetry,
+            )
         }
     }
 }
@@ -213,7 +225,7 @@ private fun CalculatorScaffold(
                 }
                 item {
                     Spacer(modifier = Modifier.height(Spacing.Large))
-                    SectionHeader(title = "Recommended Bedtimes")
+                    SectionHeader(title = stringResource(R.string.calculator_recommended_bedtimes))
                     Spacer(modifier = Modifier.height(Spacing.XS))
                 }
                 itemsIndexed(state.bedtimes) { index, bedtime ->
@@ -227,19 +239,24 @@ private fun CalculatorScaffold(
                 if (state.selectedBedtimeIndex >= 0) {
                     item {
                         Spacer(modifier = Modifier.height(Spacing.Medium))
-                        com.example.a90phase.presentation.components.PrimaryButton(
-                            text = if (state.isSaving) "Sparar..." else "Spara",
-                            onClick = onSaveClicked,
-                            enabled = !state.isSaving,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = Spacing.Medium),
-                        )
+                        SaveBedtimeButton(isSaving = state.isSaving, onClick = onSaveClicked)
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun SaveBedtimeButton(isSaving: Boolean, onClick: () -> Unit) {
+    com.example.a90phase.presentation.components.PrimaryButton(
+        text = stringResource(if (isSaving) R.string.calculator_saving else R.string.calculator_save),
+        onClick = onClick,
+        enabled = !isSaving,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.Medium),
+    )
 }
 
 @Composable
@@ -264,7 +281,7 @@ private fun AlarmSuggestionBanner(wakeTime: LocalTime, isActive: Boolean) {
             Text(text = "⏰", style = SleepTypography.HeadlineMedium)
             Spacer(modifier = Modifier.width(Spacing.Small))
             Text(
-                text = "Your alarm: $formatted",
+                text = stringResource(R.string.calculator_alarm_banner, formatted),
                 style = SleepTypography.BodyMedium,
                 color = SleepColors.CyanGlow,
             )
@@ -275,10 +292,11 @@ private fun AlarmSuggestionBanner(wakeTime: LocalTime, isActive: Boolean) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CalculatorTopBar(onNavigateToSettings: () -> Unit) {
+    val openSettingsDescription = stringResource(R.string.calculator_open_settings)
     TopAppBar(
         title = {
             Text(
-                text = "Sleep Cycle Optimizer",
+                text = stringResource(R.string.calculator_title),
                 style = SleepTypography.HeadlineMedium,
                 color = SleepColors.White,
             )
@@ -290,7 +308,7 @@ private fun CalculatorTopBar(onNavigateToSettings: () -> Unit) {
                     style = SleepTypography.HeadlineMedium,
                     color = SleepColors.Silver,
                     modifier = Modifier.clearAndSetSemantics {
-                        contentDescription = "Open settings"
+                        contentDescription = openSettingsDescription
                     },
                 )
             }
@@ -310,8 +328,16 @@ private fun CalculatorToggles(
     onReminderToggle: (Boolean) -> Unit,
 ) {
     Column(modifier = Modifier.padding(horizontal = Spacing.Medium)) {
-        SleepToggle(label = "Alarm Active", checked = isAlarmActive, onCheckedChange = onAlarmToggle)
-        SleepToggle(label = "Daily Check-in (18:00)", checked = isDailyReminderActive, onCheckedChange = onReminderToggle)
+        SleepToggle(
+            label = stringResource(R.string.calculator_alarm_active),
+            checked = isAlarmActive,
+            onCheckedChange = onAlarmToggle,
+        )
+        SleepToggle(
+            label = stringResource(R.string.calculator_daily_checkin_toggle),
+            checked = isDailyReminderActive,
+            onCheckedChange = onReminderToggle,
+        )
     }
 }
 
@@ -353,15 +379,21 @@ private fun WakeTimePickerDialog(
     val state = rememberTimePickerState(initialHour = initialTime.hour, initialMinute = initialTime.minute, is24Hour = true)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Select Wake Time", style = SleepTypography.HeadlineMedium, color = SleepColors.White) },
+        title = {
+            Text(
+                text = stringResource(R.string.calculator_select_wake_time),
+                style = SleepTypography.HeadlineMedium,
+                color = SleepColors.White,
+            )
+        },
         text = { TimePicker(state = state) },
         confirmButton = {
             TextButton(onClick = { onTimeSelected(LocalTime.of(state.hour, state.minute)) }) {
-                Text(text = "OK", color = SleepColors.CyanGlow)
+                Text(text = stringResource(R.string.common_ok), color = SleepColors.CyanGlow)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(text = "Cancel", color = SleepColors.Silver) }
+            TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.common_cancel), color = SleepColors.Silver) }
         },
         containerColor = SleepColors.MidnightBlue,
     )

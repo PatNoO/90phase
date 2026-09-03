@@ -28,12 +28,14 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.theme.NightSkyTheme
 import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
@@ -90,6 +92,7 @@ fun WakeTimeCard(
 @Composable
 private fun WakeTimeCardInner(time: LocalTime, isActive: Boolean, onClick: () -> Unit) {
     val timeLabel = time.format(DateTimeFormatter.ofPattern("HH:mm"))
+    val description = stringResource(R.string.wake_time_card_description, timeLabel)
     val isCompact = rememberIsCompactHeight()
     val verticalPadding = if (isCompact) Spacing.Large else Spacing.XXL
     Box(
@@ -106,7 +109,7 @@ private fun WakeTimeCardInner(time: LocalTime, isActive: Boolean, onClick: () ->
                 shape = CARD_SHAPE,
             )
             .clearAndSetSemantics {
-                contentDescription = "Wake time $timeLabel, tap to change"
+                contentDescription = description
                 role = Role.Button
             }
             .clickable(onClick = onClick)
@@ -132,7 +135,7 @@ private fun WakeTimeCardInner(time: LocalTime, isActive: Boolean, onClick: () ->
                 )
             }
             Text(
-                text = "WAKE TIME  ·  TAP TO CHANGE",
+                text = stringResource(R.string.wake_time_card_label),
                 style = SleepTypography.LabelMedium,
                 color = SleepColors.Silver.copy(alpha = 0.5f),
             )

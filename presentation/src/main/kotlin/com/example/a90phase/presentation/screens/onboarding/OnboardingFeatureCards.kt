@@ -14,9 +14,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.components.PrimaryButton
 import com.example.a90phase.presentation.components.SleepToggle
 import com.example.a90phase.presentation.theme.NightSkyTheme
@@ -24,16 +26,6 @@ import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.rememberIsCompactHeight
-
-private const val SMART_WAKE_BODY =
-    "Your phone detects movement to wake you at a lighter moment within a window you set. " +
-        "No microphone. No uploads. Completely local."
-private const val SMART_WAKE_WARNING =
-    "⚠ Phone must be on your bed to work. If you charge it away from bed — skip this, " +
-        "it won't help you."
-private const val DISCOVERY_BODY =
-    "After 21 nights, 90phase learns your real sleep latency and cycle length — so bedtime " +
-        "recommendations get sharper over time."
 
 @Composable
 internal fun OnboardingDailyCheckInCard(
@@ -59,33 +51,33 @@ internal fun OnboardingDailyCheckInCard(
         )
         Spacer(modifier = Modifier.height(sectionSpacing))
         Text(
-            text = "Daily Check-in",
+            text = stringResource(R.string.onboarding_daily_checkin_title),
             style = SleepTypography.HeadlineLarge,
             color = SleepColors.White,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(Spacing.Small))
         Text(
-            text = "Every evening at 18:00 we ask: when do you need to wake up tomorrow?",
+            text = stringResource(R.string.onboarding_daily_checkin_body),
             style = SleepTypography.BodyLarge,
             color = SleepColors.Silver,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(Spacing.XS))
         Text(
-            text = "Change the time or turn off in Settings.",
+            text = stringResource(R.string.onboarding_daily_checkin_note),
             style = SleepTypography.BodyMedium,
             color = SleepColors.SlateBlue,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(sectionSpacing))
         SleepToggle(
-            label = "Daily Check-in",
+            label = stringResource(R.string.onboarding_daily_checkin_title),
             checked = enabled,
             onCheckedChange = onToggle,
         )
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
-        PrimaryButton(text = "Continue", onClick = onContinue)
+        PrimaryButton(text = stringResource(R.string.common_continue), onClick = onContinue)
     }
 }
 
@@ -113,33 +105,33 @@ internal fun OnboardingBedtimeReminderCard(
         )
         Spacer(modifier = Modifier.height(sectionSpacing))
         Text(
-            text = "Bedtime Reminder",
+            text = stringResource(R.string.onboarding_bedtime_reminder_title),
             style = SleepTypography.HeadlineLarge,
             color = SleepColors.White,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(Spacing.Small))
         Text(
-            text = "We'll nudge you 15 minutes before your calculated bedtime so you can wind down.",
+            text = stringResource(R.string.onboarding_bedtime_reminder_body),
             style = SleepTypography.BodyLarge,
             color = SleepColors.Silver,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(Spacing.XS))
         Text(
-            text = "Only fires on nights you've set a bedtime.",
+            text = stringResource(R.string.onboarding_bedtime_reminder_note),
             style = SleepTypography.BodyMedium,
             color = SleepColors.SlateBlue,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(sectionSpacing))
         SleepToggle(
-            label = "Bedtime Reminder",
+            label = stringResource(R.string.onboarding_bedtime_reminder_title),
             checked = enabled,
             onCheckedChange = onToggle,
         )
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
-        PrimaryButton(text = "Continue", onClick = onContinue)
+        PrimaryButton(text = stringResource(R.string.common_continue), onClick = onContinue)
     }
 }
 
@@ -170,32 +162,32 @@ internal fun OnboardingMorningCheckInCard(
         )
         Spacer(modifier = Modifier.height(sectionSpacing))
         Text(
-            text = "Morning Check-in",
+            text = stringResource(R.string.onboarding_morning_checkin_title),
             style = SleepTypography.HeadlineLarge,
             color = SleepColors.White,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(Spacing.Small))
         Text(
-            text = "A quick check-in after you wake helps build your personal sleep profile.",
+            text = stringResource(R.string.onboarding_morning_checkin_body),
             style = SleepTypography.BodyLarge,
             color = SleepColors.Silver,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(sectionSpacing))
         SleepToggle(
-            label = "How did you sleep? (1–5)",
+            label = stringResource(R.string.onboarding_morning_rating_toggle),
             checked = morningRatingEnabled,
             onCheckedChange = onMorningRatingToggle,
         )
         Spacer(modifier = Modifier.height(Spacing.Small))
         SleepToggle(
-            label = "What time did you go to bed?",
+            label = stringResource(R.string.onboarding_morning_bedtime_toggle),
             checked = morningBedtimeLogEnabled,
             onCheckedChange = onMorningBedtimeLogToggle,
         )
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
-        PrimaryButton(text = "Continue", onClick = onContinue)
+        PrimaryButton(text = stringResource(R.string.common_continue), onClick = onContinue)
     }
 }
 
@@ -223,33 +215,33 @@ internal fun OnboardingSmartWakeCard(
         )
         Spacer(modifier = Modifier.height(sectionSpacing))
         Text(
-            text = "Smart Wake",
+            text = stringResource(R.string.onboarding_smart_wake_title),
             style = SleepTypography.HeadlineLarge,
             color = SleepColors.White,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(Spacing.Small))
         Text(
-            text = SMART_WAKE_BODY,
+            text = stringResource(R.string.onboarding_smart_wake_body),
             style = SleepTypography.BodyLarge,
             color = SleepColors.Silver,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(Spacing.Small))
         Text(
-            text = SMART_WAKE_WARNING,
+            text = stringResource(R.string.onboarding_smart_wake_warning),
             style = SleepTypography.BodyLarge,
             color = SleepColors.GoodAmber,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(sectionSpacing))
         SleepToggle(
-            label = "Smart Wake Window",
+            label = stringResource(R.string.settings_smart_wake),
             checked = enabled,
             onCheckedChange = onToggle,
         )
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
-        PrimaryButton(text = "Continue", onClick = onContinue)
+        PrimaryButton(text = stringResource(R.string.common_continue), onClick = onContinue)
     }
 }
 
@@ -274,20 +266,20 @@ internal fun OnboardingDiscoveryCard(onGotIt: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(sectionSpacing))
         Text(
-            text = "Discovery Phase",
+            text = stringResource(R.string.onboarding_discovery_title),
             style = SleepTypography.HeadlineLarge,
             color = SleepColors.White,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(Spacing.Small))
         Text(
-            text = DISCOVERY_BODY,
+            text = stringResource(R.string.onboarding_discovery_body),
             style = SleepTypography.BodyLarge,
             color = SleepColors.Silver,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(if (isCompact) Spacing.Medium else Spacing.XL))
-        PrimaryButton(text = "Got it", onClick = onGotIt)
+        PrimaryButton(text = stringResource(R.string.onboarding_got_it), onClick = onGotIt)
     }
 }
 

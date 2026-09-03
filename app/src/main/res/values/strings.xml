@@ -2,29 +2,44 @@
     <string name="app_name">90phase</string>
 
     <!-- Daily check-in notification -->
-    <string name="notification_checkin_title">När ska du vakna imorgon?</string>
-    <string name="notification_checkin_body">Ange din väckningstid för optimal sömnplanering.</string>
-    <string name="notification_turn_off">Stäng av dessa påminnelser</string>
-    <string name="notification_alarm_label">%1$s (Från larm)</string>
-    <string name="notification_customize">Anpassa</string>
+    <string name="notification_checkin_title">When do you want to wake up tomorrow?</string>
+    <string name="notification_checkin_body">Enter your wake-up time for optimal sleep planning.</string>
+    <string name="notification_turn_off">Turn off these reminders</string>
+    <string name="notification_alarm_label">%1$s (From alarm)</string>
+    <string name="notification_customize">Customize</string>
 
     <!-- Bedtime reminder notification -->
-    <string name="notification_bedtime_title">Dags att lägga sig!</string>
-    <string name="notification_bedtime_body">%1$d cykler · %2$s sömn</string>
-    <string name="notification_set_alarm">Ställ alarm</string>
+    <string name="notification_bedtime_title">Time to go to bed!</string>
+    <string name="notification_bedtime_body">%1$d cycles · %2$s sleep</string>
+    <string name="notification_set_alarm">Set alarm</string>
 
     <!-- Wake alarm -->
-    <string name="alarm_notification_title">⏰ Dags att vakna</string>
-    <string name="alarm_notification_body">Tryck för att stänga alarmet</string>
+    <string name="alarm_notification_title">⏰ Time to wake up</string>
+    <string name="alarm_notification_body">Tap to stop the alarm</string>
 
     <!-- Morning feedback notification -->
-    <string name="notification_morning_title">☀️ God morgon!</string>
-    <string name="notification_morning_body">Hur kändes sömnen i natt?</string>
-    <string name="notification_morning_skip">Hoppa</string>
-    <string name="notification_morning_turn_off">Stäng av dessa påminnelser</string>
+    <string name="notification_morning_title">☀️ Good morning!</string>
+    <string name="notification_morning_body">How did last night\'s sleep feel?</string>
+    <string name="notification_morning_skip">Skip</string>
+    <string name="notification_morning_turn_off">Turn off these reminders</string>
 
     <!-- Morning bedtime log bottom sheet -->
-    <string name="morning_sheet_title">Vad dags gick du och lade dig?</string>
-    <string name="morning_sheet_save">Spara</string>
-    <string name="morning_sheet_skip">Hoppa över</string>
+    <string name="morning_sheet_title">What time did you go to bed?</string>
+    <string name="morning_sheet_save">Save</string>
+    <string name="morning_sheet_skip">Skip</string>
+
+    <!-- Notification channels -->
+    <string name="channel_daily_checkin_name">Daily reminder</string>
+    <string name="channel_daily_checkin_description">Reminds you to enter tomorrow\'s wake-up time</string>
+    <string name="channel_bedtime_reminder_name">Bedtime reminder</string>
+    <string name="channel_bedtime_reminder_description">Reminds you of your optimal bedtime based on your wake-up time</string>
+    <string name="channel_morning_feedback_name">Morning feedback</string>
+    <string name="channel_morning_feedback_description">Asks for your sleep quality rating after you wake up</string>
+    <string name="channel_wake_alarm_name">Alarm clock</string>
+    <string name="channel_wake_alarm_description">Rings at your wake-up time</string>
+
+    <!-- Alarm ring screen -->
+    <string name="alarm_ring_message">Time to wake up</string>
+    <string name="alarm_ring_dismiss">Dismiss</string>
+    <string name="alarm_ring_snooze">Snooze 9 min</string>
 </resources>
