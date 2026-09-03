@@ -18,6 +18,16 @@ data class SleepLog(
     val syncStatus: SyncStatus = SyncStatus.PENDING_UPLOAD,
 ) {
     fun hasBeenRated(): Boolean = qualityRating != null
+
+    /**
+     * Minutes actually spent asleep — [cycleCount] times the cycle length that was in use.
+     *
+     * Deliberately excludes [sleepLatencyUsed], which is time spent falling asleep rather than
+     * sleeping. Contrast with `BedtimeRecommendation.durationMinutes`, which *includes* latency
+     * because it describes time in bed when planning a bedtime.
+     */
+    val sleepDurationMinutes: Int
+        get() = cycleCount * cycleDurationUsed
 }
 
 enum class SyncStatus {

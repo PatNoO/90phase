@@ -45,6 +45,24 @@ class SleepLogTest {
     }
 
     @Test
+    fun `sleepDurationMinutes multiplies cycles by the cycle length used`() {
+        val log = sampleLog().copy(cycleCount = 5, cycleDurationUsed = 90)
+        assertEquals(450, log.sleepDurationMinutes)
+    }
+
+    @Test
+    fun `sleepDurationMinutes excludes sleep latency`() {
+        val log = sampleLog().copy(cycleCount = 4, cycleDurationUsed = 90, sleepLatencyUsed = 30)
+        assertEquals(360, log.sleepDurationMinutes)
+    }
+
+    @Test
+    fun `sleepDurationMinutes honours a custom cycle length`() {
+        val log = sampleLog().copy(cycleCount = 4, cycleDurationUsed = 105)
+        assertEquals(420, log.sleepDurationMinutes)
+    }
+
+    @Test
     fun `copy preserves immutability`() {
         val original = sampleLog()
         val updated = original.copy(qualityRating = 5, syncStatus = SyncStatus.SYNCED)

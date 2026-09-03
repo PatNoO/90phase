@@ -80,6 +80,7 @@ private enum class HistoryPeriod { WEEK, MONTH }
 @Composable
 fun HistoryScreen(
     viewModel: HistoryViewModel = hiltViewModel(),
+    onNavigateToLogDetail: (String) -> Unit = {},
 ) {
     val vmState by viewModel.uiState.collectAsStateWithLifecycle()
     var period by remember { mutableStateOf(HistoryPeriod.WEEK) }
@@ -106,6 +107,7 @@ fun HistoryScreen(
                     insights = state.insights,
                     consistencyScore = state.consistencyScore,
                     onDismissInsight = viewModel::onDismissInsight,
+                    onLogClick = onNavigateToLogDetail,
                     modifier = Modifier.padding(innerPadding),
                 )
                 is HistoryUiState.Error -> Box(
@@ -185,6 +187,7 @@ private fun HistoryContent(
     insights: List<PatternInsight>,
     consistencyScore: ConsistencyScore?,
     onDismissInsight: (String) -> Unit,
+    onLogClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -211,9 +214,7 @@ private fun HistoryContent(
             SectionHeader(title = "Sleep Log")
         }
         items(logs) { log ->
-            // Log rows are not tappable yet — the detail screen is unimplemented (see
-            // docs/tickets/PH-88-sleep-log-detail-screen.md). Re-enable navigation there.
-            SleepLogCard(log = log)
+            SleepLogCard(log = log, onClick = { onLogClick(log.id) })
         }
     }
 }
@@ -223,7 +224,7 @@ private fun WeeklySummaryCard(logs: List<SleepLog>, consistencyScore: Consistenc
     val avgRating = logs.mapNotNull { it.qualityRating }.average().takeIf { !it.isNaN() } ?: 0.0
     val bestDay = logs.maxByOrNull { it.qualityRating ?: 0 }?.date?.dayOfWeek?.toString()
         ?.lowercase()?.replaceFirstChar { it.uppercase() }
-    val avgMinutes = if (logs.isEmpty()) 0 else logs.map { it.cycleCount * it.cycleDurationUsed }.average().toInt()
+    val avgMinutes = if (logs.isEmpty()) 0 else logs.map { it.sleepDurationMinutes }.average().toInt()
 
     Box(
         modifier = Modifier
