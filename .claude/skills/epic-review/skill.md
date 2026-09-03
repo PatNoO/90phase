@@ -107,12 +107,31 @@ grep -rn "Log\.d\|Log\.v\|Log\.i\b" app/ domain/ data/ presentation/ --include="
 
 **Hardcoded colors in Compose:**
 ```bash
-grep -rn "Color(0x\|Color(\"#\|= Color\." presentation/ --include="*.kt" | grep -v "MaterialTheme\|colorScheme"
+# Excludes theme/ — that package *defines* the tokens, so its Color(0x...) literals are correct.
+# Color.Transparent is also fine (Scaffold containers let the gradient show through).
+grep -rn "Color(0x\|Color(\"#" presentation/ app/ --include="*.kt" | grep -v "/theme/\|/build/"
 ```
 
-**Hardcoded dp/sp values off the spacing scale:**
+**Hardcoded dp/sp values off the spacing scale (anything not 4,8,12,16,24,32,48,64):**
 ```bash
-grep -rn "\b[0-9]\+\.dp\b\|\b[0-9]\+\.sp\b" presentation/ --include="*.kt" | grep -v "// spacing-ok\|4\.dp\|8\.dp\|12\.dp\|16\.dp\|24\.dp\|32\.dp"
+# Scale is 4/8/12/16/24/32/48/64. theme/ defines the tokens, so it is excluded.
+grep -rn "\b[0-9]\+\.dp\b\|\b[0-9]\+\.sp\b" presentation/ app/ --include="*.kt" \
+  | grep -v "/theme/\|/build/\|// spacing-ok" \
+  | grep -vE "\b(4|8|12|16|24|32|48|64)\.(dp|sp)\b"
+```
+
+**Hardcoded user-facing strings in Compose (must be `stringResource`):**
+```bash
+grep -rn 'text = "\|contentDescription = "' presentation/src/main app/src/main --include="*.kt" \
+  | grep -v "/build/" | grep -vE 'text = "[^"]{0,3}"'
+```
+Short literals (glyph icons like `←`, `✕`, `⚙`) are filtered out. Sample text inside `@Preview`
+composables is acceptable; anything rendered to a real user must come from
+`values/strings.xml` + `values-sv/strings.xml`.
+
+**Missing Swedish translations:**
+```bash
+./gradlew lint && grep -c "MissingTranslation" */build/reports/lint-results-debug.html
 ```
 
 ---
