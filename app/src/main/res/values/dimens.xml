@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notification metrics. RemoteViews cannot read the Compose Spacing object, so the
+         Night Sky scale is mirrored here; these match Spacing.XXS / XS / Medium. -->
+    <dimen name="notification_gap_tiny">4dp</dimen>
+    <dimen name="notification_gap">8dp</dimen>
+
+    <!-- Accessibility minimum touch target. The previous layout used 40dp. -->
+    <dimen name="notification_touch_target">48dp</dimen>
+    <dimen name="notification_star_size">22sp</dimen>
+</resources>

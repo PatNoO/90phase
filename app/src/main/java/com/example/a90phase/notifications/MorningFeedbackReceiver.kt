@@ -47,13 +47,16 @@ class MorningFeedbackReceiver : BroadcastReceiver() {
 
     private fun postNotification(context: Context) {
         val notificationManager = context.getSystemService(NotificationManager::class.java)
-        val remoteViews = buildRemoteViews(context)
 
         val notification = NotificationCompat.Builder(context, NotificationChannels.MORNING_FEEDBACK_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.notification_morning_title))
             .setContentText(context.getString(R.string.notification_morning_body))
-            .setCustomBigContentView(remoteViews)
+            // Both views carry the stars. The collapsed one is what a heads-up banner shows and
+            // what the shade shows before the user expands anything, so rating has to be
+            // reachable there — previously the stars existed only when expanded.
+            .setCustomContentView(buildCollapsedViews(context))
+            .setCustomBigContentView(buildExpandedViews(context))
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setAutoCancel(false)
             .build()
@@ -61,59 +64,75 @@ class MorningFeedbackReceiver : BroadcastReceiver() {
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
-    private fun buildRemoteViews(context: Context): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.notification_morning_feedback)
-        views.setTextViewText(R.id.notification_body, context.getString(R.string.notification_morning_body))
+    private fun buildCollapsedViews(context: Context): RemoteViews {
+        val views = RemoteViews(context.packageName, R.layout.notification_morning_feedback_collapsed)
+        views.setTextViewText(R.id.notification_prompt, context.getString(R.string.notification_morning_prompt))
+        bindStars(context, views)
+        return views
+    }
 
-        val starViewIds = listOf(R.id.btn_star_1, R.id.btn_star_2, R.id.btn_star_3, R.id.btn_star_4, R.id.btn_star_5)
-        starViewIds.forEachIndexed { index, viewId ->
+    private fun buildExpandedViews(context: Context): RemoteViews {
+        val views = RemoteViews(context.packageName, R.layout.notification_morning_feedback)
+        views.setTextViewText(R.id.notification_prompt, context.getString(R.string.notification_morning_prompt))
+        views.setTextViewText(R.id.notification_body, context.getString(R.string.notification_morning_body))
+        bindStars(context, views)
+
+        views.setTextViewText(R.id.btn_skip, context.getString(R.string.notification_morning_skip))
+        views.setContentDescription(R.id.btn_skip, context.getString(R.string.notification_morning_skip))
+        val skipIntent = Intent(context, SkipMorningFeedbackReceiver::class.java).apply {
+            putExtra(SkipMorningFeedbackReceiver.EXTRA_NOTIFICATION_ID, NOTIFICATION_ID)
+        }
+        views.setOnClickPendingIntent(R.id.btn_skip, broadcast(context, SKIP_REQUEST_CODE, skipIntent))
+
+        views.setTextViewText(R.id.tv_turn_off, context.getString(R.string.notification_morning_turn_off))
+        views.setContentDescription(R.id.tv_turn_off, context.getString(R.string.notification_morning_turn_off))
+        val disableIntent = Intent(context, DisableMorningFeedbackReceiver::class.java).apply {
+            putExtra(DisableMorningFeedbackReceiver.EXTRA_NOTIFICATION_ID, NOTIFICATION_ID)
+        }
+        views.setOnClickPendingIntent(R.id.tv_turn_off, broadcast(context, DISABLE_REQUEST_CODE, disableIntent))
+
+        return views
+    }
+
+    /**
+     * Wires the five rating targets. Each carries a spoken description of the value it sets, so
+     * TalkBack announces "Rate 3 out of 5" rather than reading the star glyph.
+     */
+    private fun bindStars(context: Context, views: RemoteViews) {
+        STAR_VIEW_IDS.forEachIndexed { index, viewId ->
             val rating = index + 1
+            views.setContentDescription(
+                viewId,
+                context.getString(R.string.notification_morning_rate_description, rating, MAX_RATING),
+            )
             val intent = Intent(context, RatingActionReceiver::class.java).apply {
                 putExtra(RatingActionReceiver.EXTRA_RATING, rating)
                 putExtra(RatingActionReceiver.EXTRA_NOTIFICATION_ID, NOTIFICATION_ID)
             }
-            val pending = PendingIntent.getBroadcast(
-                context,
-                STAR_REQUEST_BASE + rating,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-            views.setOnClickPendingIntent(viewId, pending)
+            views.setOnClickPendingIntent(viewId, broadcast(context, STAR_REQUEST_BASE + rating, intent))
         }
-
-        val skipIntent = Intent(context, SkipMorningFeedbackReceiver::class.java).apply {
-            putExtra(SkipMorningFeedbackReceiver.EXTRA_NOTIFICATION_ID, NOTIFICATION_ID)
-        }
-        views.setOnClickPendingIntent(
-            R.id.btn_skip,
-            PendingIntent.getBroadcast(
-                context,
-                SKIP_REQUEST_CODE,
-                skipIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            ),
-        )
-
-        val disableIntent = Intent(context, DisableMorningFeedbackReceiver::class.java).apply {
-            putExtra(DisableMorningFeedbackReceiver.EXTRA_NOTIFICATION_ID, NOTIFICATION_ID)
-        }
-        views.setOnClickPendingIntent(
-            R.id.tv_turn_off,
-            PendingIntent.getBroadcast(
-                context,
-                DISABLE_REQUEST_CODE,
-                disableIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            ),
-        )
-
-        return views
     }
+
+    private fun broadcast(context: Context, requestCode: Int, intent: Intent): PendingIntent =
+        PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
 
     companion object {
         const val NOTIFICATION_ID = 4001
         private const val STAR_REQUEST_BASE = 4010
         private const val SKIP_REQUEST_CODE = 4020
         private const val DISABLE_REQUEST_CODE = 4021
+        private const val MAX_RATING = 5
+        private val STAR_VIEW_IDS = listOf(
+            R.id.btn_star_1,
+            R.id.btn_star_2,
+            R.id.btn_star_3,
+            R.id.btn_star_4,
+            R.id.btn_star_5,
+        )
     }
 }
