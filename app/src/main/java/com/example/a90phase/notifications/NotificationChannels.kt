@@ -31,13 +31,19 @@ object NotificationChannels {
             description = context.getString(R.string.channel_bedtime_reminder_description)
         }
 
+        // IMPORTANCE_DEFAULT, not LOW: LOW means no sound *and* no heads-up banner, so the
+        // rating prompt landed silently in the shade and was routinely missed entirely. Not
+        // HIGH either — that is the wake alarm's level, and this prompt should not shout as
+        // loudly as the alarm itself.
+        //
+        // Channel settings are frozen after first creation, so this only takes effect on a
+        // fresh install. See the PH-94 ticket for why no `_v2` id was introduced.
         val morningFeedback = NotificationChannel(
             MORNING_FEEDBACK_CHANNEL_ID,
             context.getString(R.string.channel_morning_feedback_name),
-            NotificationManager.IMPORTANCE_LOW,
+            NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
             description = context.getString(R.string.channel_morning_feedback_description)
-            setSound(null, null)
         }
 
         val wakeAlarm = NotificationChannel(
