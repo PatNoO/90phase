@@ -82,7 +82,7 @@ class AlarmRingActivity : ComponentActivity() {
         setContent {
             NightSkyTheme {
                 AlarmRingScreen(
-                    planFlow = userPreferencesDataStore.observeSelectedBedtimePlan(),
+                    planFlow = userPreferencesDataStore.observeBedtimePlanForSelectedWakeTime(),
                     snoozeMinutes = SNOOZE_MINUTES,
                     onDismiss = ::onDismiss,
                     onSnooze = ::onSnooze,
@@ -310,7 +310,7 @@ internal fun AlarmRingContentPreview() {
         AlarmRingContent(
             time = LocalTime.of(7, 0),
             date = LocalDate.of(2025, 5, 15),
-            plan = SelectedBedtimePlan(cycleCount = 6, durationMinutes = 555),
+            plan = SelectedBedtimePlan(bedtime = LocalTime.of(21, 45), cycleCount = 6, durationMinutes = 555),
             snoozeMinutes = 9L,
             onDismiss = {},
             onSnooze = {},
@@ -338,7 +338,7 @@ internal fun AlarmRingContentNoPlanPreview() {
 internal fun AlarmRingScreenPreview() {
     NightSkyTheme {
         AlarmRingScreen(
-            planFlow = flowOf(SelectedBedtimePlan(cycleCount = 5, durationMinutes = 465)),
+            planFlow = flowOf(SelectedBedtimePlan(bedtime = LocalTime.of(23, 15), cycleCount = 5, durationMinutes = 465)),
             snoozeMinutes = 9L,
             onDismiss = {},
             onSnooze = {},

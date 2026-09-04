@@ -12,6 +12,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.LocalTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -90,23 +91,42 @@ class UserPreferencesDataStore @Inject constructor(
     fun observeSelectedBedtimeDuration(): Flow<Int> =
         dataStore.data.map { it[Keys.SELECTED_BEDTIME_DURATION] ?: 450 }
 
-    /**
-     * The bedtime plan the user actually chose, or `null` when they have never chosen one.
-     *
-     * [observeSelectedBedtimeCycles] and [observeSelectedBedtimeDuration] fall back to defaults,
-     * so on their own they cannot tell "the user picked 5 cycles" from "the user picked nothing".
-     * Callers that must show real data — or nothing — need this distinction.
-     */
     fun observeSelectedBedtimePlan(): Flow<SelectedBedtimePlan?> =
+        dataStore.data.map { it.readSelectedBedtimePlan() }
+
+    /**
+     * The selected bedtime plan, but only when it belongs to the wake time currently set.
+     *
+     * `setSelectedBedtime` overwrites a single record and nothing clears it when the user changes
+     * their wake time, so the stored plan routinely describes a different night. Callers that
+     * present the plan as "last night" must show it only when it actually matches — otherwise the
+     * alarm screen reports cycles and a duration for a wake-up that never happened.
+     */
+    fun observeBedtimePlanForSelectedWakeTime(): Flow<SelectedBedtimePlan?> =
         dataStore.data.map { prefs ->
-            val cycles = prefs[Keys.SELECTED_BEDTIME_CYCLES]
-            val duration = prefs[Keys.SELECTED_BEDTIME_DURATION]
-            if (cycles == null || duration == null) {
-                null
-            } else {
-                SelectedBedtimePlan(cycleCount = cycles, durationMinutes = duration)
-            }
+            val wakeHour = prefs[Keys.SELECTED_WAKE_HOUR] ?: DEFAULT_WAKE_HOUR
+            val wakeMinute = prefs[Keys.SELECTED_WAKE_MINUTE] ?: 0
+            prefs.readSelectedBedtimePlan()?.takeIf { it.belongsTo(LocalTime.of(wakeHour, wakeMinute)) }
         }
+
+    /**
+     * Reads the stored plan, or null when the user has never chosen a bedtime.
+     *
+     * Every field is required: `setSelectedBedtime` writes all four together, so a partial record
+     * means no real selection. The individual `observeSelectedBedtime*` accessors fall back to
+     * defaults and so cannot make that distinction.
+     */
+    private fun Preferences.readSelectedBedtimePlan(): SelectedBedtimePlan? {
+        val hour = this[Keys.SELECTED_BEDTIME_HOUR] ?: return null
+        val minute = this[Keys.SELECTED_BEDTIME_MINUTE] ?: return null
+        val cycles = this[Keys.SELECTED_BEDTIME_CYCLES] ?: return null
+        val duration = this[Keys.SELECTED_BEDTIME_DURATION] ?: return null
+        return SelectedBedtimePlan(
+            bedtime = LocalTime.of(hour, minute),
+            cycleCount = cycles,
+            durationMinutes = duration,
+        )
+    }
 
     fun observeSelectedBedtimeHour(): Flow<Int> =
         dataStore.data.map { it[Keys.SELECTED_BEDTIME_HOUR] ?: DEFAULT_BEDTIME_HOUR }
