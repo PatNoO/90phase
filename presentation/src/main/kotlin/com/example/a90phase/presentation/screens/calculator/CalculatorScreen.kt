@@ -1,5 +1,11 @@
 package com.example.a90phase.presentation.screens.calculator
 
+import android.app.AlarmManager
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -44,18 +50,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.launch
 import com.example.a90phase.domain.entities.BedtimeQuality
 import com.example.a90phase.domain.entities.BedtimeRecommendation
 import com.example.a90phase.presentation.R
 import com.example.a90phase.presentation.components.BedtimeResultCard
+import com.example.a90phase.presentation.components.SecondaryButton
 import com.example.a90phase.presentation.components.SectionHeader
 import com.example.a90phase.presentation.components.SleepToggle
 import com.example.a90phase.presentation.components.WakeTimeCard
@@ -64,11 +72,13 @@ import com.example.a90phase.presentation.theme.SleepColors
 import com.example.a90phase.presentation.theme.SleepTypography
 import com.example.a90phase.presentation.theme.Spacing
 import com.example.a90phase.presentation.theme.StarFieldBackground
+import com.example.a90phase.presentation.theme.glassCard
 import com.example.a90phase.presentation.viewmodels.CalculatorViewModel
 import com.example.a90phase.presentation.viewmodels.SleepCalculatorUiState
-import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private data class CalculatorScreenState(
     val wakeTime: LocalTime,
@@ -207,6 +217,9 @@ private fun CalculatorScaffold(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentPadding = PaddingValues(bottom = Spacing.XL),
             ) {
+                item {
+                    PermissionWarningBanner()
+                }
                 item {
                     Spacer(modifier = Modifier.height(Spacing.Medium))
                     WakeTimeCard(time = state.wakeTime, isActive = state.isWakeTimeActive, onClick = onWakeTimeClick)
@@ -397,6 +410,90 @@ private fun WakeTimePickerDialog(
         },
         containerColor = SleepColors.MidnightBlue,
     )
+}
+
+/**
+ * What the app cannot do right now because Android is withholding a permission.
+ *
+ * Both are granted during onboarding and never re-checked, so a user who declines — or revokes
+ * later — gets an app that silently stops notifying with nothing on screen to explain why.
+ */
+private enum class PermissionWarning { NotificationsBlocked, ExactAlarmsBlocked }
+
+/**
+ * Re-reads the permissions on every resume, so returning from system settings updates the banner
+ * immediately rather than on the next cold start.
+ */
+@Composable
+private fun rememberPermissionWarning(): PermissionWarning? {
+    val context = LocalContext.current
+    var warning by remember { mutableStateOf(currentPermissionWarning(context)) }
+    LifecycleResumeEffect(Unit) {
+        warning = currentPermissionWarning(context)
+        onPauseOrDispose { }
+    }
+    return warning
+}
+
+private fun currentPermissionWarning(context: Context): PermissionWarning? {
+    val notificationManager = context.getSystemService(NotificationManager::class.java)
+    if (!notificationManager.areNotificationsEnabled()) return PermissionWarning.NotificationsBlocked
+    // canScheduleExactAlarms is API 31; below that exact alarms are always allowed.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val alarmManager = context.getSystemService(AlarmManager::class.java)
+        if (!alarmManager.canScheduleExactAlarms()) return PermissionWarning.ExactAlarmsBlocked
+    }
+    return null
+}
+
+private fun openPermissionSettings(context: Context, warning: PermissionWarning) {
+    val intent = when (warning) {
+        PermissionWarning.NotificationsBlocked ->
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+        PermissionWarning.ExactAlarmsBlocked ->
+            Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+    }
+    context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+}
+
+@Composable
+private fun PermissionWarningBanner() {
+    val warning = rememberPermissionWarning() ?: return
+    val context = LocalContext.current
+    val title = when (warning) {
+        PermissionWarning.NotificationsBlocked -> R.string.permission_banner_notifications_title
+        PermissionWarning.ExactAlarmsBlocked -> R.string.permission_banner_exact_alarm_title
+    }
+    val body = when (warning) {
+        PermissionWarning.NotificationsBlocked -> R.string.permission_banner_notifications_body
+        PermissionWarning.ExactAlarmsBlocked -> R.string.permission_banner_exact_alarm_body
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.Medium)
+            .padding(top = Spacing.Medium)
+            .glassCard()
+            .padding(Spacing.Medium),
+    ) {
+        Text(
+            text = stringResource(title),
+            style = SleepTypography.BodyLarge,
+            color = SleepColors.GoodAmber,
+        )
+        Spacer(modifier = Modifier.height(Spacing.XXS))
+        Text(
+            text = stringResource(body),
+            style = SleepTypography.BodyMedium,
+            color = SleepColors.Silver,
+        )
+        Spacer(modifier = Modifier.height(Spacing.Small))
+        SecondaryButton(
+            text = stringResource(R.string.permission_banner_action),
+            onClick = { openPermissionSettings(context, warning) },
+        )
+    }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF0B1120)

@@ -54,10 +54,17 @@ class CalculatorViewModel @Inject constructor(
         viewModelScope.launch {
             // Persist so the wake time is remembered across app restarts.
             userPreferencesRepository.setSelectedWakeTime(wakeTime.hour, wakeTime.minute)
-            // Keep an active alarm in sync with the new wake time (setAlarmClock replaces it).
-            val alarmActive = userPreferencesRepository.observeWakeAlarmEnabled().first()
-            if (alarmActive && previousWakeTime != wakeTime) {
-                notificationScheduler.scheduleWakeAlarm(wakeTime)
+            if (previousWakeTime != wakeTime) {
+                // Keep an active alarm in sync with the new wake time (setAlarmClock replaces it).
+                if (userPreferencesRepository.observeWakeAlarmEnabled().first()) {
+                    notificationScheduler.scheduleWakeAlarm(wakeTime)
+                }
+                // The morning rating fires at wake time + 15 min, so it has to move too. Without
+                // this it kept firing against the previous wake time until the next time it fired
+                // and re-armed itself — a full day late, or hours early.
+                if (userPreferencesRepository.observeMorningRatingEnabled().first()) {
+                    notificationScheduler.scheduleMorningFeedback(wakeTime)
+                }
             }
             recalculate(wakeTime)
         }

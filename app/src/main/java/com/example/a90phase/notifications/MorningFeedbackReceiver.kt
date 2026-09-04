@@ -28,14 +28,16 @@ class MorningFeedbackReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
-                // Re-arm for tomorrow first — this alarm is one-shot, so without
-                // rescheduling it would only ever fire once.
+                // Bail before re-arming when the feature is off. Rescheduling first kept an
+                // alarm alive indefinitely for a disabled feature.
+                val enabled = userPreferencesDataStore.observeMorningRatingEnabled().first()
+                if (!enabled) return@launch
+
+                // This alarm is one-shot, so re-arm for tomorrow or it fires only once.
                 val hour = userPreferencesDataStore.observeSelectedWakeHour().first()
                 val minute = userPreferencesDataStore.observeSelectedWakeMinute().first()
                 morningFeedbackScheduler.schedule(LocalTime.of(hour, minute))
 
-                val enabled = userPreferencesDataStore.observeMorningRatingEnabled().first()
-                if (!enabled) return@launch
                 postNotification(context)
             } finally {
                 pendingResult.finish()

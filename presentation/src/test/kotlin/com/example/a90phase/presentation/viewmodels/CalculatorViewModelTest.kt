@@ -191,6 +191,55 @@ class CalculatorViewModelTest {
         val state = vm.uiState.value as SleepCalculatorUiState.Success
         assertEquals(null, state.nextSystemAlarm)
     }
+
+    // ── Morning rating reschedule (PH-94) ─────────────────────────────────────
+
+    @Test
+    fun `changing the wake time reschedules the morning rating when enabled`() = runTest {
+        val scheduler = RecordingNotificationScheduler()
+        val vm = viewModel(
+            userPrefsRepo = FakeUserPreferencesRepository(morningRatingEnabled = true),
+            notificationScheduler = scheduler,
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        vm.onWakeTimeChanged(LocalTime.of(5, 30))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(listOf(LocalTime.of(5, 30)), scheduler.morningFeedbackTimes)
+    }
+
+    @Test
+    fun `changing the wake time does not reschedule the morning rating when disabled`() = runTest {
+        val scheduler = RecordingNotificationScheduler()
+        val vm = viewModel(
+            userPrefsRepo = FakeUserPreferencesRepository(morningRatingEnabled = false),
+            notificationScheduler = scheduler,
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        vm.onWakeTimeChanged(LocalTime.of(5, 30))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(scheduler.morningFeedbackTimes.isEmpty())
+    }
+
+    @Test
+    fun `re-selecting the same wake time reschedules nothing`() = runTest {
+        val scheduler = RecordingNotificationScheduler()
+        val vm = viewModel(
+            userPrefsRepo = FakeUserPreferencesRepository(morningRatingEnabled = true),
+            notificationScheduler = scheduler,
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // 07:00 is what the fake already reports as the stored wake time.
+        vm.onWakeTimeChanged(LocalTime.of(7, 0))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(scheduler.morningFeedbackTimes.isEmpty())
+        assertTrue(scheduler.wakeAlarmTimes.isEmpty())
+    }
 }
 
 // ── Test doubles ──────────────────────────────────────────────────────────────
@@ -202,12 +251,31 @@ private class FakeAlarmRepository(
     override suspend fun getAllAlarms(): Result<List<SystemAlarm>> = Result.Success(alarms)
 }
 
+private class RecordingNotificationScheduler : NotificationScheduler {
+    val morningFeedbackTimes = mutableListOf<LocalTime>()
+    val wakeAlarmTimes = mutableListOf<LocalTime>()
+
+    override fun scheduleBedtimeReminder(bedtime: LocalTime) = Unit
+    override fun cancelBedtimeReminder() = Unit
+    override fun scheduleDailyCheckIn(timeString: String) = Unit
+    override fun cancelDailyCheckIn() = Unit
+    override fun scheduleMorningFeedback(wakeTime: LocalTime) {
+        morningFeedbackTimes += wakeTime
+    }
+    override fun cancelMorningFeedback() = Unit
+    override fun scheduleWakeAlarm(wakeTime: LocalTime) {
+        wakeAlarmTimes += wakeTime
+    }
+    override fun cancelWakeAlarm() = Unit
+}
+
 private class FakeUserPreferencesRepository(
     private val profile: UserProfile = UserProfile(
         userId = "test",
         optimalCycleMinutes = 90,
         sleepLatencyMinutes = 15,
     ),
+    private val morningRatingEnabled: Boolean = false,
 ) : UserPreferencesRepository {
     override suspend fun getUserProfile(): Result<UserProfile> = Result.Success(profile)
     override suspend fun updateUserProfile(profile: UserProfile): Result<Unit> = Result.Success(Unit)
@@ -230,7 +298,8 @@ private class FakeUserPreferencesRepository(
         durationMinutes: Int,
     ): Result<Unit> = Result.Success(Unit)
     override suspend fun setMorningRatingEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
-    override fun observeMorningRatingEnabled(): Flow<Boolean> = emptyFlow()
+    override fun observeMorningRatingEnabled(): Flow<Boolean> =
+        kotlinx.coroutines.flow.flowOf(morningRatingEnabled)
     override suspend fun setMorningBedtimeLogEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> = emptyFlow()
     override suspend fun setFirebaseSyncEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
@@ -265,7 +334,7 @@ private class FailingUserPreferencesRepository : UserPreferencesRepository {
         durationMinutes: Int,
     ): Result<Unit> = Result.Success(Unit)
     override suspend fun setMorningRatingEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
-    override fun observeMorningRatingEnabled(): Flow<Boolean> = emptyFlow()
+    override fun observeMorningRatingEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setMorningBedtimeLogEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> = emptyFlow()
     override suspend fun setFirebaseSyncEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
@@ -308,7 +377,7 @@ private class CapturingUserPreferencesRepository : UserPreferencesRepository {
         return Result.Success(Unit)
     }
     override suspend fun setMorningRatingEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
-    override fun observeMorningRatingEnabled(): Flow<Boolean> = emptyFlow()
+    override fun observeMorningRatingEnabled(): Flow<Boolean> = kotlinx.coroutines.flow.flowOf(false)
     override suspend fun setMorningBedtimeLogEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
     override fun observeMorningBedtimeLogEnabled(): Flow<Boolean> = emptyFlow()
     override suspend fun setFirebaseSyncEnabled(enabled: Boolean): Result<Unit> = Result.Success(Unit)
