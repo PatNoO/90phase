@@ -229,4 +229,11 @@
     <string name="onboarding_discovery_title">Utforskningsfas</string>
     <string name="onboarding_discovery_body">Efter 21 nätter lär sig 90phase din verkliga insomningstid och cykellängd — så att läggdagsrekommendationerna blir skarpare över tid.</string>
     <string name="onboarding_got_it">Uppfattat</string>
+
+    <!-- Permission warning banners -->
+    <string name="permission_banner_notifications_title">Aviseringar är avstängda</string>
+    <string name="permission_banner_notifications_body">90phase kan inte påminna om läggdags eller fråga hur du sov förrän aviseringar tillåts.</string>
+    <string name="permission_banner_exact_alarm_title">Påminnelser kan komma sent</string>
+    <string name="permission_banner_exact_alarm_body">Android tillåter inte exakta alarm, så påminnelser kan bli kraftigt försenade eller utebli helt.</string>
+    <string name="permission_banner_action">Öppna inställningar</string>
 </resources>

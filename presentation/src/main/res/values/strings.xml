@@ -229,4 +229,11 @@
     <string name="onboarding_discovery_title">Discovery Phase</string>
     <string name="onboarding_discovery_body">After 21 nights, 90phase learns your real sleep latency and cycle length — so bedtime recommendations get sharper over time.</string>
     <string name="onboarding_got_it">Got it</string>
+
+    <!-- Permission warning banners -->
+    <string name="permission_banner_notifications_title">Notifications are turned off</string>
+    <string name="permission_banner_notifications_body">90phase cannot remind you about bedtime or ask how you slept until notifications are allowed.</string>
+    <string name="permission_banner_exact_alarm_title">Reminders may arrive late</string>
+    <string name="permission_banner_exact_alarm_body">Android is not allowing exact alarms, so reminders can be delayed by a long time or skipped entirely.</string>
+    <string name="permission_banner_action">Open settings</string>
 </resources>
