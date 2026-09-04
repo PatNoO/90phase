@@ -19,4 +19,31 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:backgroundDimEnabled">true</item>
     </style>
+
+    <!-- One rating star in the morning notification. 48dp square is the accessibility minimum;
+         the borderless ripple gives tap feedback without drawing a button chrome that would
+         clash with the notification shade. -->
+    <style name="MorningRatingStar">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_height">@dimen/notification_touch_target</item>
+        <item name="android:minWidth">@dimen/notification_touch_target</item>
+        <item name="android:gravity">center</item>
+        <item name="android:text">@string/notification_morning_star_glyph</item>
+        <item name="android:textSize">@dimen/notification_star_size</item>
+        <item name="android:textColor">@color/night_sky_star_amber</item>
+        <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
+    </style>
+
+    <!-- Skip / turn-off row. Same 48dp target as the stars. -->
+    <style name="MorningRatingAction">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">@dimen/notification_touch_target</item>
+        <item name="android:gravity">center</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textAppearance">@android:style/TextAppearance.Material.Notification</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+    </style>
 </resources>

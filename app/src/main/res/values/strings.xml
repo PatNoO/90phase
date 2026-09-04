@@ -20,6 +20,9 @@
     <!-- Morning feedback notification -->
     <string name="notification_morning_title">☀️ Good morning!</string>
     <string name="notification_morning_body">How did last night\'s sleep feel?</string>
+    <string name="notification_morning_star_glyph" translatable="false">★</string>
+    <string name="notification_morning_prompt">How did you sleep?</string>
+    <string name="notification_morning_rate_description">Rate %1$d out of %2$d</string>
     <string name="notification_morning_skip">Skip</string>
     <string name="notification_morning_turn_off">Turn off these reminders</string>
 
