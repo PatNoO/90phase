@@ -5,6 +5,8 @@ import androidx.compose.ui.graphics.Color
 object SleepColors {
     // Backgrounds
     val DeepSpace = Color(0xFF080E1A)
+    // Mirrored as @color/night_sky_navy_blue in app/src/main/res/values/colors.xml for the
+    // window background and system bars — XML themes cannot read Kotlin. Change both together.
     val NavyBlue = Color(0xFF0B1120)
     val MidnightBlue = Color(0xFF131D2E)
     val GlassSurface = Color(0xFF1A2640)
