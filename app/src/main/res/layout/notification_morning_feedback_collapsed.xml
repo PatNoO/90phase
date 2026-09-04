@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+     Collapsed morning-rating view.
+
+     The stars live here, not only in the expanded layout, because the collapsed view is what a
+     heads-up banner shows and what the shade shows before the user expands anything. Rating had
+     to be reachable without first knowing to expand the notification.
+
+     Colours come from theme attributes so the text stays legible on both light and dark
+     notification shades, including OEM skins that restyle them.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/notification_prompt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+        android:textColor="?android:attr/textColorPrimary" />
+
+    <include layout="@layout/notification_morning_feedback_stars" />
+
+</LinearLayout>
